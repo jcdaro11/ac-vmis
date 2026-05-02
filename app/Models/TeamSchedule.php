@@ -30,8 +30,8 @@ class TeamSchedule extends Model
         return $this->hasMany(ScheduleAttendance::class, 'schedule_id');
     }
 
-    public function wellnessLogs()
+    public function performanceLogs()
     {
-        return $this->hasMany(WellnessLog::class, 'schedule_id');
+        return $this->hasMany(PerformanceLog::class, 'schedule_id');
     }
 }

@@ -102,10 +102,10 @@ class Team extends Model
         return $this->belongsTo(User::class, 'archived_by');
     }
 
-    public function wellnessLogs()
+    public function performanceLogs()
     {
         return $this->hasManyThrough(
-            WellnessLog::class,
+            PerformanceLog::class,
             TeamSchedule::class,
             'team_id',
             'schedule_id',

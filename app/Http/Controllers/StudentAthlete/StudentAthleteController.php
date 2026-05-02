@@ -14,7 +14,7 @@ use App\Models\Team;
 use App\Models\TeamPlayer;
 use App\Models\TeamSchedule;
 use App\Models\Student;
-use App\Models\WellnessLog;
+use App\Models\PerformanceLog;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 
@@ -228,7 +228,7 @@ class StudentAthleteController extends Controller
 
         $wellnessLogsCount = 0;
         if ($student) {
-            $wellnessLogsCount = WellnessLog::query()
+            $wellnessLogsCount = PerformanceLog::query()
                 ->where('student_id', $student->id)
                 ->whereDate('log_date', '>=', $lastThirtyDays->toDateString())
                 ->count();
@@ -267,7 +267,7 @@ class StudentAthleteController extends Controller
         $wellnessSeries = [];
         $wellnessCounts = collect();
         if ($student) {
-            $wellnessCounts = WellnessLog::query()
+            $wellnessCounts = PerformanceLog::query()
                 ->where('student_id', $student->id)
                 ->whereDate('log_date', '>=', $sevenDaysStart->toDateString())
                 ->selectRaw('DATE(log_date) as day, AVG(fatigue_level) as value')

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Team;
 use App\Models\TeamPlayer;
 use App\Models\TeamSchedule;
-use App\Models\WellnessLog;
+use App\Models\PerformanceLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +46,7 @@ class CoachDashboardController extends Controller
             $pastSchedules = TeamSchedule::query()
                 ->where('team_id', $teamId)
                 ->where('end_time', '<', $now)
-                ->withCount(['attendances', 'wellnessLogs'])
+                ->withCount(['attendances', 'performanceLogs'])
                 ->orderByDesc('end_time')
                 ->get();
 
@@ -57,7 +57,7 @@ class CoachDashboardController extends Controller
                 });
             $wellnessPending = $pastSchedules->filter(function ($s) {
                 $type = strtolower((string) $s->type);
-                return in_array($type, ['practice', 'game'], true) && $s->attendances_count > 0 && $s->wellness_logs_count === 0;
+                return in_array($type, ['practice', 'game'], true) && $s->attendances_count > 0 && $s->performance_logs_count === 0;
             })->count();
 
             return Inertia::render('Coaches/CoachDashboard', [
@@ -178,7 +178,7 @@ class CoachDashboardController extends Controller
 
     private function wellnessSnapshot(int $teamId, Carbon $start, Carbon $end): array
     {
-        $baseQuery = WellnessLog::query()
+        $baseQuery = PerformanceLog::query()
             ->whereHas('schedule', function ($query) use ($teamId) {
                 $query->where('team_id', $teamId);
             })
@@ -201,7 +201,7 @@ class CoachDashboardController extends Controller
             ->latest('log_date')
             ->limit(5)
             ->get()
-            ->map(function (WellnessLog $log) {
+            ->map(function (PerformanceLog $log) {
                 $studentUser = $log->student?->user;
 
                 return [

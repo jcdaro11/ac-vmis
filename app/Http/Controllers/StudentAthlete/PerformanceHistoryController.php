@@ -4,7 +4,7 @@ namespace App\Http\Controllers\StudentAthlete;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
-use App\Models\WellnessLog;
+use App\Models\PerformanceLog;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -37,7 +37,7 @@ class PerformanceHistoryController extends Controller
             ]);
         }
 
-        $logs = WellnessLog::query()
+        $logs = PerformanceLog::query()
             ->with(['schedule.team', 'logger'])
             ->where('student_id', $student->id)
             ->latest('log_date')

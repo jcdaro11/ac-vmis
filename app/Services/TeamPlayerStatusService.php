@@ -6,7 +6,7 @@ use App\Models\AcademicDocument;
 use App\Models\AcademicEligibilityEvaluation;
 use App\Models\AcademicPeriod;
 use App\Models\TeamPlayer;
-use App\Models\WellnessLog;
+use App\Models\PerformanceLog;
 
 class TeamPlayerStatusService
 {
@@ -75,7 +75,7 @@ class TeamPlayerStatusService
 
     private function hasConfirmedInjury(int $studentId, int $teamId): bool
     {
-        return WellnessLog::query()
+        return PerformanceLog::query()
             ->where('student_id', $studentId)
             ->where('injury_observed', true)
             ->whereNull('injury_resolved_at')

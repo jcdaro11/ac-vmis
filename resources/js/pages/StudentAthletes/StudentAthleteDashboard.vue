@@ -138,7 +138,7 @@ const footerLinks = [
     { label: 'Dashboard', href: '/StudentAthleteDashboard' },
     { label: 'My Schedule', href: '/MySchedule' },
     { label: 'My Team', href: '/MyTeam' },
-    { label: 'Performance', href: '/WellnessHistory' },
+    { label: 'Performance', href: '/PerformanceHistory' },
     { label: 'Academics', href: '/AcademicSubmissions' },
     { label: 'Announcements', href: '/announcements' },
     { label: 'Profile', href: '/account/profile' },
@@ -940,7 +940,7 @@ watch(mobileMenuOpen, (open) => {
 
                                 <button
                                     type="button"
-                                    @click="go('/WellnessHistory')"
+                                    @click="go('/PerformanceHistory')"
                                     class="dashboard-card group flex h-full min-h-[11rem] flex-col justify-between rounded-2xl border border-[#034485]/25 bg-white p-4 text-left transition hover:border-[#034485]/50 hover:bg-[#f8fbff]"
                                     :style="cardMotion(10)"
                                 >
@@ -1104,7 +1104,7 @@ watch(mobileMenuOpen, (open) => {
                                             <button
                                                 type="button"
                                                 class="w-full rounded-md bg-[#034485] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#02396f] sm:w-auto"
-                                                @click="go('/WellnessHistory')"
+                                                @click="go('/PerformanceHistory')"
                                             >
                                                 Open
                                             </button>

@@ -8,7 +8,7 @@ use App\Models\Team;
 use App\Models\TeamSchedule;
 use App\Models\Student;
 use App\Models\User;
-use App\Models\WellnessLog;
+use App\Models\PerformanceLog;
 use App\Services\SystemNotificationService;
 use App\Services\TeamPlayerStatusService;
 use Carbon\Carbon;
@@ -66,7 +66,7 @@ class PerformanceMonitoringController extends Controller
             ->whereIn('status', ['present', 'late'])
             ->get();
 
-        $wellnessByStudent = WellnessLog::query()
+        $wellnessByStudent = PerformanceLog::query()
             ->where('schedule_id', $scheduleId)
             ->get()
             ->keyBy('student_id');
@@ -179,7 +179,7 @@ class PerformanceMonitoringController extends Controller
 
         abort_unless($attended, 422, 'Only present or late athletes can be logged for wellness.');
 
-        $wellness = WellnessLog::updateOrCreate(
+        $wellness = PerformanceLog::updateOrCreate(
             [
                 'schedule_id' => $schedule->id,
                 'student_id' => (int) $validated['student_id'],

@@ -121,7 +121,7 @@ const helpContent = computed<HelpContent>(() => {
         {
           title: 'Track performance updates',
           description: 'Record athlete condition, fatigue level, injury observation, performance condition, and coach remarks after scheduled activities.',
-          href: '/coach/wellness',
+          href: '/coach/performance',
           cta: 'Open Performance',
         },
       ],

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Team;
-use App\Models\WellnessLog;
+use App\Models\PerformanceLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -79,7 +79,7 @@ class HealthWorkspaceController extends Controller
             }
         };
 
-        $baseQuery = WellnessLog::query();
+        $baseQuery = PerformanceLog::query();
         $applyFilters($baseQuery);
 
         $stats = (clone $baseQuery)
@@ -101,7 +101,7 @@ class HealthWorkspaceController extends Controller
         $avgFatigue = round((float) ($stats->avg_fatigue ?? 0), 2);
         $fatigueSeverity = $this->fatigueSeverity($avgFatigue);
 
-        $paginator = WellnessLog::query()
+        $paginator = PerformanceLog::query()
             ->with([
                 'student.user:id,first_name,last_name',
                 'schedule.team:id,team_name',

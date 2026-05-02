@@ -1142,7 +1142,7 @@ class AdminController extends Controller
 
     private function wellnessSnapshot(CarbonInterface $start, CarbonInterface $end): array
     {
-        $rows = DB::table('wellness_logs as wl')
+        $rows = DB::table('performance_logs as wl')
             ->whereBetween('wl.log_date', [$start->toDateString(), $end->toDateString()])
             ->selectRaw('DATE(wl.log_date) as log_day')
             ->selectRaw('SUM(CASE WHEN wl.injury_observed = 1 THEN 1 ELSE 0 END) as injury_count')
@@ -1549,7 +1549,7 @@ class AdminController extends Controller
             ->limit(80)
             ->get();
 
-        $wellness = DB::table('wellness_logs as wl')
+        $wellness = DB::table('performance_logs as wl')
             ->join('users as actor', 'actor.id', '=', 'wl.logged_by')
             ->leftJoin('students as st', 'st.id', '=', 'wl.student_id')
             ->leftJoin('users as su', 'su.id', '=', 'st.user_id')
@@ -1709,7 +1709,7 @@ class AdminController extends Controller
             ->take(4)
             ->values();
 
-        $wellnessAlerts = DB::table('wellness_logs as wl')
+        $wellnessAlerts = DB::table('performance_logs as wl')
             ->join('students as s', 's.id', '=', 'wl.student_id')
             ->join('users as su', 'su.id', '=', 's.user_id')
             ->where('wl.log_date', '>=', now()->subDays(7)->toDateString())

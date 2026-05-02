@@ -152,15 +152,15 @@ This data dictionary describes the active operational entities of AC-VMIS. It is
 | `notes` | text | Nullable | Attendance-related note. |
 | `override_reason` | text | Nullable | Reason for an attendance override. |
 
-### `wellness_logs`
+### `performance_logs`
 
 | Field | Type | Constraints | Description |
 | --- | --- | --- | --- |
-| `id` | bigint | PK | Unique wellness log identifier. |
+| `id` | bigint | PK | Unique performance log identifier. |
 | `student_id` | bigint | FK to `students.id` | Student-athlete being monitored. |
 | `schedule_id` | bigint | FK to `team_schedules.id` | Related schedule context. |
-| `logged_by` | bigint | FK to `users.id`; nullable | User who recorded the wellness entry. |
-| `log_date` | date | Required | Date of the wellness observation. |
+| `logged_by` | bigint | FK to `users.id`; nullable | User who recorded the performance entry. |
+| `log_date` | date | Required | Date of the performance observation. |
 | `injury_observed` | boolean | Required | Indicates whether an injury concern was observed. |
 | `injury_notes` | text | Nullable | Additional injury remarks. |
 | `fatigue_level` | tinyint | Nullable | Recorded fatigue level. |

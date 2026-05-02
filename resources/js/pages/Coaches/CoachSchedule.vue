@@ -347,7 +347,7 @@ function canOpenWellness(item: any) {
 function openWellness(item: any) {
     if (!canOpenWellness(item)) return
 
-    router.get(`/coach/wellness/${item.id}/review`, {}, {
+    router.get(`/coach/performance/${item.id}/review`, {}, {
         preserveScroll: true,
         preserveState: false,
     })

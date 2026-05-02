@@ -11,7 +11,7 @@ DELETE FROM academic_document_ocr_runs;
 DELETE FROM academic_eligibility_evaluations;
 DELETE FROM academic_documents;
 DELETE FROM schedule_attendances;
-DELETE FROM wellness_logs;
+DELETE FROM performance_logs;
 DELETE FROM team_players;
 DELETE FROM team_staff_assignments;
 DELETE FROM team_schedules;
@@ -143,7 +143,7 @@ INSERT INTO schedule_attendances (
     (5, 5, 3, 'present', 'manual_override', 5, '2026-04-27 17:15:00', '2026-04-27 17:18:00', 'Completed reception drills.', NULL, '2026-04-27 17:15:00', '2026-04-27 17:18:00'),
     (6, 5, 4, 'present', 'manual_override', 5, '2026-04-27 17:15:00', '2026-04-27 17:18:00', 'No attendance issues recorded.', NULL, '2026-04-27 17:15:00', '2026-04-27 17:18:00');
 
-INSERT INTO wellness_logs (
+INSERT INTO performance_logs (
     id, student_id, schedule_id, logged_by, log_date, injury_observed, injury_notes,
     injury_resolved_at, injury_resolved_by, fatigue_level, performance_condition,
     remarks, created_at, updated_at

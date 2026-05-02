@@ -12,7 +12,7 @@ use App\Models\TeamPlayer;
 use App\Models\TeamSchedule;
 use App\Models\TeamStaffAssignment;
 use App\Models\User;
-use App\Models\WellnessLog;
+use App\Models\PerformanceLog;
 use App\Services\AcademicEligibilityAccessService;
 use App\Services\EmailVerificationService;
 use Illuminate\Support\Str;
@@ -161,7 +161,7 @@ class HandleInertiaRequests extends Middleware
                                 ->whereBetween('start_time', [$now, (clone $now)->addDays(7)])
                                 ->count();
 
-                            $wellnessCount = WellnessLog::query()
+                            $wellnessCount = PerformanceLog::query()
                                 ->whereDate('log_date', '>=', (clone $now)->subDays(7)->toDateString())
                                 ->count();
 

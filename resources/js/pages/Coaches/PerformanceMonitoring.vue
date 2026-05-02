@@ -54,7 +54,7 @@ function formatScheduleDate(value?: string | null) {
 }
 
 function openReview(scheduleId: number) {
-    router.get(`/coach/wellness/${scheduleId}/review`)
+    router.get(`/coach/performance/${scheduleId}/review`)
 }
 
 function cardMotion(order: number) {

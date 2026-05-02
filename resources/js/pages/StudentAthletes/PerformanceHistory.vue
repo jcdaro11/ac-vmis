@@ -8,7 +8,7 @@ defineOptions({
     layout: StudentAthleteDashboard,
 });
 
-type WellnessLog = {
+type PerformanceLog = {
     id: number;
     log_date: string | null;
     team_name: string | null;
@@ -29,7 +29,7 @@ const props = defineProps<{
         student_id_number: string | null;
         name: string;
     } | null;
-    logs: WellnessLog[];
+    logs: PerformanceLog[];
     accessLocked?: boolean;
     lockStatus?: string | null;
     lockMessage?: string | null;

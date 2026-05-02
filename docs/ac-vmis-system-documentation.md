@@ -225,7 +225,7 @@ The Student-Athlete is the primary participant being monitored by the varsity sy
 
 1. A coach selects a completed schedule and athlete for post-session evaluation.
 2. The coach records athlete condition details including injury observation, injury notes, fatigue level, performance condition, and coach remarks.
-3. The system stores the performance record in `wellness_logs`.
+3. The system stores the performance record in `performance_logs`.
 4. Administrators review performance records and filter them by athlete, team, injury, fatigue, or date range.
 
 ### 8. Communication and Support Workflow
@@ -243,7 +243,7 @@ The current logical database design of AC-VMIS is normalized around the followin
 - `admin_invites`, `student_approval_histories`, `account_action_logs`
 - `sports`, `teams`, `team_staff_assignments`, `team_players`
 - `team_schedules`, `schedule_attendances`
-- `wellness_logs`
+- `performance_logs`
 - `academic_periods`, `academic_document_types`, `academic_documents`
 - `academic_document_ocr_runs`, `academic_document_parsed_summaries`, `academic_eligibility_evaluations`
 - `announcement_events`, `announcement_recipients`

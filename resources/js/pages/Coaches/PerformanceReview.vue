@@ -108,7 +108,7 @@ function saveRow(studentId: number) {
 
     savingKey.value = `${props.schedule.id}:${studentId}`
 
-    router.post('/coach/wellness', {
+    router.post('/coach/performance', {
         schedule_id: props.schedule.id,
         student_id: studentId,
         injury_observed: form.injury_observed,
@@ -200,7 +200,7 @@ function cardMotion(order: number) {
 
     <div class="space-y-6">
         <div class="flex flex-col gap-3">
-            <BackLinkButton href="/coach/wellness" label="Back to Performance Monitoring" />
+            <BackLinkButton href="/coach/performance" label="Back to Performance Monitoring" />
             <section class="page-card rounded-3xl border border-[#034485]/35 bg-[#034485] p-5 text-white" :style="cardMotion(1)">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Player review</p>
                 <h1 class="mt-2 text-2xl font-bold text-white">Evaluate Athlete Performance</h1>

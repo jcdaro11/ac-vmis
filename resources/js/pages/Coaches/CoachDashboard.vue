@@ -387,7 +387,7 @@ function formatScheduleDateTime(value?: string | null) {
           </Link>
 
           <Link
-            href="/coach/wellness"
+            href="/coach/performance"
             class="rounded-2xl border border-[#034485]/18 bg-slate-50 px-4 py-4 transition hover:border-[#034485]/35 hover:bg-[#034485]/5"
           >
             <p class="text-sm font-semibold text-slate-900">Open Performance Monitoring</p>

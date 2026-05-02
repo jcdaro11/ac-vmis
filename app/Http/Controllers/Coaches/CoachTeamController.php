@@ -7,7 +7,7 @@ use App\Models\AccountActionLog;
 use App\Models\Team;
 use App\Models\TeamPlayer;
 use App\Models\User;
-use App\Models\WellnessLog;
+use App\Models\PerformanceLog;
 use App\Services\SystemNotificationService;
 use App\Services\TeamPlayerStatusService;
 use Illuminate\Support\Facades\Auth;
@@ -75,7 +75,7 @@ class CoachTeamController extends Controller
 
         if ($team) {
             $studentIds = $team->players->pluck('student_id')->filter()->map(fn ($id) => (int) $id)->all();
-            $latestInjuryByStudent = WellnessLog::query()
+            $latestInjuryByStudent = PerformanceLog::query()
                 ->whereIn('student_id', $studentIds)
                 ->where('injury_observed', true)
                 ->whereNull('injury_resolved_at')
@@ -243,7 +243,7 @@ class CoachTeamController extends Controller
         $team = $teamPlayer->team;
         abort_unless($team && in_array($coach->id, $team->activeCoachIds(), true), 403);
 
-        $injuryLog = WellnessLog::query()
+        $injuryLog = PerformanceLog::query()
             ->where('student_id', (int) $teamPlayer->student_id)
             ->where('injury_observed', true)
             ->whereNull('injury_resolved_at')
