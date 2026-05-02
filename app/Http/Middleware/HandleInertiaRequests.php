@@ -14,6 +14,7 @@ use App\Models\TeamStaffAssignment;
 use App\Models\User;
 use App\Models\WellnessLog;
 use App\Services\AcademicEligibilityAccessService;
+use App\Services\EmailVerificationService;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -50,6 +51,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $verificationService = app(EmailVerificationService::class);
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -67,6 +70,7 @@ class HandleInertiaRequests extends Middleware
                         'middle_name' => $request->user()->middle_name,
                         'last_name' => $request->user()->last_name,
                         'email' => $request->user()->email,
+                        'email_verified_at' => optional($request->user()->email_verified_at)?->toIso8601String(),
                         'role' => $request->user()->role,
                         'account_state' => $request->user()->account_state,
                         'approval_status' => $request->user()->approval_status,
@@ -100,11 +104,14 @@ class HandleInertiaRequests extends Middleware
                         }
                     })()
                     : null,
+                'verification' => fn () => $request->user()
+                    ? $verificationService->statusPayload($request->user())
+                    : null,
                 'announcements' => [
                     'unread_count' => fn () => $request->user()
                         ? (function () use ($request) {
                             try {
-                                return Cache::remember(
+                                $count = Cache::remember(
                                     'announcements:unread:' . $request->user()->id,
                                     now()->addSeconds(60),
                                     fn () => Announcement::query()
@@ -112,6 +119,12 @@ class HandleInertiaRequests extends Middleware
                                         ->whereNull('read_at')
                                         ->count()
                                 );
+
+                                if (!$request->user()->hasVerifiedEmail()) {
+                                    $count++;
+                                }
+
+                                return $count;
                             } catch (\Throwable $e) {
                                 Log::warning('Announcement unread count share payload failed.', [
                                     'user_id' => $request->user()?->id,
@@ -124,10 +137,11 @@ class HandleInertiaRequests extends Middleware
                         : 0,
                 ],
                 'admin_notifications' => fn () => $request->user() && $request->user()->role === 'admin'
-                    ? Cache::remember(
-                        'admin:notifications:' . $request->user()->id,
-                        now()->addSeconds(60),
-                        function () use ($request) {
+                    ? (function () use ($request, $verificationService) {
+                        $payload = Cache::remember(
+                            'admin:notifications:' . $request->user()->id,
+                            now()->addSeconds(60),
+                            function () use ($request) {
                             $adminId = $request->user()->id;
                             $now = now();
 
@@ -239,13 +253,27 @@ class HandleInertiaRequests extends Middleware
                                     ->values(),
                             ];
                         }
-                    )
+                        );
+
+                        $reminder = $verificationService->reminderPayload($request->user());
+                        if (!$reminder) {
+                            return $payload;
+                        }
+
+                        $payload['recent'] = collect([$reminder])
+                            ->merge(collect($payload['recent'] ?? []))
+                            ->values()
+                            ->all();
+
+                        return $payload;
+                    })()
                     : null,
                 'coach_notifications' => fn () => $request->user() && $request->user()->role === 'coach'
-                    ? Cache::remember(
-                        'coach:notifications:' . $request->user()->id,
-                        now()->addSeconds(60),
-                        function () use ($request) {
+                    ? (function () use ($request, $verificationService) {
+                        $payload = Cache::remember(
+                            'coach:notifications:' . $request->user()->id,
+                            now()->addSeconds(60),
+                            function () use ($request) {
                             try {
                                 $coach = $request->user()?->coach;
                                 if (!$coach) {
@@ -374,13 +402,31 @@ class HandleInertiaRequests extends Middleware
                                 ];
                             }
                         }
-                    )
+                        );
+
+                        if (!$payload) {
+                            return $payload;
+                        }
+
+                        $reminder = $verificationService->reminderPayload($request->user());
+                        if (!$reminder) {
+                            return $payload;
+                        }
+
+                        $payload['recent'] = collect([$reminder])
+                            ->merge(collect($payload['recent'] ?? []))
+                            ->values()
+                            ->all();
+
+                        return $payload;
+                    })()
                     : null,
                 'student_notifications' => fn () => $request->user() && in_array($request->user()->role, ['student', 'student-athlete'], true)
-                    ? Cache::remember(
-                        'student:notifications:' . $request->user()->id,
-                        now()->addSeconds(60),
-                        function () use ($request) {
+                    ? (function () use ($request, $verificationService) {
+                        $payload = Cache::remember(
+                            'student:notifications:' . $request->user()->id,
+                            now()->addSeconds(60),
+                            function () use ($request) {
                             try {
                                 $studentId = $request->user()->id;
 
@@ -417,7 +463,20 @@ class HandleInertiaRequests extends Middleware
                                 ];
                             }
                         }
-                    )
+                        );
+
+                        $reminder = $verificationService->reminderPayload($request->user());
+                        if (!$reminder) {
+                            return $payload;
+                        }
+
+                        $payload['recent'] = collect([$reminder])
+                            ->merge(collect($payload['recent'] ?? []))
+                            ->values()
+                            ->all();
+
+                        return $payload;
+                    })()
                     : null,
                 'academic_access' => fn () => $request->user() && in_array($request->user()->role, ['student', 'student-athlete'], true) && $request->user()->student
                     ? (function () use ($request) {

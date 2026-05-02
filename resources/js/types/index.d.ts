@@ -4,6 +4,14 @@ export interface Auth {
         name?: string;
         subtitle?: string | null;
     } | null;
+    verification?: {
+        required?: boolean;
+        email?: string;
+        status?: 'verified' | 'not_verified';
+        verified_at?: string | null;
+        settings_href?: string;
+        send_verification_route?: string;
+    } | null;
     announcements?: {
         unread_count?: number;
     };
@@ -12,11 +20,16 @@ export interface Auth {
         items?: Array<{ count?: number }>;
         recent?: Array<{
             id?: number;
+            kind?: string;
             title?: string;
             message?: string;
             type?: string;
             is_read?: boolean;
             published_at?: string | null;
+            settings_href?: string;
+            send_verification_route?: string;
+            send_verification_label?: string;
+            secondary_action_label?: string;
         }>;
     };
     admin_notifications?: {
@@ -24,11 +37,16 @@ export interface Auth {
         items?: Array<{ count?: number }>;
         recent?: Array<{
             id?: number;
+            kind?: string;
             title?: string;
             message?: string;
             type?: string;
             is_read?: boolean;
             published_at?: string | null;
+            settings_href?: string;
+            send_verification_route?: string;
+            send_verification_label?: string;
+            secondary_action_label?: string;
         }>;
     };
 }

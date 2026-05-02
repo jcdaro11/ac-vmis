@@ -3,6 +3,7 @@ import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
 import AccountShell from '@/components/Account/AccountShell.vue'
+import { useTheme } from '@/composables/useTheme'
 import { normalizeWorkspaceRole, resolveAccountLayout } from '@/pages/Account/accountRole'
 
 defineOptions({
@@ -32,6 +33,7 @@ const hasNotificationField = (field: string) => props.scope.notifications.includ
 const saved = ref(false)
 const page = usePage()
 const role = computed(() => normalizeWorkspaceRole((page.props as any)?.auth?.user?.role))
+const { isDarkMode } = useTheme()
 
 const labelMap = computed(() => {
   if (role.value === 'coach') {
@@ -112,22 +114,46 @@ function cardMotion(order: number) {
           <p class="mt-2 text-sm leading-6 text-white/85">Choose how academic, schedule, roster, and wellness updates reach you.</p>
         </section>
 
-        <section class="account-card rounded-2xl border border-[#034485]/40 bg-white p-5" :style="cardMotion(2)">
-        <h2 class="section-title">
-          <svg class="h-4 w-4 text-[#1f2937]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <section
+          class="account-card rounded-2xl border p-5 transition-colors"
+          :class="
+            isDarkMode
+              ? 'border-slate-700/80 bg-slate-950/90 text-slate-100'
+              : 'border-[#034485]/40 bg-white text-slate-900'
+          "
+          :style="cardMotion(2)"
+        >
+        <h2 class="section-title" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          <svg
+            class="h-4 w-4"
+            :class="isDarkMode ? 'text-sky-300' : 'text-[#1f2937]'"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
             <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           Notifications
         </h2>
-        <p class="settings-muted mt-1 text-xs text-slate-500">Choose how and when you want to be alerted.</p>
+        <p class="settings-muted mt-1 text-xs" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">Choose how and when you want to be alerted.</p>
 
         <div class="mt-4 grid gap-4 lg:grid-cols-2">
-          <div class="account-card rounded-xl border border-[#034485]/30 bg-slate-50 p-4" :style="cardMotion(3)">
+          <div
+            class="account-card rounded-xl border p-4 transition-colors"
+            :class="
+              isDarkMode
+                ? 'border-slate-700/80 bg-slate-900/95 text-slate-100'
+                : 'border-[#034485]/30 bg-slate-50 text-slate-900'
+            "
+            :style="cardMotion(3)"
+          >
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p class="settings-kicker text-xs font-semibold uppercase tracking-wide text-slate-500">Email Notifications</p>
-                <p class="text-xs text-slate-500">
+                <p class="settings-kicker text-xs font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">Email Notifications</p>
+                <p class="text-xs" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">
                   {{
                     role === 'coach'
                       ? 'Send coach alerts to your email.'
@@ -143,43 +169,67 @@ function cardMotion(order: number) {
               </label>
             </div>
             <div class="mt-4 grid gap-2">
-              <div v-if="hasNotificationField('notify_approvals')" class="toggle-row" :class="{ 'toggle-row--disabled': !form.notification_email_enabled }">
-                <span>{{ labelMap.notify_approvals }}</span>
+              <div
+                v-if="hasNotificationField('notify_approvals')"
+                class="toggle-row rounded-lg px-3 py-2 transition-colors"
+                :class="[isDarkMode ? 'text-white' : 'text-slate-700', { 'toggle-row--disabled': !form.notification_email_enabled }]"
+              >
+                <span class="font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-700'">{{ labelMap.notify_approvals }}</span>
                 <label class="switch switch--sm">
                   <input v-model="form.notify_approvals" type="checkbox" :disabled="!form.notification_email_enabled" />
                   <span class="slider" />
                 </label>
               </div>
-              <div v-if="hasNotificationField('notify_attendance_exceptions')" class="toggle-row" :class="{ 'toggle-row--disabled': !form.notification_email_enabled }">
-                <span>{{ labelMap.notify_attendance_exceptions }}</span>
+              <div
+                v-if="hasNotificationField('notify_attendance_exceptions')"
+                class="toggle-row rounded-lg px-3 py-2 transition-colors"
+                :class="[isDarkMode ? 'text-white' : 'text-slate-700', { 'toggle-row--disabled': !form.notification_email_enabled }]"
+              >
+                <span class="font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-700'">{{ labelMap.notify_attendance_exceptions }}</span>
                 <label class="switch switch--sm">
                   <input v-model="form.notify_attendance_exceptions" type="checkbox" :disabled="!form.notification_email_enabled" />
                   <span class="slider" />
                 </label>
               </div>
-              <div v-if="hasNotificationField('notify_schedule_changes')" class="toggle-row" :class="{ 'toggle-row--disabled': !form.notification_email_enabled }">
-                <span>{{ labelMap.notify_schedule_changes }}</span>
+              <div
+                v-if="hasNotificationField('notify_schedule_changes')"
+                class="toggle-row rounded-lg px-3 py-2 transition-colors"
+                :class="[isDarkMode ? 'text-white' : 'text-slate-700', { 'toggle-row--disabled': !form.notification_email_enabled }]"
+              >
+                <span class="font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-700'">{{ labelMap.notify_schedule_changes }}</span>
                 <label class="switch switch--sm">
                   <input v-model="form.notify_schedule_changes" type="checkbox" :disabled="!form.notification_email_enabled" />
                   <span class="slider" />
                 </label>
               </div>
-              <div v-if="hasNotificationField('notify_wellness_alerts')" class="toggle-row" :class="{ 'toggle-row--disabled': !form.notification_email_enabled }">
-                <span>{{ labelMap.notify_wellness_alerts }}</span>
+              <div
+                v-if="hasNotificationField('notify_wellness_alerts')"
+                class="toggle-row rounded-lg px-3 py-2 transition-colors"
+                :class="[isDarkMode ? 'text-white' : 'text-slate-700', { 'toggle-row--disabled': !form.notification_email_enabled }]"
+              >
+                <span class="font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-700'">{{ labelMap.notify_wellness_alerts }}</span>
                 <label class="switch switch--sm">
                   <input v-model="form.notify_wellness_alerts" type="checkbox" :disabled="!form.notification_email_enabled" />
                   <span class="slider" />
                 </label>
               </div>
-              <div v-if="hasNotificationField('notify_academic_alerts')" class="toggle-row" :class="{ 'toggle-row--disabled': !form.notification_email_enabled }">
-                <span>{{ labelMap.notify_academic_alerts }}</span>
+              <div
+                v-if="hasNotificationField('notify_academic_alerts')"
+                class="toggle-row rounded-lg px-3 py-2 transition-colors"
+                :class="[isDarkMode ? 'text-white' : 'text-slate-700', { 'toggle-row--disabled': !form.notification_email_enabled }]"
+              >
+                <span class="font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-700'">{{ labelMap.notify_academic_alerts }}</span>
                 <label class="switch switch--sm">
                   <input v-model="form.notify_academic_alerts" type="checkbox" :disabled="!form.notification_email_enabled" />
                   <span class="slider" />
                 </label>
               </div>
-              <div v-if="hasNotificationField('notify_attendance_changes')" class="toggle-row" :class="{ 'toggle-row--disabled': !form.notification_email_enabled }">
-                <span>{{ labelMap.notify_attendance_changes }}</span>
+              <div
+                v-if="hasNotificationField('notify_attendance_changes')"
+                class="toggle-row rounded-lg px-3 py-2 transition-colors"
+                :class="[isDarkMode ? 'text-white' : 'text-slate-700', { 'toggle-row--disabled': !form.notification_email_enabled }]"
+              >
+                <span class="font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-700'">{{ labelMap.notify_attendance_changes }}</span>
                 <label class="switch switch--sm">
                   <input v-model="form.notify_attendance_changes" type="checkbox" :disabled="!form.notification_email_enabled" />
                   <span class="slider" />
@@ -191,10 +241,19 @@ function cardMotion(order: number) {
         </section>
 
         <div class="flex flex-wrap items-center gap-3">
-          <button type="submit" class="rounded-lg bg-[#1f2937] px-4 py-2 text-white font-semibold hover:bg-[#334155] transition" :disabled="form.processing">
+          <button
+            type="submit"
+            class="rounded-lg px-4 py-2 font-semibold text-white transition"
+            :class="
+              isDarkMode
+                ? 'bg-sky-600 hover:bg-sky-500'
+                : 'bg-[#1f2937] hover:bg-[#334155]'
+            "
+            :disabled="form.processing"
+          >
             {{ form.processing ? 'Saving...' : 'Save Notifications' }}
           </button>
-          <p v-if="saved" class="text-sm text-green-700">Notification settings updated.</p>
+          <p v-if="saved" class="text-sm" :class="isDarkMode ? 'text-emerald-300' : 'text-green-700'">Notification settings updated.</p>
         </div>
       </form>
   </AccountShell>
@@ -205,7 +264,6 @@ function cardMotion(order: number) {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #0f172a;
   font-weight: 600;
 }
 
@@ -241,6 +299,7 @@ function cardMotion(order: number) {
   gap: 12px;
   font-size: 0.9rem;
   color: #334155;
+  background: rgba(148, 163, 184, 0.08);
 }
 
 .toggle-row span:first-child {

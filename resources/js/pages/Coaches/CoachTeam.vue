@@ -419,10 +419,11 @@ function clearInjury(player: PlayerRow) {
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                <article v-for="player in filteredPlayers" :key="player.id" class="page-card rounded-2xl border border-[#034485]/35 bg-white p-4">
+                <article v-for="player in filteredPlayers" :key="player.id" class="page-card rounded-2xl border border-[#034485]/35 bg-[#f7fbff] p-4 shadow-[0_16px_34px_-28px_rgba(3,68,133,0.35)]">
+                    <div class="pointer-events-none -mx-4 -mt-4 mb-4 h-12 rounded-t-2xl bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/90"></div>
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex min-w-0 items-start gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 text-sm font-bold text-slate-700">
+                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-white text-sm font-bold text-[#034485] shadow-sm">
                                 <img
                                     v-if="player.student?.user?.avatar"
                                     :src="userAvatarUrl(player.student.user.avatar)"
@@ -433,7 +434,7 @@ function clearInjury(player: PlayerRow) {
                             </div>
                             <div class="min-w-0">
                                 <p class="truncate text-base font-semibold text-slate-900">{{ player.student?.first_name }} {{ player.student?.last_name }}</p>
-                                <p class="text-xs text-slate-500">{{ player.student?.student_id_number || '-' }}</p>
+                                <p class="text-xs text-slate-600">{{ player.student?.student_id_number || '-' }}</p>
                                 <button
                                     type="button"
                                     class="mt-2 inline-flex rounded-full border border-[#034485] px-2.5 py-1 text-[11px] font-semibold text-[#034485] hover:bg-[#034485]/10"
@@ -449,37 +450,37 @@ function clearInjury(player: PlayerRow) {
                     </div>
 
                     <div class="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-600 sm:grid-cols-4">
-                        <div>
-                            <span class="text-slate-500">Jersey</span>
+                        <div class="rounded-2xl border border-[#034485]/12 bg-white px-3 py-2">
+                            <span class="text-[#034485]">Jersey</span>
                             <p class="font-semibold text-slate-900">
                                 <span v-if="player.jersey_number">{{ player.jersey_number }}</span>
                                 <span v-else class="text-amber-600">Pending</span>
                             </p>
                         </div>
-                        <div>
-                            <span class="text-slate-500">Position</span>
+                        <div class="rounded-2xl border border-[#034485]/12 bg-white px-3 py-2">
+                            <span class="text-[#034485]">Position</span>
                             <p class="font-semibold text-slate-900">
                                 <span v-if="player.athlete_position">{{ player.athlete_position }}</span>
                                 <span v-else class="text-red-600">Unassigned</span>
                             </p>
                         </div>
-                        <div>
-                            <span class="text-slate-500">Height</span>
+                        <div class="rounded-2xl border border-[#034485]/12 bg-white px-3 py-2">
+                            <span class="text-[#034485]">Height</span>
                             <p class="font-semibold text-slate-900">{{ formatMeasure(player.student?.height, 'cm') }}</p>
                         </div>
-                        <div>
-                            <span class="text-slate-500">Weight</span>
+                        <div class="rounded-2xl border border-[#034485]/12 bg-white px-3 py-2">
+                            <span class="text-[#034485]">Weight</span>
                             <p class="font-semibold text-slate-900">{{ formatMeasure(player.student?.weight, 'kg') }}</p>
                         </div>
                     </div>
 
                     <div class="mt-3 grid gap-3">
                         <div>
-                            <label class="text-xs text-slate-500">Update Position</label>
+                            <label class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Update Position</label>
                             <select
                                 v-if="positionsForSport().length > 0"
                                 v-model="positionDrafts[player.id]"
-                                class="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                                class="mt-1 w-full rounded-md border border-[#034485]/20 bg-white px-2 py-1.5 text-sm text-slate-800"
                             >
                                 <option value="">Select position</option>
                                 <option v-for="position in positionsForSport()" :key="position" :value="position">
@@ -490,18 +491,18 @@ function clearInjury(player: PlayerRow) {
                                 v-else
                                 v-model="positionDrafts[player.id]"
                                 type="text"
-                                class="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                                class="mt-1 w-full rounded-md border border-[#034485]/20 bg-white px-2 py-1.5 text-sm text-slate-800"
                                 placeholder="Assign position"
                             />
                             <div class="mt-2 flex items-center justify-between">
-                                <button @click="savePosition(player.id)" class="rounded-md bg-[#1f2937] px-3 py-1.5 text-xs text-white hover:bg-[#111827]">Save Position</button>
+                                <button @click="savePosition(player.id)" class="rounded-md bg-[#034485] px-3 py-1.5 text-xs text-white hover:bg-[#033a70]">Save Position</button>
                                 <span v-if="positionSaveState[player.id] && positionSaveState[player.id] !== 'idle'" class="text-[11px] text-slate-500">
                                     {{ positionSaveState[player.id] === 'saving' ? 'Saving...' : positionSaveState[player.id] === 'saved' ? 'Saved' : 'Error' }}
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <label class="text-xs text-slate-500">Status</label>
+                            <label class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Status</label>
                             <div class="mt-1">
                                 <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusTone((player.player_status ?? 'active') as PlayerStatus)">
                                     {{ (player.player_status ?? 'active').toString().toUpperCase() }}
@@ -531,20 +532,23 @@ function clearInjury(player: PlayerRow) {
         </div>
 
         <transition name="athlete-modal">
-            <div v-if="detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-6" @click.self="closeDetails">
-                <div class="w-full max-w-2xl rounded-2xl border border-[#034485]/35 bg-white p-6 sm:p-8">
+            <div v-if="detailsOpen" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 px-4 py-6" @click.self="closeDetails">
+                <div class="flex min-h-full items-center justify-center">
+                <div class="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[#034485]/35 bg-white shadow-[0_28px_70px_-34px_rgba(2,12,27,0.45)]">
+                <div class="rounded-t-3xl bg-[#034485] px-6 py-5 text-white sm:px-8">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-white/75">Player Details</p>
+                    <h3 class="mt-1 text-2xl font-bold text-white">
+                        {{ formatSimple(selectedStudent?.first_name) }} {{ formatSimple(selectedStudent?.last_name) }}
+                    </h3>
+                    <p class="mt-1 text-xs text-white/80">Student ID: {{ formatSimple(selectedStudent?.student_id_number) }}</p>
+                </div>
+                <div class="overflow-y-auto p-6 sm:p-8">
                 <div class="flex flex-wrap items-start justify-between gap-6">
                     <div class="min-w-[220px] flex-1 space-y-4">
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Student</p>
-                            <h3 class="text-2xl font-bold text-slate-900">
-                                {{ formatSimple(selectedStudent?.first_name) }} {{ formatSimple(selectedStudent?.last_name) }}
-                            </h3>
-                        </div>
-                        <div class="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
-                            <p>
-                                <span class="font-semibold text-slate-900">Student ID:</span>
-                                <span class="ml-1 inline-flex items-center gap-2">
+                        <div class="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3 sm:col-span-2">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Student ID</p>
+                                <p class="mt-1 inline-flex items-center gap-2 font-semibold text-slate-900">
                                     {{ formatSimple(selectedStudent?.student_id_number) }}
                                     <button
                                         type="button"
@@ -554,34 +558,52 @@ function clearInjury(player: PlayerRow) {
                                         aria-label="Copy student ID"
                                     >
                                         <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4">
-                                            <path
-                                                fill="currentColor"
-                                                d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z"
-                                            />
+                                            <path fill="currentColor" d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z" />
                                         </svg>
                                         <span v-if="copiedField === 'student-id'" class="text-[10px]">Student ID Copied</span>
                                     </button>
-                                </span>
-                            </p>
-                            <p><span class="font-semibold text-slate-900">Position:</span> {{ formatSimple(selectedPlayer?.athlete_position) }}</p>
-                            <p><span class="font-semibold text-slate-900">Jersey:</span> {{ formatSimple(selectedPlayer?.jersey_number) }}</p>
+                                </p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Position</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedPlayer?.athlete_position) }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Jersey</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedPlayer?.jersey_number) }}</p>
+                            </div>
                         </div>
 
                         <div class="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
-                            <p><span class="font-semibold text-slate-900">Course/Strand:</span> {{ formatSimple(selectedStudent?.course_or_strand) }}</p>
-                            <p><span class="font-semibold text-slate-900">Academic Level:</span> {{ formatSimple(selectedStudent?.academic_level_label ?? selectedStudent?.current_grade_level) }}</p>
-                            <p><span class="font-semibold text-slate-900">Gender:</span> {{ formatSimple(selectedStudent?.gender) }}</p>
-                            <p><span class="font-semibold text-slate-900">Height:</span> {{ formatMeasure(selectedStudent?.height, 'cm') }}</p>
-                            <p><span class="font-semibold text-slate-900">Weight:</span> {{ formatMeasure(selectedStudent?.weight, 'kg') }}</p>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Course/Strand</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedStudent?.course_or_strand) }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Academic Level</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedStudent?.academic_level_label ?? selectedStudent?.current_grade_level) }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Gender</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedStudent?.gender) }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Height</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatMeasure(selectedStudent?.height, 'cm') }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3 sm:col-span-2">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Weight</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatMeasure(selectedStudent?.weight, 'kg') }}</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#034485]/25 bg-[#034485]/5">
+                    <div class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#034485]/20 bg-[#f7fbff]">
                         <img :src="userAvatarUrl(selectedStudent?.user?.avatar ?? null)" alt="Student avatar" class="h-full w-full object-cover" />
                     </div>
                 </div>
 
                 <div class="mt-6 border-t border-slate-200 pt-4">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Contact</p>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Contact</p>
                     <div class="mt-2 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
                         <p>
                             <span class="font-semibold text-slate-900">Email:</span>
@@ -629,7 +651,7 @@ function clearInjury(player: PlayerRow) {
                 </div>
 
                 <div class="mt-6 border-t border-slate-200 pt-4">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Emergency Contact</p>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Emergency Contact</p>
                     <div class="mt-2 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
                         <p><span class="font-semibold text-slate-900">Name:</span> {{ formatSimple(selectedStudent?.emergency_contact_name) }}</p>
                         <p><span class="font-semibold text-slate-900">Relationship:</span> {{ formatSimple(selectedStudent?.emergency_contact_relationship) }}</p>
@@ -660,11 +682,13 @@ function clearInjury(player: PlayerRow) {
                 <div class="mt-6 flex justify-end">
                     <button
                         type="button"
-                        class="rounded-full border border-[#034485] px-4 py-2 text-sm font-semibold text-[#034485] hover:bg-[#034485]/10"
+                        class="rounded-full bg-[#034485] px-4 py-2 text-sm font-semibold text-white hover:bg-[#033a70]"
                         @click="closeDetails"
                     >
                         Close
                     </button>
+                </div>
+                </div>
                 </div>
                 </div>
             </div>

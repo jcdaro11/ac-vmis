@@ -427,8 +427,8 @@ function changePeriod() {
 
 function quickRangeClass(range: 'all' | 'today' | 'week' | 'month') {
     return activeQuickRange.value === range
-        ? 'border border-white/40 bg-white text-[#034485]'
-        : 'border border-[#034485]/20 bg-white/10 text-white/85 hover:bg-white/20'
+        ? 'border border-[#034485] bg-[#EAF4FF] text-[#034485] shadow-sm'
+        : 'border border-[#034485]/20 bg-white text-slate-600 hover:border-[#0EA5E9]/45 hover:bg-[#F0F9FF] hover:text-[#034485]'
 }
 
 onMounted(() => {
@@ -441,7 +441,7 @@ onMounted(() => {
     <Head title="Academics Workspace" />
 
     <div class="space-y-5">
-        <section class="page-card rounded-3xl border border-[#034485] bg-[#034485] p-6 text-white">
+        <section class="academics-workspace-hero page-card rounded-3xl border border-[#034485] bg-[#034485] p-6 text-white">
             <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Academic Oversight</p>

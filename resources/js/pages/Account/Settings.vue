@@ -3,6 +3,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
 import AccountShell from '@/components/Account/AccountShell.vue'
+import { useTheme } from '@/composables/useTheme'
 import { normalizeWorkspaceRole, resolveAccountLayout } from '@/pages/Account/accountRole'
 
 defineOptions({
@@ -11,6 +12,7 @@ defineOptions({
 
 const page = usePage()
 const role = computed(() => normalizeWorkspaceRole((page.props as any)?.auth?.user?.role))
+const { isDarkMode } = useTheme()
 
 const quickLinks = computed(() => {
   if (role.value === 'coach') {
@@ -42,7 +44,12 @@ const quickLinks = computed(() => {
 
   <AccountShell active="settings">
     <div class="space-y-6">
-      <section class="rounded-3xl border border-[#034485]/30 bg-[#034485] p-6 text-white shadow-[0_24px_50px_-38px_rgba(3,68,133,0.38)]">
+      <section
+        class="settings-hero rounded-3xl p-6 text-white"
+        :class="isDarkMode
+          ? 'border border-[#034485]/35 bg-[#034485] shadow-[0_24px_50px_-38px_rgba(3,68,133,0.38)]'
+          : 'border border-[#034485]/30 bg-[#034485] shadow-[0_24px_50px_-38px_rgba(3,68,133,0.38)]'"
+      >
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Settings overview</p>
         <h2 class="mt-2 text-2xl font-bold text-white">Account center</h2>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-white/85">
@@ -54,11 +61,20 @@ const quickLinks = computed(() => {
         <article
           v-for="item in quickLinks"
           :key="item.href"
-          class="rounded-2xl border border-[#034485]/14 bg-white p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.45)] transition hover:border-slate-200 hover:bg-slate-50/60"
+          class="settings-card rounded-2xl p-5 transition"
+          :class="isDarkMode
+            ? 'border border-[#034485]/35 bg-[#034485] shadow-[0_24px_50px_-38px_rgba(3,68,133,0.38)] hover:bg-[#023a72]'
+            : 'border border-[#034485]/30 bg-[#034485] shadow-[0_18px_40px_-34px_rgba(3,68,133,0.38)] hover:bg-[#023a72]'"
         >
-          <p class="text-sm font-semibold text-slate-900">{{ item.title }}</p>
-          <p class="mt-2 text-sm leading-6 text-slate-600">{{ item.description }}</p>
-          <Link :href="item.href" class="mt-4 inline-flex rounded-full bg-[#034485]/8 px-3 py-2 text-xs font-bold text-[#034485] transition hover:bg-slate-200/70">
+          <p class="settings-card__title text-sm font-semibold" :class="isDarkMode ? 'text-slate-50' : 'text-white'">{{ item.title }}</p>
+          <p class="settings-card__copy mt-2 text-sm leading-6" :class="isDarkMode ? 'text-slate-300' : 'text-white/85'">{{ item.description }}</p>
+          <Link
+            :href="item.href"
+            class="settings-card__cta mt-4 inline-flex rounded-full px-3 py-2 text-xs font-bold transition"
+            :class="isDarkMode
+              ? 'bg-sky-400/15 text-sky-300 hover:bg-sky-400/25'
+              : 'bg-white text-[#034485] hover:bg-slate-100'"
+          >
             {{ item.cta }}
           </Link>
         </article>
@@ -66,3 +82,46 @@ const quickLinks = computed(() => {
     </div>
   </AccountShell>
 </template>
+
+<style scoped>
+:global(html.theme-dark) .settings-hero,
+:global(html[data-theme='dark']) .settings-hero {
+  border-color: rgba(3, 68, 133, 0.35) !important;
+  background: #034485 !important;
+  box-shadow: 0 24px 50px -38px rgba(3, 68, 133, 0.38) !important;
+}
+
+:global(html.theme-dark) .settings-card,
+:global(html[data-theme='dark']) .settings-card {
+  border-color: rgba(3, 68, 133, 0.35) !important;
+  background: #034485 !important;
+  box-shadow: 0 24px 50px -38px rgba(3, 68, 133, 0.38) !important;
+}
+
+:global(html.theme-dark) .settings-card:hover,
+:global(html[data-theme='dark']) .settings-card:hover {
+  border-color: rgba(3, 68, 133, 0.42) !important;
+  background: #023a72 !important;
+}
+
+:global(html.theme-dark) .settings-card__title,
+:global(html[data-theme='dark']) .settings-card__title {
+  color: #f8fafc !important;
+}
+
+:global(html.theme-dark) .settings-card__copy,
+:global(html[data-theme='dark']) .settings-card__copy {
+  color: #cbd5e1 !important;
+}
+
+:global(html.theme-dark) .settings-card__cta,
+:global(html[data-theme='dark']) .settings-card__cta {
+  background: rgba(56, 189, 248, 0.14) !important;
+  color: #7dd3fc !important;
+}
+
+:global(html.theme-dark) .settings-card__cta:hover,
+:global(html[data-theme='dark']) .settings-card__cta:hover {
+  background: rgba(56, 189, 248, 0.22) !important;
+}
+</style>

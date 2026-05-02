@@ -8,12 +8,14 @@ import RoleFooter from '@/components/ui/RoleFooter.vue';
 import Spinner from '@/components/ui/spinner/Spinner.vue';
 import UserAccountMenu from '@/components/UserAccountMenu.vue';
 import { useInertiaLoading } from '@/composables/useInertiaLoading';
+import { useTheme } from '@/composables/useTheme';
 
 const SIDEBAR_PREF_KEY = 'ac-vmis-admin-sidebar-collapsed';
 
 const slots = useSlots();
 const page = usePage();
 const { isLoading } = useInertiaLoading();
+const { isDarkMode } = useTheme();
 
 type DashboardPayload = {
     filters: {
@@ -82,15 +84,21 @@ const reportsHoverStyle = ref<Record<string, string>>({});
 
 const adminNotifications = ref<
     Array<{
-        id: number;
+        id: number | string;
+        kind?: string | null;
         title: string;
         message: string;
         type: string;
         is_read: boolean;
         published_at: string | null;
+        settings_href?: string | null;
+        send_verification_route?: string | null;
+        send_verification_label?: string | null;
+        secondary_action_label?: string | null;
     }>
 >([]);
 const bellProcessingIds = ref<number[]>([]);
+const verificationSending = ref(false);
 
 watch(
     () => (page.props.auth as any)?.admin_notifications?.recent,
@@ -729,11 +737,12 @@ function scheduleNotificationsClose() {
     }, 180);
 }
 
-function isBellProcessing(id: number) {
-    return bellProcessingIds.value.includes(id);
+function isBellProcessing(id: number | string) {
+    return typeof id === 'number' && bellProcessingIds.value.includes(id);
 }
 
-function markBellRead(item: { id: number; is_read: boolean }) {
+function markBellRead(item: { id: number | string; is_read: boolean; kind?: string | null }) {
+    if (item.kind === 'verification' || typeof item.id !== 'number') return;
     if (item.is_read || isBellProcessing(item.id)) return;
     const previous = item.is_read;
     item.is_read = true;
@@ -752,6 +761,19 @@ function markBellRead(item: { id: number; is_read: boolean }) {
             },
         },
     );
+}
+
+function sendVerificationEmail(route?: string | null) {
+    if (verificationSending.value) return;
+    verificationSending.value = true;
+
+    router.post(route || '/email/verification-notification', {}, {
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+            verificationSending.value = false;
+        },
+    });
 }
 
 function onEscape(event: KeyboardEvent) {
@@ -812,12 +834,15 @@ watch(
         <div v-if="mobileNavOpen" class="admin-shell__mobile-overlay fixed inset-0 z-30 bg-slate-900/30 lg:hidden" @click="closeMobileNav" />
 
         <aside
-            class="admin-shell__sidebar fixed left-0 z-30 border-r border-[#bfd4eb]/90 bg-[#eaf3ff]/95 backdrop-blur transition-[transform,width] duration-300 ease-out will-change-[transform,width]"
+            class="admin-shell__sidebar fixed left-0 z-30 border-r backdrop-blur transition-[transform,width] duration-300 ease-out will-change-[transform,width]"
             :class="[
                 mobileNavOpen ? 'translate-x-0' : '-translate-x-full',
                 'top-18 h-[calc(100vh-72px)]',
                 sidebarCollapsed ? 'w-70 max-w-[85vw] lg:w-22' : 'w-70 max-w-[85vw] lg:w-70',
                 'lg:translate-x-0',
+                isDarkMode
+                    ? 'border-slate-800 bg-[#0b1220]/95'
+                    : 'border-[#bfd4eb]/90 bg-[#eaf3ff]/95',
             ]"
         >
             <div class="flex h-full flex-col">
@@ -838,8 +863,12 @@ watch(
                             class="admin-shell__nav-item group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-[background-color,color,border-color,transform] duration-200 ease-out"
                             :class="[
                                 isEntryActive(entry)
-                                    ? 'admin-shell__nav-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
-                                    : 'admin-shell__nav-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white/70 hover:text-[#034485]',
+                                    ? isDarkMode
+                                        ? 'admin-shell__nav-item--active border-[#034485] bg-[#034485] text-white shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                        : 'admin-shell__nav-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                    : isDarkMode
+                                        ? 'admin-shell__nav-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                        : 'admin-shell__nav-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white/70 hover:text-[#034485]',
                                 sidebarCollapsed && !mobileNavOpen ? 'justify-center px-2' : '',
                             ]"
                             :title="sidebarCollapsed ? entry.name : ''"
@@ -900,8 +929,12 @@ watch(
                                 class="admin-shell__subnav-item flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-[background-color,color,border-color] duration-200"
                                 :class="[
                                     isChildActive(child.route)
-                                        ? 'admin-shell__subnav-item--active border-[#034485]/18 bg-white text-[#034485]'
-                                        : 'admin-shell__subnav-item--inactive border-transparent text-slate-600 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
+                                        ? isDarkMode
+                                            ? 'admin-shell__subnav-item--active border-[#034485] bg-[#034485] text-white'
+                                            : 'admin-shell__subnav-item--active border-[#034485]/18 bg-white text-[#034485]'
+                                        : isDarkMode
+                                            ? 'admin-shell__subnav-item--inactive border-transparent text-slate-300 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                            : 'admin-shell__subnav-item--inactive border-transparent text-slate-600 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
                                 ]"
                             >
                                 <span class="truncate">{{ child.name }}</span>
@@ -911,12 +944,13 @@ watch(
                         <div
                             v-if="entry.children && reportsHoverOpen && sidebarCollapsed && !mobileNavOpen"
                             :style="reportsHoverStyle"
-                            class="admin-shell__submenu z-[60] w-56 overflow-hidden rounded-xl border border-[#bfd4eb] bg-[#f7fbff] shadow-[0_24px_60px_-24px_rgba(15,23,42,0.45)]"
+                            class="admin-shell__submenu z-[60] w-56 overflow-hidden rounded-xl border shadow-[0_24px_60px_-24px_rgba(15,23,42,0.45)]"
+                            :class="isDarkMode ? 'border-slate-700 bg-[#0f172a]' : 'border-[#bfd4eb] bg-[#f7fbff]'"
                             @mouseenter="openReportsHoverMenu"
                             @mouseleave="scheduleReportsHoverClose"
                         >
-                            <div class="border-b border-[#d6e4f4] px-4 py-3">
-                                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Reports</p>
+                            <div class="border-b px-4 py-3" :class="isDarkMode ? 'border-slate-700' : 'border-[#d6e4f4]'">
+                                <p class="text-xs font-semibold uppercase tracking-[0.16em]" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">Reports</p>
                             </div>
                             <div class="space-y-1 p-2">
                                 <button
@@ -928,8 +962,12 @@ watch(
                                     class="admin-shell__subnav-item flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-[background-color,color,border-color] duration-200"
                                     :class="[
                                         isChildActive(child.route)
-                                            ? 'admin-shell__subnav-item--active border-[#034485]/18 bg-white text-[#034485]'
-                                            : 'admin-shell__subnav-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
+                                            ? isDarkMode
+                                                ? 'admin-shell__subnav-item--active border-[#034485] bg-[#034485] text-white'
+                                                : 'admin-shell__subnav-item--active border-[#034485]/18 bg-white text-[#034485]'
+                                            : isDarkMode
+                                                ? 'admin-shell__subnav-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                                : 'admin-shell__subnav-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
                                     ]"
                                 >
                                     <span class="truncate">{{ child.name }}</span>
@@ -939,14 +977,18 @@ watch(
                     </div>
                 </nav>
 
-                <div class="admin-shell__sidebar-footer border-t border-[#d6e4f4] px-3 py-3">
+                <div class="admin-shell__sidebar-footer border-t px-3 py-3" :class="isDarkMode ? 'border-slate-800' : 'border-[#d6e4f4]'">
                     <button
                         type="button"
                         class="admin-shell__utility-item group mb-2 flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all duration-200"
                         :class="[
                             isSettingsRoute
-                                ? 'admin-shell__utility-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
-                                : 'admin-shell__utility-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
+                                ? isDarkMode
+                                    ? 'admin-shell__utility-item--active border-[#034485] bg-[#034485] text-white shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                    : 'admin-shell__utility-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                : isDarkMode
+                                    ? 'admin-shell__utility-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                    : 'admin-shell__utility-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
                             sidebarCollapsed && !mobileNavOpen ? 'justify-center' : '',
                         ]"
                         @click="goTo('/account/settings')"
@@ -973,8 +1015,12 @@ watch(
                         class="admin-shell__utility-item group mb-2 flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all duration-200"
                         :class="[
                             isHelpRoute
-                                ? 'admin-shell__utility-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
-                                : 'admin-shell__utility-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
+                                ? isDarkMode
+                                    ? 'admin-shell__utility-item--active border-[#034485] bg-[#034485] text-white shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                    : 'admin-shell__utility-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                : isDarkMode
+                                    ? 'admin-shell__utility-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                    : 'admin-shell__utility-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
                             sidebarCollapsed && !mobileNavOpen ? 'justify-center' : '',
                         ]"
                         @click="goTo('/account/help')"
@@ -997,8 +1043,13 @@ watch(
                     </button>
                     <button
                         type="button"
-                        class="admin-shell__logout-item group flex w-full items-center rounded-lg border border-transparent px-3 py-2 text-left text-sm font-medium text-rose-600 transition-all duration-200 hover:border-rose-200 hover:bg-rose-50"
-                        :class="sidebarCollapsed && !mobileNavOpen ? 'justify-center' : ''"
+                        class="admin-shell__logout-item group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all duration-200"
+                        :class="[
+                            isDarkMode
+                                ? 'border-transparent text-rose-300 hover:border-rose-900/60 hover:bg-rose-950/30'
+                                : 'border-transparent text-rose-600 hover:border-rose-200 hover:bg-rose-50',
+                            sidebarCollapsed && !mobileNavOpen ? 'justify-center' : '',
+                        ]"
                         @click="logout"
                     >
                         <svg
@@ -1114,21 +1165,54 @@ watch(
                                     type="button"
                                     class="flex w-full items-start gap-2 px-3 py-2 text-left text-sm transition"
                                     :class="
-                                        item.is_read
-                                            ? 'border-b border-slate-200 text-slate-700 hover:bg-slate-50'
-                                            : 'border-b border-[#034485]/15 bg-[#034485] text-white hover:bg-[#033a70]'
+                                        item.kind === 'verification'
+                                            ? 'border-b border-amber-200 bg-amber-50 text-amber-950'
+                                            : item.is_read
+                                                ? 'border-b border-slate-200 text-slate-700 hover:bg-slate-50'
+                                                : 'border-b border-[#034485]/15 bg-[#034485] text-white hover:bg-[#033a70]'
                                     "
-                                    @click="
-                                        markBellRead(item);
-                                        goTo('/announcements');
-                                    "
+                                    @click="item.kind === 'verification' ? void 0 : (markBellRead(item), goTo('/announcements'))"
                                 >
-                                    <span class="mt-1 inline-flex h-2 w-2 shrink-0 rounded-full" :class="item.is_read ? 'bg-[#60a5fa]' : 'bg-white'" />
-                                    <span class="flex-1">
-                                        <span class="block font-semibold" :class="item.is_read ? 'text-slate-700' : 'text-white'">{{ item.title }}</span>
-                                        <span class="block text-xs" :class="item.is_read ? 'text-slate-500' : 'text-white/80'">{{ item.message }}</span>
+                                    <span
+                                        v-if="item.kind !== 'verification'"
+                                        class="mt-1 inline-flex h-2 w-2 shrink-0 rounded-full"
+                                        :class="item.is_read ? 'bg-[#60a5fa]' : 'bg-white'"
+                                    />
+                                    <span v-else class="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path d="M12 9v4" />
+                                            <path d="M12 17h.01" />
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                                        </svg>
                                     </span>
-                                    <span class="ml-auto text-[10px] font-semibold" :class="item.is_read ? 'text-slate-500' : 'text-white/70'">{{ item.published_at ?? '' }}</span>
+                                    <span class="flex-1">
+                                        <span class="block font-semibold" :class="item.kind === 'verification' ? 'text-amber-950' : item.is_read ? 'text-slate-700' : 'text-white'">{{ item.title }}</span>
+                                        <span class="block text-xs" :class="item.kind === 'verification' ? 'text-amber-900' : item.is_read ? 'text-slate-500' : 'text-white/80'">{{ item.message }}</span>
+                                        <span v-if="item.kind === 'verification'" class="mt-2 flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                class="rounded-full bg-amber-500 px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-amber-600 disabled:opacity-60"
+                                                :disabled="verificationSending"
+                                                @click.stop="sendVerificationEmail(item.send_verification_route)"
+                                            >
+                                                {{ verificationSending ? 'Sending...' : item.send_verification_label || 'Send Verification Email' }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="rounded-full border border-amber-200 bg-white px-3 py-1 text-[11px] font-semibold text-amber-800 transition hover:bg-amber-100"
+                                                @click.stop="goTo(item.settings_href || '/account/account-settings')"
+                                            >
+                                                {{ item.secondary_action_label || 'Go to Account Settings' }}
+                                            </button>
+                                        </span>
+                                    </span>
+                                    <span
+                                        v-if="item.kind !== 'verification'"
+                                        class="ml-auto text-[10px] font-semibold"
+                                        :class="item.is_read ? 'text-slate-500' : 'text-white/70'"
+                                    >
+                                        {{ item.published_at ?? '' }}
+                                    </span>
                                 </button>
                                 <div v-if="adminNotifications.length === 0" class="px-3 py-4 text-xs text-slate-500">No announcements right now.</div>
                             </div>

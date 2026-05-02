@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 
 import AccountShell from '@/components/Account/AccountShell.vue'
 import { showAppToast } from '@/composables/useAppToast'
+import { useTheme } from '@/composables/useTheme'
 import { normalizeWorkspaceRole, resolveAccountLayout } from '@/pages/Account/accountRole'
 import { resolveUserAvatarUrl } from '@/utils/media'
 
@@ -49,6 +50,7 @@ const props = defineProps<{
 const page = usePage()
 const user = computed(() => page.props.auth?.user ?? null)
 const role = computed(() => normalizeWorkspaceRole(user.value?.role))
+const { isDarkMode } = useTheme()
 
 const form = useForm({
   name: String(user.value?.name ?? ''),
@@ -343,30 +345,55 @@ onBeforeUnmount(() => {
         </p>
       </section>
 
-      <section class="account-card rounded-[24px] border border-[#034485]/16 bg-white p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.45)]" :style="cardMotion(2)">
+      <section
+        class="account-card rounded-[24px] border p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.45)]"
+        :class="isDarkMode ? 'border-slate-700 bg-[#111827]' : 'border-[#034485]/16 bg-white'"
+        :style="cardMotion(2)"
+      >
         <div class="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_260px] lg:items-center">
           <div class="min-w-0">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#034485]">Profile</p>
-            <h1 class="mt-1 text-2xl font-bold text-slate-900">{{ user?.name || 'My Profile' }}</h1>
-            <p class="mt-2 max-w-2xl text-sm text-slate-600">Update your direct-contact and emergency information here. Official student record values are shown below for reference.</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.18em]" :class="isDarkMode ? 'text-sky-300' : 'text-[#034485]'">Profile</p>
+            <h1 class="mt-1 text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ user?.name || 'My Profile' }}</h1>
+            <p class="mt-2 max-w-2xl text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Update your direct-contact and emergency information here. Official student record values are shown below for reference.</p>
             <div class="mt-4 flex flex-wrap items-center gap-2">
               <span class="rounded-full border border-[#034485]/15 bg-[#034485]/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#034485]">
                 {{ roleLabel }}
               </span>
-              <span v-if="profile.student?.student_id_number" class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+              <span
+                v-if="profile.student?.student_id_number"
+                class="rounded-full border px-3 py-1 text-xs font-semibold"
+                :class="isDarkMode ? 'border-slate-600 bg-slate-800 text-slate-200' : 'border-slate-200 bg-slate-50 text-slate-600'"
+              >
                 ID {{ profile.student.student_id_number }}
               </span>
             </div>
           </div>
 
-          <div class="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4">
+          <div
+            class="rounded-[22px] border p-4 transition-colors"
+            :class="isDarkMode ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-slate-50/80'"
+          >
             <div class="flex items-center gap-4">
-              <img :src="avatarUrl" alt="Avatar" class="h-20 w-20 rounded-[20px] border border-slate-200 object-cover shadow-sm" />
+              <img
+                :src="avatarUrl"
+                alt="Avatar"
+                class="h-20 w-20 rounded-[20px] border object-cover shadow-sm"
+                :class="isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-slate-200 bg-white'"
+              />
               <div class="min-w-0">
-                <p class="text-sm font-semibold text-slate-900">Profile Photo</p>
-                <p class="mt-1 text-xs leading-5 text-slate-500">JPG, PNG, or WebP up to 2MB. Crop before saving for the best fit.</p>
+                <p class="text-sm font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Profile Photo</p>
+                <p class="mt-1 text-xs leading-5" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">JPG, PNG, or WebP up to 2MB. Crop before saving for the best fit.</p>
                 <input ref="avatarInput" type="file" accept="image/png,image/jpeg,image/webp" @change="onAvatarChange" class="hidden" />
-                <button type="button" class="mt-3 inline-flex rounded-full border border-[#034485]/25 bg-white px-4 py-2 text-sm font-semibold text-[#034485] transition hover:bg-[#034485]/5" @click="triggerAvatarPicker">
+                <button
+                  type="button"
+                  class="mt-3 inline-flex rounded-full border px-4 py-2 text-sm font-semibold transition"
+                  :class="
+                    isDarkMode
+                      ? 'border-slate-600 bg-slate-800 text-white hover:bg-slate-700'
+                      : 'border-[#034485]/25 bg-white text-[#034485] hover:bg-[#034485]/5'
+                  "
+                  @click="triggerAvatarPicker"
+                >
                   Choose Photo
                 </button>
               </div>
@@ -377,11 +404,15 @@ onBeforeUnmount(() => {
       </section>
 
       <div class="space-y-5">
-          <section class="account-card rounded-[24px] border border-[#034485]/16 bg-white p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.45)]" :style="cardMotion(3)">
+          <section
+            class="account-card rounded-[24px] border p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.45)]"
+            :class="isDarkMode ? 'border-slate-700 bg-[#111827]' : 'border-[#034485]/16 bg-white'"
+            :style="cardMotion(3)"
+          >
             <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#034485]">Editable Information</p>
-                <h2 class="mt-1 text-xl font-semibold text-slate-900">Personal Details</h2>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.18em]" :class="isDarkMode ? 'text-sky-300' : 'text-[#034485]'">Editable Information</p>
+                <h2 class="mt-1 text-xl font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Personal Details</h2>
               </div>
             </div>
 
@@ -448,19 +479,29 @@ onBeforeUnmount(() => {
           </div>
       </div>
 
-      <section v-if="role === 'student' && profile.student" class="account-card rounded-[24px] border border-[#034485]/16 bg-white p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.45)]" :style="cardMotion(5)">
+      <section
+        v-if="role === 'student' && profile.student"
+        class="account-card rounded-[24px] border p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.45)]"
+        :class="isDarkMode ? 'border-slate-700 bg-[#111827]' : 'border-[#034485]/16 bg-white'"
+        :style="cardMotion(5)"
+      >
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#034485]">Read-Only Student Record</p>
-            <h2 class="mt-1 text-xl font-semibold text-slate-900">Institutional Details</h2>
-            <p class="mt-1 max-w-3xl text-sm text-slate-500">These values come from your official student-athlete record and are shown here for quick reference.</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.18em]" :class="isDarkMode ? 'text-sky-300' : 'text-[#034485]'">Read-Only Student Record</p>
+            <h2 class="mt-1 text-xl font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Institutional Details</h2>
+            <p class="mt-1 max-w-3xl text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">These values come from your official student-athlete record and are shown here for quick reference.</p>
           </div>
         </div>
 
         <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <div v-for="item in studentDetails" :key="item.label" class="rounded-2xl border border-slate-200 bg-slate-50/75 p-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ item.label }}</p>
-            <p class="mt-2 text-sm font-semibold leading-6 text-slate-900">{{ displayValue(item.value) }}</p>
+          <div
+            v-for="item in studentDetails"
+            :key="item.label"
+            class="rounded-2xl border p-4"
+            :class="isDarkMode ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-slate-50/75'"
+          >
+            <p class="text-[11px] font-semibold uppercase tracking-[0.14em]" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">{{ item.label }}</p>
+            <p class="mt-2 text-sm font-semibold leading-6" :class="isDarkMode ? 'text-slate-100' : 'text-slate-900'">{{ displayValue(item.value) }}</p>
           </div>
         </div>
       </section>

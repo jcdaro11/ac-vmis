@@ -102,6 +102,18 @@ function focusSchedule(item: any | null) {
     calendarSelectedDate.value = new Date(item.start)
 }
 
+function openCalendar(url: string | null | undefined) {
+    if (!url) return
+    const link = document.createElement('a')
+    link.href = url
+    link.download = ''
+    link.target = '_blank'
+    link.rel = 'noopener'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+}
+
 function formatPHT(dt: string | Date | null) {
     if (!dt) return '-'
 
@@ -327,27 +339,32 @@ function cardMotion(order: number) {
                             <div
                                 v-for="(item, index) in upcomingSchedules"
                                 :key="item.id"
-                                class="page-card student-schedule-card relative overflow-hidden rounded-3xl border border-[#034485]/35 bg-white p-5 transition"
+                                class="page-card student-schedule-card relative overflow-hidden rounded-3xl border border-[#034485]/45 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(3,68,133,0.45)] transition"
                                 :style="cardMotion(8 + index)"
-                                :class="item.id === selectedScheduleId ? 'border-[#034485] bg-[#034485]/5' : ''"
+                                :class="item.id === selectedScheduleId ? 'border-[#034485] ring-2 ring-[#034485]/20' : ''"
                             >
-                                <div class="pointer-events-none absolute bottom-4 left-4 top-4 flex w-2 gap-1 opacity-75" aria-hidden="true">
-                                    <span class="h-full w-1 rounded-full" :style="{ backgroundColor: stripeColors(item.sport).base }"></span>
-                                    <span class="h-full w-1 rounded-full" :style="{ backgroundColor: stripeColors(item.sport).lighter }"></span>
-                                </div>
-                                <div class="relative z-10 pl-6">
+                                <div class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/85 opacity-100"></div>
+                                <div class="pointer-events-none absolute inset-x-0 top-16 h-16 bg-gradient-to-b from-[#034485]/18 to-transparent"></div>
+                                <div class="relative z-10">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                     <div class="min-w-0">
-                                        <div class="font-semibold leading-tight text-slate-900">{{ item.title }}</div>
-                                        <div class="mt-1 text-xs text-slate-500">{{ item.type }} • {{ item.venue || '-' }}</div>
+                                        <div class="font-semibold leading-tight text-white">{{ item.title }}</div>
+                                        <div class="mt-1 inline-flex max-w-full rounded-full border border-white bg-white px-2.5 py-1 text-[11px] font-semibold text-[#034485] shadow-[0_10px_24px_-18px_rgba(15,23,42,0.7)]">{{ item.type }} • {{ item.venue || '-' }}</div>
                                     </div>
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="rounded px-2 py-0.5 text-[10px]" :class="statusClass(item)">
                                             {{ attendanceLabel(item) }}
                                         </span>
                                         <button
+                                            type="button"
+                                            @click="openCalendar(item.calendar_url)"
+                                            class="rounded border border-white/20 bg-white px-2.5 py-1 text-xs font-semibold text-[#034485] hover:bg-[#eef5ff]"
+                                        >
+                                            + Add to Calendar
+                                        </button>
+                                        <button
                                             @click="focusSchedule(item)"
-                                            class="rounded border border-[#034485]/35 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-[#034485]/5"
+                                            class="rounded border border-white/20 bg-[#023463] px-2.5 py-1 text-xs text-white hover:bg-[#022b52]"
                                         >
                                             Focus
                                         </button>
@@ -359,17 +376,17 @@ function cardMotion(order: number) {
                                     <span v-if="isToday(item)" class="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700">Today</span>
                                 </div>
 
-                                <div class="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
-                                    <div class="rounded-2xl border border-[#034485]/12 bg-[#f8fbff] px-3 py-2">
+                                <div class="mt-4 grid gap-2 text-xs text-slate-700 sm:grid-cols-2">
+                                    <div class="rounded-2xl border border-[#034485]/18 bg-[#edf4ff] px-3 py-2 shadow-sm">
                                         <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Start</p>
-                                        <p class="mt-1">{{ formatPHT(item.start) }}</p>
+                                        <p class="mt-1 font-medium">{{ formatPHT(item.start) }}</p>
                                     </div>
-                                    <div class="rounded-2xl border border-[#034485]/12 bg-[#f8fbff] px-3 py-2">
+                                    <div class="rounded-2xl border border-[#034485]/18 bg-[#edf4ff] px-3 py-2 shadow-sm">
                                         <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">End</p>
-                                        <p class="mt-1">{{ formatPHT(item.end) }}</p>
+                                        <p class="mt-1 font-medium">{{ formatPHT(item.end) }}</p>
                                     </div>
                                 </div>
-                                <div v-if="item.notes" class="mt-3 text-xs text-slate-500">{{ item.notes }}</div>
+                                <div v-if="item.notes" class="mt-3 rounded-2xl border border-[#034485]/12 bg-[#f8fbff] px-3 py-2 text-xs text-slate-600">{{ item.notes }}</div>
                                 <div v-if="item.attendance_notes" class="mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">Coach note: {{ item.attendance_notes }}</div>
                                 </div>
                             </div>
@@ -385,27 +402,32 @@ function cardMotion(order: number) {
                                 <div
                                     v-for="(item, index) in completedSchedules"
                                     :key="item.id"
-                                    class="page-card student-schedule-card relative overflow-hidden rounded-3xl border border-[#034485]/35 bg-white p-5 transition"
+                                    class="page-card student-schedule-card relative overflow-hidden rounded-3xl border border-[#034485]/45 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(3,68,133,0.45)] transition"
                                     :style="cardMotion(20 + index)"
-                                    :class="item.id === selectedScheduleId ? 'border-[#034485] bg-[#034485]/5' : ''"
+                                    :class="item.id === selectedScheduleId ? 'border-[#034485] ring-2 ring-[#034485]/20' : ''"
                                 >
-                                    <div class="pointer-events-none absolute bottom-4 left-4 top-4 flex w-2 gap-1 opacity-75" aria-hidden="true">
-                                        <span class="h-full w-1 rounded-full" :style="{ backgroundColor: stripeColors(item.sport).base }"></span>
-                                        <span class="h-full w-1 rounded-full" :style="{ backgroundColor: stripeColors(item.sport).lighter }"></span>
-                                    </div>
-                                    <div class="relative z-10 pl-6">
+                                    <div class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/85 opacity-100"></div>
+                                    <div class="pointer-events-none absolute inset-x-0 top-16 h-16 bg-gradient-to-b from-[#034485]/18 to-transparent"></div>
+                                    <div class="relative z-10">
                                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                         <div class="min-w-0">
-                                            <div class="font-semibold leading-tight text-slate-900">{{ item.title }}</div>
-                                            <div class="mt-1 text-xs text-slate-500">{{ item.type }} • {{ item.venue || '-' }}</div>
+                                            <div class="font-semibold leading-tight text-white">{{ item.title }}</div>
+                                            <div class="mt-1 inline-flex max-w-full rounded-full border border-white bg-white px-2.5 py-1 text-[11px] font-semibold text-[#034485] shadow-[0_10px_24px_-18px_rgba(15,23,42,0.7)]">{{ item.type }} • {{ item.venue || '-' }}</div>
                                         </div>
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span class="rounded px-2 py-0.5 text-[10px]" :class="statusClass(item)">
                                                 {{ attendanceLabel(item) }}
                                             </span>
                                             <button
+                                                type="button"
+                                                @click="openCalendar(item.calendar_url)"
+                                                class="rounded border border-white/20 bg-white px-2.5 py-1 text-xs font-semibold text-[#034485] hover:bg-[#eef5ff]"
+                                            >
+                                                + Add to Calendar
+                                            </button>
+                                            <button
                                                 @click="focusSchedule(item)"
-                                                class="rounded border border-[#034485]/35 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-[#034485]/5"
+                                                class="rounded border border-white/20 bg-[#023463] px-2.5 py-1 text-xs text-white hover:bg-[#022b52]"
                                             >
                                                 Focus
                                             </button>
@@ -416,17 +438,17 @@ function cardMotion(order: number) {
                                         <span class="rounded-full border px-2 py-0.5" :class="timingClass(item)">{{ timingLabel(item) }}</span>
                                     </div>
 
-                                    <div class="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
-                                        <div class="rounded-2xl border border-[#034485]/12 bg-[#f8fbff] px-3 py-2">
+                                    <div class="mt-4 grid gap-2 text-xs text-slate-700 sm:grid-cols-2">
+                                        <div class="rounded-2xl border border-[#034485]/18 bg-[#edf4ff] px-3 py-2 shadow-sm">
                                             <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Start</p>
-                                            <p class="mt-1">{{ formatPHT(item.start) }}</p>
+                                            <p class="mt-1 font-medium">{{ formatPHT(item.start) }}</p>
                                         </div>
-                                        <div class="rounded-2xl border border-[#034485]/12 bg-[#f8fbff] px-3 py-2">
+                                        <div class="rounded-2xl border border-[#034485]/18 bg-[#edf4ff] px-3 py-2 shadow-sm">
                                             <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">End</p>
-                                            <p class="mt-1">{{ formatPHT(item.end) }}</p>
+                                            <p class="mt-1 font-medium">{{ formatPHT(item.end) }}</p>
                                         </div>
                                     </div>
-                                    <div v-if="item.notes" class="mt-3 text-xs text-slate-500">{{ item.notes }}</div>
+                                    <div v-if="item.notes" class="mt-3 rounded-2xl border border-[#034485]/12 bg-[#f8fbff] px-3 py-2 text-xs text-slate-600">{{ item.notes }}</div>
                                     <div v-if="item.attendance_notes" class="mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">Coach note: {{ item.attendance_notes }}</div>
                                     </div>
                                 </div>

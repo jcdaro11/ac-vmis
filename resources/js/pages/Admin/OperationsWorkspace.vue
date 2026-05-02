@@ -489,7 +489,7 @@ function printCalendarSchedules() {
 
 <template>
     <div class="space-y-5">
-        <section class="page-card rounded-3xl border border-[#034485] bg-[#034485] p-6 text-white">
+        <section class="operations-workspace-hero page-card rounded-3xl border border-[#034485] bg-[#034485] p-6 text-white">
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Operations Workspace</p>
             <h1 class="mt-2 text-2xl font-bold">Attendance And Schedule Monitoring</h1>
             <p class="mt-2 max-w-3xl text-sm text-white/85">

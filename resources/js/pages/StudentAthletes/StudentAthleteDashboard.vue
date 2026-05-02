@@ -74,7 +74,7 @@ const attendanceSeries = computed(() => [
 const hasAttendanceData = computed(() => attendanceSeries.value.some((value) => value > 0))
 const wellnessLabels = computed(() => wellnessSeries.value.map((item: any) => String(item.label ?? '')))
 const wellnessTrendValues = computed(() => wellnessSeries.value.map((item: any) => Number(item.value || 0)))
-const hasWellnessTrendData = computed(() => wellnessTrendValues.value.some((value) => value > 0))
+const hasWellnessTrendData = computed(() => wellnessTrendValues.value.some((value: number) => value > 0))
 const heroSummary = computed(() => {
     const parts: string[] = []
 
@@ -103,13 +103,19 @@ const notificationsCloseTimer = ref<number | null>(null)
 const bellProcessingIds = ref<number[]>([])
 
 const studentNotifications = ref<Array<{
-    id: number
+    id: number | string
+    kind?: string | null
     title: string
     message: string
     type: string
     is_read: boolean
     published_at: string | null
+    settings_href?: string | null
+    send_verification_route?: string | null
+    send_verification_label?: string | null
+    secondary_action_label?: string | null
 }>>([])
+const verificationSending = ref(false)
 
 watch(
     () => (page.props.auth as any)?.student_notifications?.recent,
@@ -204,11 +210,12 @@ function scheduleNotificationsClose() {
     }, 180)
 }
 
-function isBellProcessing(id: number) {
-    return bellProcessingIds.value.includes(id)
+function isBellProcessing(id: number | string) {
+    return typeof id === 'number' && bellProcessingIds.value.includes(id)
 }
 
-function markBellRead(item: { id: number; is_read: boolean }) {
+function markBellRead(item: { id: number | string; is_read: boolean; kind?: string | null }) {
+    if (item.kind === 'verification' || typeof item.id !== 'number') return
     if (item.is_read || isBellProcessing(item.id)) return
     const previous = item.is_read
     item.is_read = true
@@ -221,6 +228,19 @@ function markBellRead(item: { id: number; is_read: boolean }) {
         },
         onFinish: () => {
             bellProcessingIds.value = bellProcessingIds.value.filter((id) => id !== item.id)
+        },
+    })
+}
+
+function sendVerificationEmail(route?: string | null) {
+    if (verificationSending.value) return
+    verificationSending.value = true
+
+    router.post(route || '/email/verification-notification', {}, {
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+            verificationSending.value = false
         },
     })
 }
@@ -448,18 +468,19 @@ watch(mobileMenuOpen, (open) => {
 </script>
 
 <template>
-    <div class="student-shell min-h-screen bg-[#f5f7fb] text-slate-900">
+    <div class="student-shell min-h-screen" :class="isDarkMode ? 'bg-[#111111] text-slate-100' : 'bg-[#f5f7fb] text-slate-900'">
         <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(3,68,133,0.10),transparent_42%)]" />
 
         <div v-if="mobileMenuOpen" class="fixed inset-0 z-30 bg-slate-900/40 lg:hidden" @click="mobileMenuOpen = false" />
 
         <aside
-            class="student-shell__sidebar fixed left-0 z-30 border-r border-[#bfd4eb]/90 bg-[#eaf3ff]/95 backdrop-blur transition-[transform,width] duration-300 ease-out will-change-[transform,width]"
+            class="student-shell__sidebar fixed left-0 z-30 border-r backdrop-blur transition-[transform,width] duration-300 ease-out will-change-[transform,width]"
             :class="[
                 mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
                 'top-18 h-[calc(100vh-72px)]',
                 sidebarCollapsed ? 'w-70 max-w-[85vw] lg:w-22' : 'w-70 max-w-[85vw] lg:w-70',
                 'lg:translate-x-0',
+                isDarkMode ? 'border-[#2a2f3a] bg-[#111111]' : 'border-[#bfd4eb]/90 bg-[#eaf3ff]/95',
             ]"
         >
             <div class="flex h-full flex-col">
@@ -473,7 +494,9 @@ watch(mobileMenuOpen, (open) => {
                         :class="[
                             isActive(item.route)
                                 ? 'border-[#034485] bg-[#034485] text-white'
-                                : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
+                                : isDarkMode
+                                    ? 'border-transparent text-slate-200 hover:border-[#2a2f3a] hover:bg-[#1f2937] hover:text-white'
+                                    : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
                             sidebarCollapsed && !mobileMenuOpen ? 'justify-center px-2' : '',
                         ]"
                         :title="sidebarCollapsed ? item.label : ''"
@@ -499,7 +522,7 @@ watch(mobileMenuOpen, (open) => {
                     </button>
                 </nav>
 
-                <div class="border-t border-[#d6e4f4] px-3 py-3">
+                <div class="border-t px-3 py-3" :class="isDarkMode ? 'border-[#2a2f3a]' : 'border-[#d6e4f4]'">
                     <div v-if="hasSecondaryItems">
                         <button
                             type="button"
@@ -507,7 +530,9 @@ watch(mobileMenuOpen, (open) => {
                             :class="[
                                 isActive('/account/settings')
                                     ? 'border-[#034485] bg-[#034485] text-white'
-                                    : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
+                                    : isDarkMode
+                                        ? 'border-transparent text-slate-200 hover:border-[#2a2f3a] hover:bg-[#1f2937] hover:text-white'
+                                        : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
                                 sidebarCollapsed && !mobileMenuOpen ? 'justify-center' : '',
                             ]"
                             @click="go('/account/settings')"
@@ -539,7 +564,9 @@ watch(mobileMenuOpen, (open) => {
                             :class="[
                                 isActive('/account/help')
                                     ? 'border-[#034485] bg-[#034485] text-white'
-                                    : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
+                                    : isDarkMode
+                                        ? 'border-transparent text-slate-200 hover:border-[#2a2f3a] hover:bg-[#1f2937] hover:text-white'
+                                        : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
                                 sidebarCollapsed && !mobileMenuOpen ? 'justify-center' : '',
                             ]"
                             @click="go('/account/help')"
@@ -568,8 +595,13 @@ watch(mobileMenuOpen, (open) => {
 
                     <button
                         type="button"
-                        class="group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium text-rose-600 transition-all duration-200 hover:border-rose-200 hover:bg-rose-50"
-                        :class="sidebarCollapsed && !mobileMenuOpen ? 'justify-center' : ''"
+                        class="group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all duration-200"
+                        :class="[
+                            isDarkMode
+                                ? 'border-transparent text-rose-300 hover:bg-rose-950/30'
+                                : 'text-rose-600 hover:border-rose-200 hover:bg-rose-50',
+                            sidebarCollapsed && !mobileMenuOpen ? 'justify-center' : '',
+                        ]"
                         @click="logout"
                     >
                         <svg
@@ -684,15 +716,49 @@ watch(mobileMenuOpen, (open) => {
                                     :key="item.id ?? item.title"
                                     type="button"
                                     class="flex w-full items-start gap-2 px-3 py-2 text-left text-sm transition"
-                                    :class="item.is_read ? 'border-b border-slate-100 text-slate-700 hover:bg-slate-50' : 'border-b border-white/10 bg-[#034485] text-white hover:bg-[#033a70]'"
-                                    @click="markBellRead(item); go('/announcements')"
+                                    :class="item.kind === 'verification' ? 'border-b border-amber-200 bg-amber-50 text-amber-950' : item.is_read ? 'border-b border-slate-100 text-slate-700 hover:bg-slate-50' : 'border-b border-white/10 bg-[#034485] text-white hover:bg-[#033a70]'"
+                                    @click="item.kind === 'verification' ? void 0 : (markBellRead(item), go('/announcements'))"
                                 >
-                                    <span class="mt-1 inline-flex h-2 w-2 shrink-0 rounded-full" :class="item.is_read ? 'bg-[#034485]' : 'bg-white'" />
-                                    <span class="flex-1">
-                                        <span class="block font-semibold" :class="item.is_read ? 'text-slate-800' : 'text-white'">{{ item.title }}</span>
-                                        <span class="block text-xs" :class="item.is_read ? 'text-slate-500' : 'text-white/80'">{{ item.message }}</span>
+                                    <span
+                                        v-if="item.kind !== 'verification'"
+                                        class="mt-1 inline-flex h-2 w-2 shrink-0 rounded-full"
+                                        :class="item.is_read ? 'bg-[#034485]' : 'bg-white'"
+                                    />
+                                    <span v-else class="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path d="M12 9v4" />
+                                            <path d="M12 17h.01" />
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                                        </svg>
                                     </span>
-                                    <span class="ml-auto text-[10px] font-semibold" :class="item.is_read ? 'text-slate-400' : 'text-white/70'">{{ item.published_at ?? '' }}</span>
+                                    <span class="flex-1">
+                                        <span class="block font-semibold" :class="item.kind === 'verification' ? 'text-amber-950' : item.is_read ? 'text-slate-800' : 'text-white'">{{ item.title }}</span>
+                                        <span class="block text-xs" :class="item.kind === 'verification' ? 'text-amber-900' : item.is_read ? 'text-slate-500' : 'text-white/80'">{{ item.message }}</span>
+                                        <span v-if="item.kind === 'verification'" class="mt-2 flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                class="rounded-full bg-amber-500 px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-amber-600 disabled:opacity-60"
+                                                :disabled="verificationSending"
+                                                @click.stop="sendVerificationEmail(item.send_verification_route)"
+                                            >
+                                                {{ verificationSending ? 'Sending...' : item.send_verification_label || 'Send Verification Email' }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="rounded-full border border-amber-200 bg-white px-3 py-1 text-[11px] font-semibold text-amber-800 transition hover:bg-amber-100"
+                                                @click.stop="go(item.settings_href || '/account/account-settings')"
+                                            >
+                                                {{ item.secondary_action_label || 'Go to Account Settings' }}
+                                            </button>
+                                        </span>
+                                    </span>
+                                    <span
+                                        v-if="item.kind !== 'verification'"
+                                        class="ml-auto text-[10px] font-semibold"
+                                        :class="item.is_read ? 'text-slate-400' : 'text-white/70'"
+                                    >
+                                        {{ item.published_at ?? '' }}
+                                    </span>
                                 </button>
                                 <div v-if="studentNotifications.length === 0" class="px-3 py-4 text-xs text-slate-500">
                                     No announcements are available at this time.

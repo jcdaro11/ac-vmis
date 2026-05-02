@@ -8,6 +8,7 @@ use App\Models\AcademicPeriod;
 use App\Models\Team;
 use App\Models\TeamPlayer;
 use App\Models\UserSetting;
+use App\Services\EmailVerificationService;
 use App\Services\SecureUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +30,10 @@ class AccountSettingsController extends Controller
         'Other',
     ];
 
-    public function __construct(private SecureUploadService $secureUpload)
+    public function __construct(
+        private SecureUploadService $secureUpload,
+        private EmailVerificationService $verification,
+    )
     {
     }
 
@@ -261,10 +265,16 @@ class AccountSettingsController extends Controller
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
         ]);
+        $emailChanged = $validated['email'] !== (string) $user->email;
 
         $user->update([
             'email' => $validated['email'],
+            'email_verified_at' => $emailChanged ? null : $user->email_verified_at,
         ]);
+
+        if ($emailChanged) {
+            return back()->with('success', 'Email updated successfully. Please verify your new email address.');
+        }
 
         return back()->with('success', 'Email updated successfully.');
     }
@@ -470,6 +480,7 @@ class AccountSettingsController extends Controller
             ],
             'scope' => $this->settingsScopeForRole((string) $user->role),
             'compliance' => $this->buildCompliance($user),
+            'verification' => $this->verification->statusPayload($user),
         ];
     }
 }

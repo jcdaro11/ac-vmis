@@ -9,7 +9,8 @@ defineOptions({
 })
 
 type Announcement = {
-  id: number
+  id: number | string
+  kind?: string | null
   title: string
   message: string
   type: string
@@ -21,6 +22,10 @@ type Announcement = {
   created_by_role: string | null
   source_label: string | null
   type_label?: string | null
+  settings_href?: string | null
+  send_verification_route?: string | null
+  send_verification_label?: string | null
+  secondary_action_label?: string | null
 }
 
 type PaginationLink = {
@@ -43,6 +48,7 @@ type PaginatedAnnouncements = {
 
 const props = defineProps<{
   announcements: PaginatedAnnouncements
+  verificationReminder?: Announcement | null
   filters?: {
     filter?: 'all' | 'unread'
   }
@@ -54,12 +60,18 @@ const actionMessage = ref('')
 const actionTone = ref<'success' | 'error'>('success')
 const processingIds = ref<number[]>([])
 const processingAll = ref(false)
+const verificationSending = ref(false)
 
 const unreadCount = computed(() => localAnnouncements.value.filter((item) => !item.is_read).length)
+const displayedAnnouncements = computed(() => {
+  const reminder = props.verificationReminder ? [{ ...props.verificationReminder }] : []
+  return [...reminder, ...localAnnouncements.value]
+})
 const pageSummary = computed(() => {
-  const from = props.announcements.from ?? 0
-  const to = props.announcements.to ?? 0
-  return `Showing ${from} to ${to} of ${props.announcements.total} announcements`
+  const count = displayedAnnouncements.value.length
+  if (count === 0) return 'No announcements to show.'
+  if (count === 1) return 'Showing 1 announcement on this page'
+  return `Showing ${count} announcements on this page`
 })
 
 watch(
@@ -76,8 +88,8 @@ watch(
   },
 )
 
-function isProcessing(id: number) {
-  return processingIds.value.includes(id)
+function isProcessing(id: number | string) {
+  return typeof id === 'number' && processingIds.value.includes(id)
 }
 
 function setMessage(message: string, tone: 'success' | 'error' = 'success') {
@@ -89,6 +101,7 @@ function setMessage(message: string, tone: 'success' | 'error' = 'success') {
 }
 
 function markRead(item: Announcement) {
+  if (item.kind === 'verification' || typeof item.id !== 'number') return
   if (item.is_read || isProcessing(item.id) || processingAll.value) return
   const previousReadAt = item.read_at
   const previousIsRead = item.is_read
@@ -106,6 +119,25 @@ function markRead(item: Announcement) {
     },
     onFinish: () => {
       processingIds.value = processingIds.value.filter((id) => id !== item.id)
+    },
+  })
+}
+
+function goToAccountSettings(item?: Announcement) {
+  router.get(String(item?.settings_href ?? '/account/account-settings'))
+}
+
+function sendVerificationEmail(item?: Announcement) {
+  if (verificationSending.value) return
+  verificationSending.value = true
+
+  router.post(String(item?.send_verification_route ?? '/email/verification-notification'), {}, {
+    preserveScroll: true,
+    preserveState: true,
+    onSuccess: () => setMessage('Verification email sent.'),
+    onError: () => setMessage('Unable to send verification email. Please try again.', 'error'),
+    onFinish: () => {
+      verificationSending.value = false
     },
   })
 }
@@ -240,26 +272,38 @@ function formatRelative(value: string | null) {
       {{ actionMessage }}
     </p>
 
-    <div v-if="localAnnouncements.length === 0" class="page-card rounded-xl border border-slate-200 bg-white p-6 text-slate-500">
+    <div v-if="displayedAnnouncements.length === 0" class="page-card rounded-xl border border-slate-200 bg-white p-6 text-slate-500">
       No announcements yet.
     </div>
 
     <div
-      v-for="item in localAnnouncements"
+      v-for="item in displayedAnnouncements"
       :key="item.id"
       class="page-card rounded-xl border p-4 transition"
-      :class="item.is_read
-        ? 'border-[#034485]/40 bg-white text-slate-900'
-        : 'cursor-pointer border-[#034485] bg-[#034485] text-white'"
+      :class="item.kind === 'verification'
+        ? 'border-amber-200 bg-amber-50 text-amber-950'
+        : item.is_read
+          ? 'border-[#034485]/40 bg-white text-slate-900'
+          : 'cursor-pointer border-[#034485] bg-[#034485] text-white'"
       @click="markRead(item)"
     >
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-          <span v-if="!item.is_read" class="h-2 w-2 rounded-full bg-white" />
-          <h2 class="font-semibold" :class="item.is_read ? 'text-slate-900' : 'text-white'">{{ item.title }}</h2>
+          <span v-if="item.kind !== 'verification' && !item.is_read" class="h-2 w-2 rounded-full bg-white" />
+          <span
+            v-else-if="item.kind === 'verification'"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+            </svg>
+          </span>
+          <h2 class="font-semibold" :class="item.kind === 'verification' ? 'text-amber-950' : item.is_read ? 'text-slate-900' : 'text-white'">{{ item.title }}</h2>
         </div>
         <button
-          v-if="!item.is_read"
+          v-if="item.kind !== 'verification' && !item.is_read"
           type="button"
           class="rounded-full border border-white/70 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="isProcessing(item.id) || processingAll"
@@ -267,9 +311,32 @@ function formatRelative(value: string | null) {
         >
           {{ isProcessing(item.id) ? 'Marking...' : 'Mark Read' }}
         </button>
+        <span
+          v-else-if="item.kind === 'verification'"
+          class="rounded-full border border-amber-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700"
+        >
+          Action Required
+        </span>
       </div>
-      <p class="mt-2 text-sm" :class="item.is_read ? 'text-slate-700' : 'text-white/90'">{{ item.message }}</p>
-      <div class="mt-3 flex flex-wrap items-center gap-2 text-xs" :class="item.is_read ? 'text-slate-500' : 'text-white/80'">
+      <p class="mt-2 text-sm" :class="item.kind === 'verification' ? 'text-amber-900' : item.is_read ? 'text-slate-700' : 'text-white/90'">{{ item.message }}</p>
+      <div v-if="item.kind === 'verification'" class="mt-4 flex flex-col gap-2 sm:flex-row">
+        <button
+          type="button"
+          class="rounded-full bg-amber-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+          :disabled="verificationSending"
+          @click.stop="sendVerificationEmail(item)"
+        >
+          {{ verificationSending ? 'Sending...' : item.send_verification_label || 'Send Verification Email' }}
+        </button>
+        <button
+          type="button"
+          class="rounded-full border border-amber-200 bg-white px-4 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100"
+          @click.stop="goToAccountSettings(item)"
+        >
+          {{ item.secondary_action_label || 'Go to Account Settings' }}
+        </button>
+      </div>
+      <div v-else class="mt-3 flex flex-wrap items-center gap-2 text-xs" :class="item.is_read ? 'text-slate-500' : 'text-white/80'">
         <span>{{ formatDateTime(item.published_at) }}</span>
         <span v-if="formatRelative(item.published_at)">• {{ formatRelative(item.published_at) }}</span>
         <span>• {{ item.source_label || 'System' }}</span>

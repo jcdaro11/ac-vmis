@@ -804,7 +804,6 @@ class AdminController extends Controller
                 'must_change_password' => false,
                 'role' => 'admin',
                 'account_state' => 'active',
-                'email_verified_at' => now(),
             ]);
 
             $invite->update([

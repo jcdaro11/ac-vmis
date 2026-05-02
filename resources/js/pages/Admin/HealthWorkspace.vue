@@ -132,21 +132,11 @@ function resetFilters() {
                     </div>
                     <p class="mt-2 text-2xl font-bold text-amber-900">{{ wellness.kpis.avg_fatigue }}</p>
                 </article>
-                <article class="page-card rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-                    <p class="text-xs uppercase tracking-wide text-emerald-700">Unique Athletes</p>
-                    <p class="mt-2 text-2xl font-bold text-emerald-900">{{ wellness.kpis.unique_athletes }}</p>
-                </article>
             </div>
         </section>
 
         <section class="page-card rounded-3xl border border-[#034485]/35 bg-white p-5">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#034485]">Wellness Filters</p>
-                <h2 class="mt-2 text-xl font-semibold text-slate-900">Coach Wellness Observations</h2>
-                <p class="mt-1 text-sm text-slate-500">Focus on injury cases, fatigue trends, team activity, and post-session wellness remarks.</p>
-            </div>
-
-            <div class="mt-5 space-y-3">
+            <div class="mt-3 space-y-2">
                 <div class="flex flex-col gap-3 lg:flex-row">
                     <input
                         v-model="form.search"
@@ -191,26 +181,26 @@ function resetFilters() {
         </section>
 
         <section class="page-card overflow-hidden rounded-3xl border border-[#034485]/35 bg-white">
-            <div class="border-b border-slate-200 px-5 py-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#034485]">Wellness Logs</p>
-                <h2 class="mt-2 text-lg font-semibold text-slate-900">Recorded Wellness Entries</h2>
+            <div class="border-b border-[#034485]/30 bg-[#034485] px-5 py-4 text-white">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Wellness Logs</p>
+                <h2 class="mt-2 text-lg font-semibold text-white">Recorded Wellness Entries</h2>
             </div>
 
             <div class="grid grid-cols-1 gap-4 p-5 xl:grid-cols-2">
                 <article
                     v-for="row in wellness.logs.data"
                     :key="row.id"
-                    class="page-card rounded-2xl border border-[#034485]/20 bg-white p-5"
+                    class="page-card rounded-2xl border border-[#034485]/35 bg-[#034485] p-5 text-white shadow-[0_20px_38px_-24px_rgba(3,68,133,0.6)]"
                 >
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                            <p class="text-lg font-semibold text-slate-900">{{ row.student_name }}</p>
-                            <p class="text-sm text-slate-500">{{ row.student_id_number || 'No student ID' }}</p>
+                            <p class="text-lg font-semibold text-white">{{ row.student_name }}</p>
+                            <p class="text-sm text-white/72">{{ row.student_id_number || 'No student ID' }}</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <span
                                 class="rounded-full px-2.5 py-1 text-xs font-semibold"
-                                :class="row.injury_observed ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'"
+                                :class="row.injury_observed ? 'bg-rose-100 text-rose-700' : 'bg-[#DDF5F2] text-[#0F766E]'"
                             >
                                 {{ row.injury_observed ? 'Injury Observed' : 'No Injury Observed' }}
                             </span>
@@ -220,30 +210,30 @@ function resetFilters() {
                         </div>
                     </div>
 
-                    <dl class="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-600 sm:grid-cols-2">
+                    <dl class="mt-4 grid grid-cols-1 gap-3 text-sm text-white/82 sm:grid-cols-2">
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Team</dt>
-                            <dd class="mt-1 text-slate-900">{{ row.team_name || 'No team' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Team</dt>
+                            <dd class="mt-1 text-white">{{ row.team_name || 'No team' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Session</dt>
-                            <dd class="mt-1 text-slate-900">{{ row.schedule_title || 'Untitled session' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Session</dt>
+                            <dd class="mt-1 text-white">{{ row.schedule_title || 'Untitled session' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Type</dt>
-                            <dd class="mt-1 capitalize text-slate-900">{{ row.schedule_type || 'Unknown' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Type</dt>
+                            <dd class="mt-1 capitalize text-white">{{ row.schedule_type || 'Unknown' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fatigue Level</dt>
-                            <dd class="mt-1 text-slate-900">{{ row.fatigue_level ?? 'N/A' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Fatigue Level</dt>
+                            <dd class="mt-1 text-white">{{ row.fatigue_level ?? 'N/A' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Log Date</dt>
-                            <dd class="mt-1 text-slate-900">{{ row.log_date || 'N/A' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Log Date</dt>
+                            <dd class="mt-1 text-white">{{ row.log_date || 'N/A' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Logged By</dt>
-                            <dd class="mt-1 text-slate-900">{{ row.logged_by || 'N/A' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Logged By</dt>
+                            <dd class="mt-1 text-white">{{ row.logged_by || 'N/A' }}</dd>
                         </div>
                     </dl>
 
@@ -252,9 +242,9 @@ function resetFilters() {
                             <p class="text-xs font-semibold uppercase tracking-wide text-rose-700">Injury Notes</p>
                             <p class="mt-1 text-sm text-rose-900">{{ row.injury_notes }}</p>
                         </div>
-                        <div v-if="row.remarks" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-600">Remarks</p>
-                            <p class="mt-1 text-sm text-slate-800">{{ row.remarks }}</p>
+                        <div v-if="row.remarks" class="rounded-2xl border border-white/18 bg-white/10 px-4 py-3 backdrop-blur-sm">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-white/72">Remarks</p>
+                            <p class="mt-1 text-sm text-white">{{ row.remarks }}</p>
                         </div>
                     </div>
                 </article>

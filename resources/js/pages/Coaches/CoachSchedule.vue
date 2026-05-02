@@ -6,6 +6,7 @@ import { VueCal } from 'vue-cal'
 import ConfirmDialog from '@/components/ui/dialog/ConfirmDialog.vue'
 import { showAppToast } from '@/composables/useAppToast'
 import { supportedSports, useSportColors } from '@/composables/useSportColors'
+import { useTheme } from '@/composables/useTheme'
 import CoachDashboard from '@/pages/Coaches/CoachDashboard.vue'
 import 'vue-cal/style'
 
@@ -78,6 +79,7 @@ const form = ref({
 const canManage = computed(() => selectedTeamId.value !== null)
 const ownerSchedules = computed(() => props.schedules.filter((item: any) => item.is_owner))
 const { sportColor, sportTextColor } = useSportColors()
+const { isDarkMode } = useTheme()
 const APP_TIMEZONE = 'Asia/Manila'
 const deleteDialogOpen = ref(false)
 const pendingDeleteId = ref<number | null>(null)
@@ -349,6 +351,18 @@ function openWellness(item: any) {
         preserveScroll: true,
         preserveState: false,
     })
+}
+
+function openCalendar(url: string | null | undefined) {
+    if (!url) return
+    const link = document.createElement('a')
+    link.href = url
+    link.download = ''
+    link.target = '_blank'
+    link.rel = 'noopener'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
 }
 
 const groupedSchedules = computed(() => {
@@ -852,16 +866,18 @@ onBeforeUnmount(() => {
                             No {{ statusLabel(section.key).toLowerCase() }} schedules.
                         </div>
 
-                        <article v-for="(item, itemIndex) in section.items" :key="item.id" class="page-card relative overflow-hidden rounded-3xl border border-[#034485]/40 bg-white p-4" :style="cardMotion(4 + sectionIndex * 6 + itemIndex)">
+                        <article v-for="(item, itemIndex) in section.items" :key="item.id" class="page-card relative overflow-hidden rounded-3xl border border-[#034485]/45 bg-white p-4 shadow-[0_20px_44px_-30px_rgba(3,68,133,0.45)]" :style="cardMotion(4 + sectionIndex * 6 + itemIndex)">
+                            <div class="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/85"></div>
+                            <div class="pointer-events-none absolute inset-x-0 top-14 h-14 bg-gradient-to-b from-[#034485]/18 to-transparent"></div>
                             <div class="pointer-events-none absolute left-1/2 top-1/2 flex h-[140%] -translate-x-1/2 -translate-y-1/2 -rotate-6 gap-1 opacity-60">
                                 <span class="h-full w-1.5" :style="{ backgroundColor: stripeColors(item.sport).base }"></span>
                                 <span class="h-full w-1.5" :style="{ backgroundColor: stripeColors(item.sport).lighter }"></span>
                             </div>
-                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <div class="text-base font-semibold text-slate-900">{{ item.title }}</div>
-                                    <div class="text-xs text-slate-500">{{ item.type || '-' }} • {{ item.venue || '-' }}</div>
-                                    <div class="text-xs text-slate-500">{{ formatPHT(item.start) }} → {{ formatPHT(item.end) }}</div>
+                                    <div class="text-base font-semibold text-white">{{ item.title }}</div>
+                                    <div class="mt-1 inline-flex rounded-full border border-white bg-white px-2.5 py-1 text-[11px] font-semibold text-[#034485] shadow-[0_10px_24px_-18px_rgba(15,23,42,0.7)]">{{ item.type || '-' }} • {{ item.venue || '-' }}</div>
+                                    <div class="mt-3 rounded-2xl border border-[#034485]/18 bg-[#edf4ff] px-3 py-2 text-xs font-medium text-slate-700">{{ formatPHT(item.start) }} → {{ formatPHT(item.end) }}</div>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="statusTone(scheduleStatus(item))">
@@ -880,23 +896,24 @@ onBeforeUnmount(() => {
                                 </div>
                             </div>
 
-                            <div class="mt-3 flex flex-wrap gap-2">
+                            <div class="relative z-10 mt-4 flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    @click="openCalendar(item.calendar_url)"
+                                    class="rounded-md border border-[#034485]/25 bg-[#edf4ff] px-3 py-1.5 text-xs font-semibold text-[#034485] hover:border-[#034485]/45 hover:bg-[#ddeaff]"
+                                >
+                                    + Add to Calendar
+                                </button>
                                 <button
                                     @click="openAttendance(item)"
-                                    class="rounded-md bg-[#1f2937] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#111827]"
+                                    class="rounded-md bg-[#034485] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#02396f]"
                                 >
                                     {{ attendanceActionLabel(item) }}
                                 </button>
                                 <button
-                                    @click="openViewSchedule(item)"
-                                    class="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400"
-                                >
-                                    View Details
-                                </button>
-                                <button
                                     v-if="canOpenWellness(item)"
                                     @click="openWellness(item)"
-                                    class="rounded-md border border-[#034485]/25 px-3 py-1.5 text-xs font-semibold text-[#034485] hover:border-[#034485]/45 hover:bg-[#034485]/5"
+                                    class="rounded-md border border-[#034485]/25 bg-white px-3 py-1.5 text-xs font-semibold text-[#034485] hover:border-[#034485]/45 hover:bg-[#f7fbff]"
                                 >
                                     Open Wellness
                                 </button>
@@ -959,7 +976,9 @@ onBeforeUnmount(() => {
 
         <!-- ========== MODAL ========== -->
         <div v-if="showModal" @click.self="closeModal"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 py-6">
+            class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 px-4 py-6">
+
+            <div class="flex min-h-full items-center justify-center">
 
             <div
                 class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
@@ -1042,28 +1061,36 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div v-else-if="modalMode === 'attendance'" class="space-y-5 overflow-y-auto p-6">
+                    <div class="-mx-6 -mt-6 rounded-t-2xl bg-[#034485] px-6 py-5 text-white">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/75">Attendance Sheet</p>
+                        <h3 class="mt-1 text-lg font-semibold text-white">{{ selectedSchedule?.title || 'Schedule Attendance' }}</h3>
+                        <p class="mt-1 text-sm text-white/80">
+                            {{ selectedSchedule?.type || '-' }} • {{ selectedSchedule?.venue || '-' }}
+                        </p>
+                    </div>
+
                     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Schedule</p>
-                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ selectedSchedule?.title || '-' }}</p>
-                            <p class="mt-1 text-xs text-slate-500">{{ selectedSchedule?.type || '-' }} • {{ selectedSchedule?.venue || '-' }}</p>
+                        <div class="rounded-2xl border p-4 shadow-sm" :class="isDarkMode ? 'border-slate-700 bg-[#161616]' : 'border-[#034485]/15 bg-[#f7fbff]'">
+                            <p class="text-xs font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-300' : 'text-[#034485]'">Schedule</p>
+                            <p class="mt-2 text-sm font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ selectedSchedule?.title || '-' }}</p>
+                            <p class="mt-1 text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">{{ selectedSchedule?.type || '-' }} • {{ selectedSchedule?.venue || '-' }}</p>
                         </div>
-                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Window</p>
-                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ statusLabel(scheduleStatus(selectedSchedule)) }}</p>
-                            <p class="mt-1 text-xs text-slate-500">{{ formatPHT(selectedSchedule?.start || null) }}</p>
+                        <div class="rounded-2xl border p-4 shadow-sm" :class="isDarkMode ? 'border-slate-700 bg-[#161616]' : 'border-[#034485]/15 bg-[#f7fbff]'">
+                            <p class="text-xs font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-300' : 'text-[#034485]'">Window</p>
+                            <p class="mt-2 text-sm font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ statusLabel(scheduleStatus(selectedSchedule)) }}</p>
+                            <p class="mt-1 text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">{{ formatPHT(selectedSchedule?.start || null) }}</p>
                         </div>
-                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Present</p>
+                        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Present</p>
                             <p class="mt-2 text-2xl font-semibold text-emerald-700">{{ attendanceSelectionCount('present') }}</p>
                         </div>
-                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Needs Review</p>
+                        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-amber-800">Needs Review</p>
                             <p class="mt-2 text-2xl font-semibold text-amber-700">{{ attendanceSelectionCount('absent') + attendanceSelectionCount('late') + attendanceSelectionCount('excused') }}</p>
                         </div>
                     </div>
 
-                    <div class="rounded-xl border border-[#034485]/20 bg-[#034485]/5 p-4 text-sm text-slate-700">
+                    <div class="rounded-2xl border p-4 text-sm shadow-sm" :class="isDarkMode ? 'border-slate-700 bg-[#161616] text-slate-200' : 'border-[#034485]/20 bg-[#f2f7ff] text-slate-700'">
                         {{ selectedSchedule ? attendanceModalMessage(selectedSchedule) : '' }}
                     </div>
 
@@ -1113,17 +1140,17 @@ onBeforeUnmount(() => {
                     <p v-if="attendanceError" class="text-sm text-rose-700">{{ attendanceError }}</p>
                     <p v-if="attendanceMessage" class="text-sm text-emerald-700">{{ attendanceMessage }}</p>
 
-                    <div v-if="attendanceLoading" class="rounded-xl border border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
+                    <div v-if="attendanceLoading" class="rounded-2xl border p-6 text-sm" :class="isDarkMode ? 'border-slate-700 bg-[#161616] text-slate-300' : 'border-[#034485]/15 bg-[#f7fbff] text-slate-600'">
                         Loading attendance roster...
                     </div>
 
-                    <div v-else-if="attendanceRows.length === 0" class="rounded-xl border border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
+                    <div v-else-if="attendanceRows.length === 0" class="rounded-2xl border p-6 text-sm" :class="isDarkMode ? 'border-slate-700 bg-[#161616] text-slate-300' : 'border-[#034485]/15 bg-[#f7fbff] text-slate-600'">
                         No student-athletes are assigned to this team yet.
                     </div>
 
-                    <div v-else class="overflow-hidden rounded-2xl border border-slate-200">
+                    <div v-else class="overflow-hidden rounded-2xl border shadow-[0_18px_40px_-32px_rgba(3,68,133,0.28)]" :class="isDarkMode ? 'border-slate-700' : 'border-[#034485]/15'">
                         <div class="max-h-[50vh] overflow-auto">
-                            <table class="w-full min-w-[760px] bg-white text-left text-sm">
+                            <table class="w-full min-w-[760px] text-left text-sm" :class="isDarkMode ? 'bg-[#101010]' : 'bg-white'">
                                 <thead class="bg-[#034485] text-white">
                                     <tr>
                                         <th class="px-4 py-3">Student</th>
@@ -1135,11 +1162,11 @@ onBeforeUnmount(() => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="row in attendanceRows" :key="row.student_id" class="border-t border-slate-200 align-top">
-                                        <td class="px-4 py-3 font-medium text-slate-900">{{ row.full_name }}</td>
-                                        <td class="px-4 py-3 text-slate-700">{{ row.student_id_number || '-' }}</td>
-                                        <td class="px-4 py-3 text-slate-700">{{ row.jersey_number || '-' }}</td>
-                                        <td class="px-4 py-3 text-slate-700">{{ row.athlete_position || '-' }}</td>
+                                    <tr v-for="row in attendanceRows" :key="row.student_id" class="border-t align-top" :class="isDarkMode ? 'border-slate-800 even:bg-[#161616]' : 'border-[#034485]/10 even:bg-[#f9fbff]'">
+                                        <td class="px-4 py-3 font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ row.full_name }}</td>
+                                        <td class="px-4 py-3" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">{{ row.student_id_number || '-' }}</td>
+                                        <td class="px-4 py-3" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">{{ row.jersey_number || '-' }}</td>
+                                        <td class="px-4 py-3" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">{{ row.athlete_position || '-' }}</td>
                                         <td class="px-4 py-3">
                                             <div class="mb-2">
                                                 <span
@@ -1197,7 +1224,8 @@ onBeforeUnmount(() => {
                                                 v-model="row.notes"
                                                 rows="2"
                                                 :disabled="row.status === 'present' || row.status === null"
-                                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
+                                                class="w-full rounded-lg border px-3 py-2 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                                                :class="isDarkMode ? 'border-slate-700 bg-[#161616] text-slate-200' : 'border-[#034485]/20 bg-[#f7fbff] text-slate-700'"
                                                 placeholder="Optional note for absent, late, or excused"
                                             />
                                         </td>
@@ -1209,22 +1237,28 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div v-else class="space-y-5 overflow-y-auto p-6">
-                    <div>
-                        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Title</label>
+                    <div class="-mx-6 -mt-6 rounded-t-2xl bg-[#034485] px-6 py-5 text-white">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/75">Schedule Planner</p>
+                        <h3 class="mt-1 text-lg font-semibold text-white">{{ editingId ? 'Update Session Details' : 'Create a New Session' }}</h3>
+                        <p class="mt-1 text-sm text-white/80">Set the title, timing, venue, and optional notes for this team activity.</p>
+                    </div>
+
+                    <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] p-4 shadow-sm">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Title</label>
                         <input
                             v-model="form.title"
                             type="text"
-                            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                            class="mt-2 w-full rounded-xl border border-[#034485]/20 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#034485] focus:outline-none focus:ring-2 focus:ring-[#034485]/10"
                             placeholder="e.g. Morning Practice"
                         />
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Type</label>
+                        <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] p-4 shadow-sm">
+                            <label class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Type</label>
                             <select
                                 v-model="form.type"
-                                class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                                class="mt-2 w-full rounded-xl border border-[#034485]/20 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#034485] focus:outline-none focus:ring-2 focus:ring-[#034485]/10"
                             >
                                 <option value="practice">Practice</option>
                                 <option value="game">Game</option>
@@ -1232,55 +1266,55 @@ onBeforeUnmount(() => {
                             </select>
                         </div>
 
-                        <div>
-                            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Venue</label>
+                        <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] p-4 shadow-sm">
+                            <label class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Venue</label>
                             <input
                                 v-model="form.venue"
                                 type="text"
-                                class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                                class="mt-2 w-full rounded-xl border border-[#034485]/20 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#034485] focus:outline-none focus:ring-2 focus:ring-[#034485]/10"
                                 placeholder="e.g. Main Gym"
                             />
                         </div>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Start</label>
+                        <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] p-4 shadow-sm">
+                            <label class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Start</label>
                             <input
                                 v-model="form.start_time"
                                 type="datetime-local"
-                                class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                                class="mt-2 w-full rounded-xl border border-[#034485]/20 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#034485] focus:outline-none focus:ring-2 focus:ring-[#034485]/10"
                             />
                         </div>
-                        <div>
-                            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">End</label>
+                        <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] p-4 shadow-sm">
+                            <label class="text-xs font-semibold uppercase tracking-wide text-[#034485]">End</label>
                             <input
                                 v-model="form.end_time"
                                 type="datetime-local"
-                                class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                                class="mt-2 w-full rounded-xl border border-[#034485]/20 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#034485] focus:outline-none focus:ring-2 focus:ring-[#034485]/10"
                             />
                         </div>
                     </div>
 
-                    <div>
-                        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</label>
+                    <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] p-4 shadow-sm">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Notes</label>
                         <textarea
                             v-model="form.notes"
                             rows="3"
-                            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                            class="mt-2 w-full rounded-xl border border-[#034485]/20 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#034485] focus:outline-none focus:ring-2 focus:ring-[#034485]/10"
                             placeholder="Optional notes for the team"
                         ></textarea>
                     </div>
                 </div>
 
                 <div v-if="modalMode === 'form'" class="flex flex-col-reverse gap-2 border-t border-slate-200 px-6 py-4 sm:flex-row sm:justify-end">
-                    <button type="button" @click="closeModal" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400">
+                    <button type="button" @click="closeModal" class="rounded-md border border-[#034485]/20 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-[#034485]/35 hover:bg-[#f7fbff]">
                         Cancel
                     </button>
 
                     <button type="button" @click="saveSchedule"
-                        class="rounded-md bg-[#1f2937] px-4 py-2 text-sm font-semibold text-white hover:bg-[#111827]">
-                        Save Schedule
+                        class="rounded-md bg-[#034485] px-4 py-2 text-sm font-semibold text-white hover:bg-[#033a70]">
+                        {{ editingId ? 'Save Changes' : 'Save Schedule' }}
                     </button>
                 </div>
 
@@ -1302,6 +1336,7 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
 

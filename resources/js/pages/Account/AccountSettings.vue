@@ -24,12 +24,39 @@ const page = usePage();
 const currentEmail = computed(() => String(page.props.auth?.user?.email ?? ''));
 const mustChangePassword = computed(() => Boolean(page.props.auth?.user?.must_change_password));
 const role = computed(() => normalizeWorkspaceRole((page.props as any)?.auth?.user?.role));
+const props = defineProps<{
+    verification?: {
+        required?: boolean;
+        email?: string;
+        status?: 'verified' | 'not_verified';
+        verified_at?: string | null;
+        settingsHref?: string;
+        send_verification_route?: string;
+    } | null;
+}>();
 
 const emailForm = useForm({
     email: currentEmail.value,
 });
 
 const deleteForm = useForm({});
+const verificationForm = useForm({});
+const isVerified = computed(() => props.verification?.status === 'verified');
+const verificationEmail = computed(() => String(props.verification?.email ?? currentEmail.value));
+const verificationRoute = computed(() => String(props.verification?.send_verification_route ?? '/email/verification-notification'));
+const verifiedAtLabel = computed(() => {
+    if (!props.verification?.verified_at) return '';
+    const date = new Date(props.verification.verified_at);
+    if (Number.isNaN(date.getTime())) return String(props.verification.verified_at);
+
+    return date.toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+});
 
 function cardMotion(order: number) {
     return { '--card-order': String(order) };
@@ -58,6 +85,16 @@ function submitEmail() {
     });
 }
 
+function sendVerificationEmail() {
+    verificationForm.post(verificationRoute.value, {
+        preserveScroll: true,
+        onError: (errors) => {
+            const firstError = Object.values(errors || {})[0];
+            showAppToast(Array.isArray(firstError) ? String(firstError[0]) : String(firstError || 'Unable to send verification email.'), 'error');
+        },
+    });
+}
+
 function confirmDelete() {
     if (!window.confirm('Delete your account? This will deactivate access immediately.')) return;
     deleteForm.delete('/account/delete');
@@ -82,7 +119,74 @@ function confirmDelete() {
             Password update required. Set a new password to continue using AC-VMIS.
         </div>
 
-        <form id="settings-account" @submit.prevent="submitPassword" class="account-card space-y-3 rounded-2xl border border-[#034485]/40 bg-white p-5" :style="cardMotion(mustChangePassword ? 2 : 1)">
+        <section
+            v-if="!mustChangePassword"
+            class="account-card mb-4 rounded-2xl border"
+            :class="isVerified ? 'border-[#034485]/25 bg-[#034485]/5' : 'border-amber-200 bg-amber-50/90'"
+            :style="cardMotion(1)"
+        >
+            <div v-if="isVerified" class="mb-4 flex flex-col gap-3 rounded-2xl px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#034485] text-white">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                            <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                    </span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-900">Verified account</p>
+                        <p class="text-xs text-slate-500">
+                            {{ verificationEmail }}
+                            <span v-if="verifiedAtLabel">• Verified on {{ verifiedAtLabel }}</span>
+                        </p>
+                    </div>
+                </div>
+                <span class="inline-flex w-fit items-center rounded-full border border-[#034485]/20 bg-white px-3 py-1 text-xs font-semibold text-[#034485]">
+                    Verified
+                </span>
+            </div>
+
+            <div v-else class="mb-4 flex flex-col gap-4 p-4 sm:p-5">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M12 9v4" />
+                                <path d="M12 17h.01" />
+                                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="text-sm font-semibold text-amber-900">Verification required</p>
+                            <p class="text-xs text-amber-800">
+                                {{ verificationEmail }}
+                                <span class="hidden sm:inline">•</span>
+                                <span class="sm:ml-1">Not verified</span>
+                            </p>
+                        </div>
+                    </div>
+                    <span class="inline-flex w-fit items-center rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700">
+                        Not Verified
+                    </span>
+                </div>
+
+                <p class="text-sm leading-6 text-amber-800">
+                    Please verify your email address to secure your account and complete your profile setup.
+                </p>
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                    <button
+                        type="button"
+                        class="w-full rounded-lg bg-amber-500 px-4 py-2 font-semibold text-white transition hover:bg-amber-600 sm:w-auto"
+                        :disabled="verificationForm.processing"
+                        @click="sendVerificationEmail"
+                    >
+                        {{ verificationForm.processing ? 'Sending...' : 'Send Verification Email' }}
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <form id="settings-account" @submit.prevent="submitPassword" class="account-card space-y-3 rounded-2xl border border-[#034485]/40 bg-white p-5" :style="cardMotion(mustChangePassword ? 2 : 2)">
             <h2 class="section-title">
                 <svg class="h-4 w-4 text-[#1f2937]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <rect x="3" y="11" width="18" height="11" rx="2" />
@@ -231,10 +335,10 @@ function confirmDelete() {
             id="settings-email"
             @submit.prevent="submitEmail"
             class="account-card mt-4 space-y-3 rounded-2xl border border-[#034485]/40 bg-white p-5"
-            :style="cardMotion(2)"
+            :style="cardMotion(3)"
         >
             <h2 class="section-title">Account Email</h2>
-            <p class="settings-muted text-xs text-slate-500">Update the email address tied to your account.</p>
+            <p class="settings-muted text-xs text-slate-500">Update the email address tied to your account. Changing it will require a new verification.</p>
             <div>
                 <label class="settings-label text-sm text-slate-500">Email Address</label>
                 <input v-model="emailForm.email" type="email" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
@@ -251,7 +355,7 @@ function confirmDelete() {
             </div>
         </form>
 
-        <section v-if="!mustChangePassword" class="account-card mt-4 space-y-3 rounded-2xl border border-red-200 bg-red-50 p-5" :style="cardMotion(3)">
+        <section v-if="!mustChangePassword" class="account-card mt-4 space-y-3 rounded-2xl border border-red-200 bg-red-50 p-5" :style="cardMotion(4)">
             <h2 class="section-title text-red-700">Delete Account</h2>
             <p class="text-xs text-red-700">This action will deactivate your access immediately.</p>
             <button

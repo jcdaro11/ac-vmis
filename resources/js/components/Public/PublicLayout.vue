@@ -34,6 +34,7 @@ const isAuthed = computed(() => Boolean(page.props.auth?.user));
 const userRole = computed(() => String(page.props.auth?.user?.role ?? ''));
 const isLoginPage = computed(() => page.component === 'Auth/Login' || page.url.toLowerCase().includes('/login'));
 const isRegisterPage = computed(() => page.component.includes('Register') || page.url.toLowerCase().includes('/register'));
+const isAuthPage = computed(() => isLoginPage.value || isRegisterPage.value);
 const isStatusPage = computed(() => page.component.startsWith('Status/') || page.component.toLowerCase().includes('status/'));
 const currentPath = computed(() => {
     const path = page.url.split('?')[0].toLowerCase();
@@ -243,7 +244,7 @@ watch(mobileMenuOpen, (open) => {
             </div>
         </main>
 
-        <footer class="site-footer relative z-10 px-4 pb-5 sm:px-6 lg:px-10">
+        <footer class="site-footer relative z-10 px-4 pb-5 sm:px-6 lg:px-10" :class="{ 'site-footer-auth': isAuthPage }">
             <div class="footer-shell mx-auto max-w-6xl">
                 <div class="footer-grid">
                     <section class="footer-col footer-col-brand">
@@ -583,6 +584,23 @@ watch(mobileMenuOpen, (open) => {
     padding-top: 0.75rem;
     color: #ffffff;
     font-size: 0.78rem;
+}
+
+.site-footer-auth .footer-brand,
+.site-footer-auth .footer-copy,
+.site-footer-auth .footer-contact,
+.site-footer-auth .contact-icon,
+.site-footer-auth .footer-heading,
+.site-footer-auth .footer-link,
+.site-footer-auth .footer-info,
+.site-footer-auth .footer-info-title,
+.site-footer-auth .footer-info-text,
+.site-footer-auth .footer-bottom-row {
+    color: #ffffff !important;
+}
+
+.site-footer-auth .footer-link:hover {
+    color: #ffffff !important;
 }
 
 .site-header {

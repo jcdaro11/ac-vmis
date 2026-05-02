@@ -187,7 +187,6 @@ function removeAssistantCoach() {
                 <div>
                     <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#034485]">Current Assignments</p>
                     <h2 class="mt-2 text-xl font-semibold text-slate-900">Team Staff</h2>
-                    <p class="mt-1 text-sm text-slate-500">Review the current head and assistant coach before making updates.</p>
                 </div>
 
                 <div class="mt-5 space-y-4">
@@ -241,7 +240,6 @@ function removeAssistantCoach() {
                     <div>
                         <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#034485]">Available Coaches</p>
                         <h2 class="mt-2 text-xl font-semibold text-slate-900">Select a Coach</h2>
-                        <p class="mt-1 text-sm text-slate-500">Search the coach pool and assign each coach directly to this team.</p>
                     </div>
                     <div class="w-full lg:w-[28rem]">
                         <SearchFilterPanel

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Announcement;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\AnnouncementEvent;
@@ -14,7 +15,7 @@ use App\Models\TeamPlayer;
 use App\Models\UserSetting;
 use App\Support\MediaUrl;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmailContract
 {
     use HasFactory, Notifiable;
 
@@ -99,6 +100,18 @@ class User extends Authenticatable
     public function isActiveAccount(): bool
     {
         return $this->account_state === 'active';
+    }
+
+    public function hasVerifiedEmail(): bool
+    {
+        return !is_null($this->email_verified_at);
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        return $this->forceFill([
+            'email_verified_at' => now(),
+        ])->save();
     }
 
     public function requiresStudentApproval(): bool

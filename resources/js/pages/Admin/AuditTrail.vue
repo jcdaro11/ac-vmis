@@ -162,7 +162,7 @@ function categoryTone(value: AuditRow['category']) {
     <Head title="Audit Trail" />
 
     <div class="space-y-6">
-        <section class="page-card rounded-3xl border border-[#034485] bg-[#034485] p-6 text-white">
+        <section class="audit-trail-hero page-card rounded-3xl border border-[#034485] bg-[#034485] p-6 text-white">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.24em] text-white/80">Admin Oversight</p>

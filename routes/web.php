@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\CoachOnboardingController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\CreateTeamController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\StudentAthlete\AcademicSubmissionController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\FileAccessController;
+use App\Http\Controllers\ScheduleCalendarController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -134,8 +136,14 @@ Route::middleware('guest')->group(function () {
     Route::post('/coach/onboarding/activate', [CoachOnboardingController::class, 'activate'])->name('coach.onboarding.activate.submit');
 });
 
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware('signed')
+    ->name('verification.verify');
+
 Route::middleware(['auth', 'force_password_change'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])->name('verification.send');
+    Route::get('/schedules/{schedule}/calendar', [ScheduleCalendarController::class, 'show'])->name('schedules.calendar');
     Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
     Route::put('/announcements/read-all', [AnnouncementController::class, 'markAllRead'])->name('announcements.readAll');
     Route::put('/announcements/{announcement}/read', [AnnouncementController::class, 'markRead'])->name('announcements.read');

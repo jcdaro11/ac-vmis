@@ -3,6 +3,7 @@ import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
 import AccountShell from '@/components/Account/AccountShell.vue'
+import { showAppToast } from '@/composables/useAppToast'
 import { useTheme } from '@/composables/useTheme'
 import { normalizeWorkspaceRole, resolveAccountLayout, workspaceNavigationPreview } from '@/pages/Account/accountRole'
 
@@ -62,6 +63,7 @@ function submitSettings() {
     preserveScroll: true,
     onSuccess: () => {
       saved.value = true
+      showAppToast('Preferences updated.', 'success')
       setTimeout(() => (saved.value = false), 2200)
     },
   })

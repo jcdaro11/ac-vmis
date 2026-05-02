@@ -625,7 +625,7 @@ watch(mobileMenuOpen, (open) => {
             <section class="register-cta-wrap section-shell welcome-reveal">
                 <div class="register-cta mx-auto max-w-6xl">
                     <p class="cta-kicker"><span class="title-chip">Account Access</span></p>
-                    <h2><span class="title-chip title-chip-blue">Begin the registration process and complete the required steps for system access.</span></h2>
+                    <h2><span class="register-cta-heading">Begin the registration process and complete the required steps for system access.</span></h2>
                     <p>
                         Student-athletes may register, submit the required documents, and wait for administrative approval. Coach accounts are created by an administrator.
                     </p>
@@ -2852,6 +2852,18 @@ watch(mobileMenuOpen, (open) => {
     line-height: 1.25;
     color: var(--page-text);
     font-weight: 800;
+}
+
+.register-cta-heading {
+    display: inline;
+    padding: 0.22rem 0.7rem;
+    border-radius: 999px;
+    background: var(--brand-blue);
+    color: #ffffff;
+    line-height: 1.45;
+    white-space: normal;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
 }
 
 .register-cta p {

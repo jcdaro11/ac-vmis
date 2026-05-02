@@ -223,7 +223,7 @@ function cardMotion(order: number) {
               <span class="focus-chip">{{ helpContent.focusLabel }}</span>
             </div>
             <div>
-              <h2 class="section-title text-2xl sm:text-[1.95rem]">Help and Support</h2>
+              <h2 class="section-title text-2xl text-white sm:text-[1.95rem]">Help and Support</h2>
               <p class="settings-muted mt-2 max-w-xl text-sm leading-6 text-white/85">
                 {{ helpContent.roleSummary }}
               </p>

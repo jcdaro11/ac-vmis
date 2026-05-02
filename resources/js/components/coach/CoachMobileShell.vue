@@ -5,6 +5,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import CoachBottomNav from '@/components/coach/CoachBottomNav.vue';
 import RoleFooter from '@/components/ui/RoleFooter.vue';
 import UserAccountMenu from '@/components/UserAccountMenu.vue';
+import { useTheme } from '@/composables/useTheme';
 import { coachPrimaryNav, coachSecondaryNav } from '@/config/coachNav';
 
 
@@ -13,6 +14,7 @@ const props = defineProps<{
 }>();
 
 const page = usePage();
+const { isDarkMode } = useTheme();
 const currentPath = computed(() => String(page.url || ''));
 const mobileMenuOpen = ref(false);
 const isNavCollapsed = ref(false);
@@ -21,15 +23,21 @@ const notificationsCloseTimer = ref<number | null>(null);
 
 const coachNotifications = ref<
     Array<{
-        id: number;
+        id: number | string;
+        kind?: string | null;
         title: string;
         message: string;
         type: string;
         is_read: boolean;
         published_at: string | null;
+        settings_href?: string | null;
+        send_verification_route?: string | null;
+        send_verification_label?: string | null;
+        secondary_action_label?: string | null;
     }>
 >([]);
 const bellProcessingIds = ref<number[]>([]);
+const verificationSending = ref(false);
 
 watch(
     () => (page.props.auth as any)?.coach_notifications?.recent,
@@ -106,11 +114,12 @@ function scheduleNotificationsClose() {
     }, 180);
 }
 
-function isBellProcessing(id: number) {
-    return bellProcessingIds.value.includes(id);
+function isBellProcessing(id: number | string) {
+    return typeof id === 'number' && bellProcessingIds.value.includes(id);
 }
 
-function markBellRead(item: { id: number; is_read: boolean }) {
+function markBellRead(item: { id: number | string; is_read: boolean; kind?: string | null }) {
+    if (item.kind === 'verification' || typeof item.id !== 'number') return;
     if (item.is_read || isBellProcessing(item.id)) return;
     const previous = item.is_read;
     item.is_read = true;
@@ -129,6 +138,19 @@ function markBellRead(item: { id: number; is_read: boolean }) {
             },
         },
     );
+}
+
+function sendVerificationEmail(route?: string | null) {
+    if (verificationSending.value) return;
+    verificationSending.value = true;
+
+    router.post(route || '/email/verification-notification', {}, {
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+            verificationSending.value = false;
+        },
+    });
 }
 
 function toggleNav() {
@@ -178,7 +200,10 @@ watch(isNavCollapsed, (collapsed) => {
 </script>
 
 <template>
-    <div class="coach-shell min-h-screen bg-[#f5f7fb] text-slate-900" :class="isNavCollapsed ? 'coach-shell--collapsed' : ''">
+    <div
+        class="coach-shell min-h-screen"
+        :class="[isNavCollapsed ? 'coach-shell--collapsed' : '', isDarkMode ? 'bg-[#111111] text-slate-100' : 'bg-[#f5f7fb] text-slate-900']"
+    >
         <div
             class="coach-shell__glow bg-[radial-gradient(circle_at_top_right,rgba(3,68,133,0.10),transparent_40%)] pointer-events-none fixed inset-0 -z-10"
         />
@@ -199,9 +224,9 @@ watch(isNavCollapsed, (collapsed) => {
                 </button>
 
                 <div class="min-w-0 flex flex-1 items-center gap-2">
-                    <div class="coach-shell__brand min-w-0 rounded-2xl bg-[#034485] px-3 py-2 shadow-[0_14px_28px_-20px_rgba(3,68,133,0.55)]">
-                        <p class="coach-shell__brand-title truncate text-[11px] font-semibold tracking-[0.18em] text-white uppercase">AC VMIS Coach</p>
-                        <p class="coach-shell__brand-subtitle truncate text-sm font-semibold text-white sm:text-base">{{ activeLabel }}</p>
+                    <div class="min-w-0 px-1 py-1">
+                        <p class="truncate text-[11px] font-semibold tracking-[0.18em] text-white uppercase">AC VMIS Coach</p>
+                        <p class="truncate text-sm font-semibold text-white sm:text-base">{{ activeLabel }}</p>
                     </div>
 
                     <button
@@ -260,21 +285,54 @@ watch(isNavCollapsed, (collapsed) => {
                                     type="button"
                                     class="flex w-full items-start gap-2 px-3 py-2 text-left text-sm transition"
                                     :class="
-                                        item.is_read
-                                            ? 'border-b border-slate-100 text-slate-700 hover:bg-slate-50'
-                                            : 'border-b border-white/10 bg-[#034485] text-white hover:bg-[#033a70]'
+                                        item.kind === 'verification'
+                                            ? 'border-b border-amber-200 bg-amber-50 text-amber-950'
+                                            : item.is_read
+                                                ? 'border-b border-slate-100 text-slate-700 hover:bg-slate-50'
+                                                : 'border-b border-white/10 bg-[#034485] text-white hover:bg-[#033a70]'
                                     "
-                                    @click="
-                                        markBellRead(item);
-                                        go('/announcements');
-                                    "
+                                    @click="item.kind === 'verification' ? void 0 : (markBellRead(item), go('/announcements'))"
                                 >
-                                    <span class="mt-1 inline-flex h-2 w-2 shrink-0 rounded-full" :class="item.is_read ? 'bg-[#034485]' : 'bg-white'" />
-                                    <span class="flex-1">
-                                        <span class="block font-semibold" :class="item.is_read ? 'text-slate-800' : 'text-white'">{{ item.title }}</span>
-                                        <span class="block text-xs" :class="item.is_read ? 'text-slate-500' : 'text-white/80'">{{ item.message }}</span>
+                                    <span
+                                        v-if="item.kind !== 'verification'"
+                                        class="mt-1 inline-flex h-2 w-2 shrink-0 rounded-full"
+                                        :class="item.is_read ? 'bg-[#034485]' : 'bg-white'"
+                                    />
+                                    <span v-else class="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path d="M12 9v4" />
+                                            <path d="M12 17h.01" />
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                                        </svg>
                                     </span>
-                                    <span class="ml-auto text-[10px] font-semibold" :class="item.is_read ? 'text-slate-400' : 'text-white/70'">{{ item.published_at ?? '' }}</span>
+                                    <span class="flex-1">
+                                        <span class="block font-semibold" :class="item.kind === 'verification' ? 'text-amber-950' : item.is_read ? 'text-slate-800' : 'text-white'">{{ item.title }}</span>
+                                        <span class="block text-xs" :class="item.kind === 'verification' ? 'text-amber-900' : item.is_read ? 'text-slate-500' : 'text-white/80'">{{ item.message }}</span>
+                                        <span v-if="item.kind === 'verification'" class="mt-2 flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                class="rounded-full bg-amber-500 px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-amber-600 disabled:opacity-60"
+                                                :disabled="verificationSending"
+                                                @click.stop="sendVerificationEmail(item.send_verification_route)"
+                                            >
+                                                {{ verificationSending ? 'Sending...' : item.send_verification_label || 'Send Verification Email' }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="rounded-full border border-amber-200 bg-white px-3 py-1 text-[11px] font-semibold text-amber-800 transition hover:bg-amber-100"
+                                                @click.stop="go(item.settings_href || '/account/account-settings')"
+                                            >
+                                                {{ item.secondary_action_label || 'Go to Account Settings' }}
+                                            </button>
+                                        </span>
+                                    </span>
+                                    <span
+                                        v-if="item.kind !== 'verification'"
+                                        class="ml-auto text-[10px] font-semibold"
+                                        :class="item.is_read ? 'text-slate-400' : 'text-white/70'"
+                                    >
+                                        {{ item.published_at ?? '' }}
+                                    </span>
                                 </button>
                                 <div v-if="coachNotifications.length === 0" class="px-3 py-4 text-xs text-slate-500">No announcements right now.</div>
                             </div>
@@ -296,8 +354,12 @@ watch(isNavCollapsed, (collapsed) => {
 
         <div class="transition-all duration-300 ease-out pt-18" :class="isNavCollapsed ? 'md:pl-20' : 'md:pl-64'">
             <aside
-                class="hidden border-r border-[#bfd4eb]/90 bg-[#eaf3ff]/95 backdrop-blur md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:flex-col"
-                :class="[isNavCollapsed ? 'md:w-20' : 'md:w-64', 'md:top-18 md:h-[calc(100vh-72px)]']"
+                class="hidden border-r backdrop-blur md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:flex-col"
+                :class="[
+                    isDarkMode ? 'border-[#2a2f3a] bg-[#111111]' : 'border-[#bfd4eb]/90 bg-[#eaf3ff]/95',
+                    isNavCollapsed ? 'md:w-20' : 'md:w-64',
+                    'md:top-18 md:h-[calc(100vh-72px)]',
+                ]"
             >
                 <nav class="flex-1 space-y-1 px-3 py-4" aria-label="Primary">
                     <button
@@ -326,9 +388,9 @@ watch(isNavCollapsed, (collapsed) => {
                     </button>
                 </nav>
 
-                <div class="border-t border-[#d6e4f4] px-3 py-3">
+                <div class="border-t px-3 py-3" :class="isDarkMode ? 'border-[#2a2f3a]' : 'border-slate-300'">
                     <div v-if="hasSecondaryItems">
-                        <p class="mb-2 px-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">More</p>
+                        <p class="mb-2 px-2 text-[11px] font-bold tracking-wider uppercase" :class="isDarkMode ? 'text-slate-500' : 'text-slate-400'">More</p>
                         <button
                             v-for="item in secondaryItems"
                             :key="item.key"
@@ -427,12 +489,22 @@ watch(isNavCollapsed, (collapsed) => {
             </aside>
 
             <aside
-                class="coach-shell__mobile-sidebar fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs border-r border-[#bfd4eb] bg-[#eef5ff] p-4 transition md:hidden"
-                :class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
+                class="coach-shell__mobile-sidebar fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs border-r p-4 transition md:hidden"
+                :class="[
+                    isDarkMode ? 'border-[#2a2f3a] bg-[#111111]' : 'border-[#bfd4eb] bg-[#eef5ff]',
+                    mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
+                ]"
             >
                 <div class="mb-4 flex items-center justify-between">
-                    <p class="coach-shell__mobile-title text-sm font-bold text-[#1f2937]">Coach Menu</p>
-                    <button type="button" class="rounded border border-slate-300 px-2 py-1 text-xs" @click="mobileMenuOpen = false">Close</button>
+                    <p class="coach-shell__mobile-title text-sm font-bold" :class="isDarkMode ? 'text-slate-100' : 'text-[#1f2937]'">Coach Menu</p>
+                    <button
+                        type="button"
+                        class="rounded border px-2 py-1 text-xs"
+                        :class="isDarkMode ? 'border-slate-700 text-slate-200 bg-[#111111]' : 'border-slate-300 text-slate-700'"
+                        @click="mobileMenuOpen = false"
+                    >
+                        Close
+                    </button>
                 </div>
 
                 <div class="space-y-2">
@@ -560,7 +632,7 @@ watch(isNavCollapsed, (collapsed) => {
 }
 
 .coach-side-link--active:hover {
-    background: #033a70;
+    background: #034485;
     color: #ffffff;
 }
 
@@ -569,15 +641,47 @@ watch(isNavCollapsed, (collapsed) => {
     padding: 0.6rem;
 }
 
-.coach-side-link--logout {
-    border: 1px solid transparent;
+.coach-side-link.coach-side-link--logout {
     color: #e11d48;
 }
 
-.coach-side-link--logout:hover {
-    border-color: #fecdd3;
+.coach-side-link.coach-side-link--logout:hover {
     background: #fff1f2;
     color: #e11d48;
     transform: none;
+}
+
+:global(html.theme-dark) .coach-side-link,
+:global(html[data-theme='dark']) .coach-side-link {
+    color: #e2e8f0;
+}
+
+:global(html.theme-dark) .coach-side-link:hover,
+:global(html[data-theme='dark']) .coach-side-link:hover {
+    background: #1a1a1a;
+    color: #ffffff;
+}
+
+:global(html.theme-dark) .coach-side-link--active,
+:global(html[data-theme='dark']) .coach-side-link--active {
+    background: #034485;
+    color: #ffffff;
+}
+
+:global(html.theme-dark) .coach-side-link--active:hover,
+:global(html[data-theme='dark']) .coach-side-link--active:hover {
+    background: #034485;
+    color: #ffffff;
+}
+
+:global(html.theme-dark) .coach-side-link.coach-side-link--logout,
+:global(html[data-theme='dark']) .coach-side-link.coach-side-link--logout {
+    color: #e11d48;
+}
+
+:global(html.theme-dark) .coach-side-link.coach-side-link--logout:hover,
+:global(html[data-theme='dark']) .coach-side-link.coach-side-link--logout:hover {
+    background: rgba(76, 5, 25, 0.45);
+    color: #e11d48;
 }
 </style>

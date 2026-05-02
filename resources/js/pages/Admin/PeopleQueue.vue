@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 
 import EmptyResultsState from '@/components/ui/EmptyResultsState.vue';
+import { useTheme } from '@/composables/useTheme';
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue';
 import { resolveUserAvatarUrl } from '@/utils/media';
 
@@ -103,6 +104,7 @@ const previewDocument = ref<{
     subtitle?: string | null;
 } | null>(null);
 const topTab = ref<'active' | 'queue'>('queue');
+const { isDarkMode } = useTheme();
 
 let searchDebounce: ReturnType<typeof setTimeout> | null = null;
 let topTabTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -473,12 +475,16 @@ function rejectUser() {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
         >
-            <section :key="status" class="page-card overflow-hidden rounded-xl border border-[#034485]/45 bg-white">
+            <section
+                :key="status"
+                class="page-card overflow-hidden rounded-xl border"
+                :class="isDarkMode ? 'border-slate-700 bg-[#0f172a]' : 'border-[#034485]/45 bg-white'"
+            >
                 <div v-if="queue.data.length" class="grid gap-0 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-                    <div class="border-b border-slate-200 xl:border-r xl:border-b-0">
-                    <div class="border-b border-[#034485]/15 bg-[#eef5ff] px-4 py-3">
-                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Applicants</p>
-                            <p class="mt-1 text-sm text-slate-600">Review applications efficiently while keeping all supporting details in view.</p>
+                    <div class="border-b xl:border-r xl:border-b-0" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
+                    <div class="border-b px-4 py-3" :class="isDarkMode ? 'border-slate-700 bg-[#111827]' : 'border-[#034485]/15 bg-[#eef5ff]'">
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em]" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">Applicants</p>
+                            <p class="mt-1 text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Review applications efficiently while keeping all supporting details in view.</p>
                         </div>
                         <div class="max-h-[calc(100vh-24rem)] overflow-y-auto">
                             <button

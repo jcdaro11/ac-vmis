@@ -895,9 +895,13 @@ watch(
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-1"
         >
-            <div :key="statusFilter" class="page-card overflow-hidden rounded-xl border border-[#034485]/45 bg-white" :class="statusSwitching ? 'opacity-75' : ''">
+            <div
+                :key="statusFilter"
+                class="page-card overflow-hidden rounded-xl border border-[#034485]/45 bg-white"
+                :class="statusSwitching ? 'opacity-75' : ''"
+            >
                 <div v-if="users.data.length" class="grid gap-0 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-                            <div class="flex h-full min-h-full flex-col border-b border-[#034485]/15 bg-[#f8fbff] xl:border-r xl:border-b-0">
+                            <div class="flex h-full min-h-full flex-col border-b border-slate-200 xl:border-r xl:border-b-0">
                         <div class="border-b border-[#034485]/15 bg-[#eef5ff] px-4 py-3">
                             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">User Directory</p>
                             <p v-if="isDeactivatedView" class="mt-1 text-sm text-slate-600">
@@ -911,13 +915,21 @@ watch(
                                 :key="user.id"
                                 type="button"
                                 class="user-directory-row w-full border-b border-[#034485]/12 px-4 py-4 text-left transition-colors duration-200 ease-out last:border-b-0"
-                                :class="selectedUser?.id === user.id ? 'border-l-4 border-l-[#02315f] bg-[#034485]' : ''"
+                                :class="
+                                    selectedUser?.id === user.id
+                                        ? 'user-directory-row--selected border-l-4 border-l-[#02315f] bg-[#034485]'
+                                        : 'hover:bg-[#f5f9ff]'
+                                "
                                 @click="openInfo(user)"
                             >
                                 <div class="flex items-start gap-3">
                                     <div
                                         class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border text-sm font-bold transition-colors duration-200 ease-out"
-                                        :class="selectedUser?.id === user.id ? 'border-white/25 bg-white/15 text-white' : 'border-[#034485]/20 bg-[#e9f2ff] text-[#034485]'"
+                                        :class="
+                                            selectedUser?.id === user.id
+                                                ? 'border-white/25 bg-white/15 text-white'
+                                                : 'border-[#034485]/20 bg-[#e9f2ff] text-[#034485]'
+                                        "
                                     >
                                         <img
                                             v-if="user.avatar"
@@ -929,7 +941,12 @@ watch(
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <p class="text-sm font-semibold leading-tight break-words transition-colors duration-200 ease-out" :class="selectedUser?.id === user.id ? 'text-white' : 'text-slate-900'">{{ user.name }}</p>
+                                            <p
+                                                class="text-sm font-semibold leading-tight break-words transition-colors duration-200 ease-out"
+                                                :class="selectedUser?.id === user.id ? 'text-white' : 'text-slate-900'"
+                                            >
+                                                {{ user.name }}
+                                            </p>
                                             <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize transition-colors duration-200 ease-out" :class="accountTone(user)">
                                                 {{ user.status }}
                                             </span>
@@ -948,13 +965,21 @@ watch(
                                         <div class="mt-3 flex flex-wrap gap-2">
                                             <span
                                                 class="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors duration-200 ease-out"
-                                                :class="selectedUser?.id === user.id ? 'border-white/20 bg-white/10 text-blue-50' : 'border-[#034485]/15 bg-white text-[#034485]'"
+                                                :class="
+                                                    selectedUser?.id === user.id
+                                                        ? 'border-white/20 bg-white/10 text-blue-50'
+                                                        : 'border-[#034485]/15 bg-white text-[#034485]'
+                                                "
                                             >
                                                 Registered {{ formatDate(user.created_at) }}
                                             </span>
                                             <span
                                                 class="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors duration-200 ease-out"
-                                                :class="selectedUser?.id === user.id ? 'border-white/20 bg-white/10 text-blue-50' : 'border-[#034485]/15 bg-white text-[#034485]'"
+                                                :class="
+                                                    selectedUser?.id === user.id
+                                                        ? 'border-white/20 bg-white/10 text-blue-50'
+                                                        : 'border-[#034485]/15 bg-white text-[#034485]'
+                                                "
                                             >
                                                 Profile {{ profileCompleteness(user) }}%
                                             </span>
@@ -970,7 +995,10 @@ watch(
                         <div v-if="selectedUser" class="space-y-5 p-4 sm:p-5">
                             <div class="flex flex-col gap-4 border-b border-[#034485]/15 pb-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div class="flex items-start gap-3">
-                                    <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-[#e9f2ff] text-base font-bold text-[#034485]">
+                                    <div
+                                        class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border text-base font-bold"
+                                        :class="'border-[#034485]/20 bg-[#e9f2ff] text-[#034485]'"
+                                    >
                                         <img
                                             v-if="selectedUser.avatar"
                                             :src="resolveUserAvatarUrl(selectedUser.avatar)"
@@ -1692,10 +1720,10 @@ watch(
 }
 
 .user-directory-row:hover {
-    background: #f5f9ff;
+    background: rgba(3, 68, 133, 0.08);
 }
 
-:global(html.theme-dark) .user-directory-row:hover {
-    background: rgba(3, 68, 133, 0.16) !important;
+.user-directory-row--selected:hover {
+    background: #034485 !important;
 }
 </style>

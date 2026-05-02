@@ -231,7 +231,6 @@ function removePlayer(player: TeamPlayerRow) {
                 <div>
                     <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#034485]">Current Players</p>
                     <h2 class="mt-2 text-xl font-semibold text-slate-900">Assigned Student-Athletes</h2>
-                    <p class="mt-1 text-sm text-slate-500">Review the current roster and remove players directly when needed.</p>
                 </div>
 
                 <div class="mt-5 space-y-4">
@@ -282,7 +281,6 @@ function removePlayer(player: TeamPlayerRow) {
                     <div>
                         <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#034485]">Available Student-Athletes</p>
                         <h2 class="mt-2 text-xl font-semibold text-slate-900">Select Players</h2>
-                        <p class="mt-1 text-sm text-slate-500">Search and filter the student pool, then add eligible players directly to this team.</p>
                     </div>
                     <div class="w-full lg:w-[32rem]">
                         <SearchFilterPanel

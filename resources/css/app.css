@@ -790,9 +790,42 @@ html.theme-dark :is(.admin-shell, .coach-shell, .student-shell) .faq-card--activ
 }
 
 html.theme-dark .admin-shell .admin-dashboard-title-card {
-    background: #151515 !important;
+    background: #034485 !important;
     border-color: rgba(3, 68, 133, 0.45) !important;
-    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18) !important;
+    box-shadow: 0 24px 50px -38px rgba(3, 68, 133, 0.38) !important;
+}
+
+html.theme-dark .admin-shell .operations-workspace-hero {
+    background: #034485 !important;
+    border-color: rgba(3, 68, 133, 0.45) !important;
+    box-shadow: 0 24px 50px -38px rgba(3, 68, 133, 0.38) !important;
+}
+
+html.theme-dark .admin-shell .operations-workspace-hero p,
+html.theme-dark .admin-shell .operations-workspace-hero h1 {
+    color: #f8fafc !important;
+}
+
+html.theme-dark .admin-shell .academics-workspace-hero {
+    background: #034485 !important;
+    border-color: rgba(3, 68, 133, 0.45) !important;
+    box-shadow: 0 24px 50px -38px rgba(3, 68, 133, 0.38) !important;
+}
+
+html.theme-dark .admin-shell .academics-workspace-hero p,
+html.theme-dark .admin-shell .academics-workspace-hero h1 {
+    color: #f8fafc !important;
+}
+
+html.theme-dark .admin-shell .audit-trail-hero {
+    background: #034485 !important;
+    border-color: rgba(3, 68, 133, 0.45) !important;
+    box-shadow: 0 24px 50px -38px rgba(3, 68, 133, 0.38) !important;
+}
+
+html.theme-dark .admin-shell .audit-trail-hero p,
+html.theme-dark .admin-shell .audit-trail-hero h1 {
+    color: #f8fafc !important;
 }
 
 html.theme-dark .admin-shell .admin-dashboard-title-card p,

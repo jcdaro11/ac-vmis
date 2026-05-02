@@ -75,9 +75,11 @@ class ScheduleRecord extends Controller
                     'type' => $schedule->type,
                     'venue' => $schedule->venue,
                     'notes' => $schedule->notes,
+                    'team_name' => $team->team_name,
                     'sport' => $team->sport?->name ?? $team->sport_id ?? 'unknown',
                     'start' => Carbon::parse($schedule->start_time)->toIso8601String(),
                     'end' => Carbon::parse($schedule->end_time)->toIso8601String(),
+                    'calendar_url' => route('schedules.calendar', ['schedule' => $schedule->id]),
                     'attendance_status' => optional($attendance)->status,
                     'attendance_notes' => optional($attendance)->notes,
                 ];

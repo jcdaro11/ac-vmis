@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use App\Services\EmailVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -10,6 +11,10 @@ use Inertia\Inertia;
 
 class AnnouncementController extends Controller
 {
+    public function __construct(private EmailVerificationService $verification)
+    {
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -56,6 +61,7 @@ class AnnouncementController extends Controller
 
         return Inertia::render($component, [
             'announcements' => $rows,
+            'verificationReminder' => $this->verification->reminderPayload($user),
             'filters' => [
                 'filter' => $filter,
             ],
