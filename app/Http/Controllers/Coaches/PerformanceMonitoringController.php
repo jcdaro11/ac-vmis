@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class WellnessMonitoringController extends Controller
+class PerformanceMonitoringController extends Controller
 {
     public function __construct(
         private SystemNotificationService $notifications,
@@ -101,13 +101,13 @@ class WellnessMonitoringController extends Controller
         $ownerTeam = $this->ownerTeamForCoach($request);
 
         if (!$ownerTeam) {
-            return Inertia::render('Coaches/WellnessMonitoring', [
+            return Inertia::render('Coaches/PerformanceMonitoring', [
                 'team' => null,
                 'schedules' => [],
             ]);
         }
 
-        return Inertia::render('Coaches/WellnessMonitoring', [
+        return Inertia::render('Coaches/PerformanceMonitoring', [
             'team' => [
                 'id' => $ownerTeam->id,
                 'team_name' => $ownerTeam->team_name,
@@ -125,7 +125,7 @@ class WellnessMonitoringController extends Controller
         abort_unless(in_array($schedule->type, ['practice', 'game'], true), 422, 'Wellness monitoring is only for practice/game schedules.');
         abort_unless(Carbon::parse($schedule->end_time)->lte(now()), 422, 'Only completed sessions can be reviewed for wellness.');
 
-        return Inertia::render('Coaches/WellnessReview', [
+        return Inertia::render('Coaches/PerformanceReview', [
             'team' => [
                 'id' => $ownerTeam->id,
                 'team_name' => $ownerTeam->team_name,

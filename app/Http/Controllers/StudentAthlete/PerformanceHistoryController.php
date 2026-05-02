@@ -8,14 +8,14 @@ use App\Models\WellnessLog;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class WellnessHistoryController extends Controller
+class PerformanceHistoryController extends Controller
 {
     public function index()
     {
         $student = Student::where('user_id', Auth::id())->first();
 
         if (!$student) {
-            return Inertia::render('StudentAthletes/WellnessHistory', [
+            return Inertia::render('StudentAthletes/PerformanceHistory', [
                 'student' => null,
                 'logs' => [],
             ]);
@@ -26,7 +26,7 @@ class WellnessHistoryController extends Controller
             ->exists();
 
         if (!$hasTeamAssignment) {
-            return Inertia::render('StudentAthletes/WellnessHistory', [
+            return Inertia::render('StudentAthletes/PerformanceHistory', [
                 'student' => [
                     'id' => $student->id,
                     'student_id_number' => $student->student_id_number,
@@ -60,7 +60,7 @@ class WellnessHistoryController extends Controller
                 ];
             })->values();
 
-        return Inertia::render('StudentAthletes/WellnessHistory', [
+        return Inertia::render('StudentAthletes/PerformanceHistory', [
             'student' => [
                 'id' => $student->id,
                 'student_id_number' => $student->student_id_number,
