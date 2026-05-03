@@ -47,7 +47,7 @@ class AccountSettingsController extends Controller
                     'role' => 'Administrator',
                     'status' => $user->account_state,
                     'capabilities' => [
-                        'People approvals and account lifecycle',
+                        'User approvals and account lifecycle',
                         'Team creation and roster management',
                         'Operations attendance overrides and exports',
                         'Wellness monitoring and athlete follow-up',

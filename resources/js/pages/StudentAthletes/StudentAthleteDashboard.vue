@@ -474,13 +474,13 @@ watch(mobileMenuOpen, (open) => {
         <div v-if="mobileMenuOpen" class="fixed inset-0 z-30 bg-slate-900/40 lg:hidden" @click="mobileMenuOpen = false" />
 
         <aside
-            class="student-shell__sidebar fixed left-0 z-30 border-r backdrop-blur transition-[transform,width] duration-300 ease-out will-change-[transform,width]"
+            class="student-shell__sidebar fixed -left-px z-30 border-r-0 backdrop-blur transition-[transform,width] duration-300 ease-out will-change-[transform,width] lg:left-0 lg:border-r"
             :class="[
                 mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
-                'top-18 h-[calc(100vh-72px)]',
+                'top-[71px] h-[calc(100vh-71px)]',
                 sidebarCollapsed ? 'w-70 max-w-[85vw] lg:w-22' : 'w-70 max-w-[85vw] lg:w-70',
                 'lg:translate-x-0',
-                isDarkMode ? 'border-[#2a2f3a] bg-[#111111]' : 'border-[#bfd4eb]/90 bg-[#eaf3ff]/95',
+                isDarkMode ? 'border-[#2a2f3a] bg-[#111111]' : 'border-[#bfd4eb] bg-[#eaf3ff]',
             ]"
         >
             <div class="flex h-full flex-col">
@@ -629,14 +629,14 @@ watch(mobileMenuOpen, (open) => {
             </div>
         </aside>
 
-        <header class="fixed inset-x-0 top-0 z-40 border-b border-[#02315f] bg-[#034485] shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)]">
+        <header class="fixed inset-x-0 top-0 z-40 border-b border-[#02315f] bg-[#034485] shadow-none lg:shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)]">
             <div class="flex w-full items-center justify-between gap-3 py-3 pl-0 pr-2 sm:pr-3 lg:pr-4">
                 <div class="flex min-w-0 items-center gap-3">
                     <button
                         type="button"
                         class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 text-white lg:hidden"
-                        @click="mobileMenuOpen = true"
-                        aria-label="Open student navigation"
+                        @click="mobileMenuOpen = !mobileMenuOpen"
+                        :aria-label="mobileMenuOpen ? 'Close student navigation' : 'Open student navigation'"
                     >
                         <span class="space-y-1">
                             <span class="block h-0.5 w-4 bg-current" />

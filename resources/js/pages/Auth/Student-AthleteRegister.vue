@@ -780,14 +780,20 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+    
     <PublicLayout
         title="Student-Athlete Registration"
-        page-title="Student-Athlete Registration"
-        page-description="Complete the three-step registration process by providing your account details, personal information, and required documents."
     >
-        <main class="register-main px-4 py-8 sm:px-6 lg:px-10" @keydown.enter="handleEnter">
+        <main class="register-main mt-5 px-4 py-8 sm:px-6 lg:px-10" @keydown.enter="handleEnter">
             <div class="mx-auto w-full max-w-4xl public-card register-card">
-                <FormAlert class="mt-4" tone="error" :message="formAlert" />
+                <FormAlert v-if="formAlert" class="mt-4" tone="error" :message="formAlert" />
+
+                <header class="mt-4 px-1">
+                    <h1 class="register-title">Student-Athlete Registration</h1>
+                    <p class="register-subtitle mx-auto max-w-3xl">
+                        Complete the three-step registration process by providing your account details, personal information, and required documents.
+                    </p>
+                </header>
 
                 <div class="mt-6 stepper">
                     <div class="step" :class="{ active: step >= 1 }"><span>1</span><small>Account</small></div>

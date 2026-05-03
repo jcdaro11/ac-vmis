@@ -142,7 +142,7 @@ type NavEntry = {
 const pages: NavEntry[] = [
     { name: 'Dashboard', route: '/AdminDashboard', iconPaths: ['M3 13h8V3H3z', 'M13 21h8v-6h-8z', 'M13 11h8V3h-8z', 'M3 21h8v-6H3z'] },
     {
-        name: 'People',
+        name: 'User & Approval',
         route: '/people',
         iconPaths: ['M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M8.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8', 'M20 8v6', 'M23 11h-6'],
     },
@@ -182,7 +182,7 @@ const pages: NavEntry[] = [
 
 const footerLinks = [
     { label: 'Dashboard', href: '/AdminDashboard' },
-    { label: 'People', href: '/people' },
+    { label: 'User & Approval', href: '/people' },
     { label: 'Teams', href: '/teams' },
     { label: 'Operations', href: '/operations' },
     { label: 'Performance', href: '/health' },
@@ -196,7 +196,7 @@ const footerLinks = [
 
 const currentPageName = computed(() => {
     if (currentPath.value === '/people/queue' || currentPath.value.startsWith('/people/queue/')) {
-        return 'People';
+        return 'User & Approval';
     }
     if (currentPath.value === '/operations/attendance' || currentPath.value.startsWith('/operations/attendance/')) {
         return 'Operations';

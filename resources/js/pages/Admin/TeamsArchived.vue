@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3'
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 
 import BackLinkButton from '@/components/ui/BackLinkButton.vue'
 import ConfirmDialog from '@/components/ui/dialog/ConfirmDialog.vue'
@@ -64,6 +64,8 @@ const rosterCache = ref<Record<number, any[]>>({})
 const rosterLoading = ref<Record<number, boolean>>({})
 const restoreDialogOpen = ref(false)
 const pendingRestoreTeam = ref<TeamRow | null>(null)
+let searchDebounce: ReturnType<typeof setTimeout> | null = null
+let suppressAutoReload = false
 
 function buildQuery(extra: Record<string, any> = {}) {
     return {
@@ -85,6 +87,7 @@ function reload(extra: Record<string, any> = {}) {
 }
 
 function clearFilters() {
+    suppressAutoReload = true
     filters.search = ''
     filters.sport_id = ''
     filters.year = ''
@@ -92,6 +95,9 @@ function clearFilters() {
     filters.direction = 'desc'
     showFilters.value = false
     reload()
+    setTimeout(() => {
+        suppressAutoReload = false
+    }, 0)
 }
 
 function fullName(person: any): string {
@@ -194,6 +200,23 @@ function confirmRestore() {
         },
     })
 }
+
+watch(
+    () => filters.search,
+    () => {
+        if (suppressAutoReload) return
+        if (searchDebounce) clearTimeout(searchDebounce)
+        searchDebounce = setTimeout(() => reload({ page: 1 }), 250)
+    },
+)
+
+watch(
+    () => [filters.sport_id, filters.year, filters.sort, filters.direction],
+    () => {
+        if (suppressAutoReload) return
+        reload({ page: 1 })
+    },
+)
 </script>
 
 <template>
@@ -231,16 +254,7 @@ function confirmRestore() {
                     placeholder="Search archived teams, sport, year, or coach"
                     class="w-full rounded-xl border px-3 py-2 text-sm sm:flex-1"
                     :class="isDarkMode ? 'border-slate-700 bg-slate-950 text-slate-100 placeholder:text-slate-500' : 'border-slate-300 bg-white text-slate-900'"
-                    @keyup.enter="reload()"
                 />
-                <button
-                    type="button"
-                    class="rounded-xl border px-3 py-2 text-sm font-medium"
-                    :class="isDarkMode ? 'border-slate-700 text-slate-200 hover:bg-slate-800' : 'border-slate-300 text-slate-700 hover:bg-slate-50'"
-                    @click="reload()"
-                >
-                    Search
-                </button>
                 <button
                     type="button"
                     class="rounded-xl border px-3 py-2 text-sm font-medium"
@@ -274,7 +288,6 @@ function confirmRestore() {
                     </select>
                 </div>
                 <div class="flex gap-2">
-                    <button type="button" class="rounded-xl border px-3 py-2 text-sm font-medium" :class="isDarkMode ? 'border-slate-700 text-slate-200 hover:bg-slate-800' : 'border-slate-300 text-slate-700 hover:bg-slate-50'" @click="reload()">Apply</button>
                     <button type="button" class="rounded-xl border px-3 py-2 text-sm font-medium" :class="isDarkMode ? 'border-slate-700 text-slate-200 hover:bg-slate-800' : 'border-slate-300 text-slate-700 hover:bg-slate-50'" @click="clearFilters">Reset</button>
                 </div>
             </div>
@@ -292,11 +305,11 @@ function confirmRestore() {
             <article
                 v-for="team in teams.data"
                 :key="team.id"
-                class="page-card rounded-3xl border border-[#034485]/35 bg-[#034485] p-5 text-white shadow-[0_20px_40px_-28px_rgba(3,68,133,0.65)]"
+                class="page-card rounded-3xl border border-[#034485]/35 bg-white p-5 text-slate-900"
             >
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                     <div class="flex min-w-0 items-start gap-4">
-                        <div class="relative h-20 w-20 overflow-hidden rounded-2xl border border-white/20 bg-white/10">
+                        <div class="relative h-20 w-20 overflow-hidden rounded-2xl border border-[#034485]/12 bg-[#f8fbff]">
                             <img :src="teamAvatarUrl(team.team_avatar)" alt="Team avatar" class="h-full w-full object-cover" />
                             <span class="absolute left-2 top-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
                                 Archived
@@ -311,7 +324,7 @@ function confirmRestore() {
                                 >
                                     {{ sportLabel(team.sport?.name ?? '') }}
                                 </span>
-                                <span class="rounded-full border border-white/16 bg-white/12 px-3 py-1 text-xs font-semibold text-white/88">
+                                <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
                                     {{ team.year || 'No Year' }}
                                 </span>
                                 <span class="rounded-full px-3 py-1 text-xs font-semibold" :class="rosterToneClasses(team.roster_health?.tone)">
@@ -319,35 +332,31 @@ function confirmRestore() {
                                 </span>
                             </div>
 
-                            <h3 class="mt-3 truncate text-2xl font-bold text-white">{{ team.team_name }}</h3>
-                            <p class="mt-2 text-sm text-white/72">Archived on {{ formatArchivedAt(team.archived_at) }}</p>
+                            <h3 class="mt-3 truncate text-2xl font-bold text-slate-900">{{ team.team_name }}</h3>
+                            <p class="mt-2 text-sm text-slate-500">Archived on {{ formatArchivedAt(team.archived_at) }}</p>
 
-                            <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                                <div class="rounded-2xl border border-white/14 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                                    <p class="text-[11px] uppercase tracking-wide text-white/60">Head Coach</p>
+                            <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <p class="text-[11px] uppercase tracking-wide text-slate-500">Head Coach</p>
                                     <div class="mt-2 flex items-center gap-2">
-                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/18 bg-white/12 text-xs font-bold text-white">
+                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700">
                                             {{ initialsFromText(fullName(team.coach)) }}
                                         </div>
-                                        <p class="min-w-0 truncate text-sm font-semibold text-white">{{ fullName(team.coach) }}</p>
+                                        <p class="min-w-0 truncate text-sm font-semibold text-slate-900">{{ fullName(team.coach) }}</p>
                                     </div>
                                 </div>
-                                <div class="rounded-2xl border border-white/14 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                                    <p class="text-[11px] uppercase tracking-wide text-white/60">Assistant</p>
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <p class="text-[11px] uppercase tracking-wide text-slate-500">Assistant</p>
                                     <div class="mt-2 flex items-center gap-2">
-                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/18 bg-white/12 text-xs font-bold text-white">
+                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700">
                                             {{ initialsFromText(fullName(team.assistantCoach)) }}
                                         </div>
-                                        <p class="min-w-0 truncate text-sm font-semibold text-white">{{ fullName(team.assistantCoach) }}</p>
+                                        <p class="min-w-0 truncate text-sm font-semibold text-slate-900">{{ fullName(team.assistantCoach) }}</p>
                                     </div>
                                 </div>
-                                <div class="rounded-2xl border border-white/14 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                                    <p class="text-[11px] uppercase tracking-wide text-white/60">Players</p>
-                                    <p class="mt-2 text-lg font-bold text-white">{{ team.players_count }} / {{ team.max_players }}</p>
-                                </div>
-                                <div class="rounded-2xl border border-white/14 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                                    <p class="text-[11px] uppercase tracking-wide text-white/60">State</p>
-                                    <p class="mt-2 text-sm font-semibold text-white">Read-only archived record</p>
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <p class="text-[11px] uppercase tracking-wide text-slate-500">Players</p>
+                                    <p class="mt-2 text-lg font-bold text-slate-900">{{ team.players_count }} / {{ team.max_players }}</p>
                                 </div>
                             </div>
                         </div>
@@ -356,7 +365,7 @@ function confirmRestore() {
                     <div class="flex flex-wrap gap-2">
                         <button
                             type="button"
-                            class="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/16"
+                            class="rounded-full border border-[#034485]/25 bg-white px-4 py-2 text-sm font-semibold text-[#034485] hover:bg-[#eef5ff]"
                             @click="toggleTeamExpanded(team.id)"
                         >
                             {{ expandedTeamIds.includes(team.id) ? 'Hide Roster' : 'View Roster' }}

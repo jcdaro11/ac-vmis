@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
 import EmptyResultsState from '@/components/ui/EmptyResultsState.vue'
 import SearchFilterPanel from '@/components/ui/SearchFilterPanel.vue'
@@ -86,6 +86,8 @@ const unreadRequestCount = computed(() => props.teamChangeRequests.filter((req) 
 const teamActionDialogOpen = ref(false)
 const pendingTeamAction = ref<{ type: 'archive' | 'reactivate'; team: TeamRow } | null>(null)
 const { sportColor, sportTextColor, sportLabel } = useSportColors()
+let searchDebounce: ReturnType<typeof setTimeout> | null = null
+let suppressAutoReload = false
 
 const seasonSnapshots = computed(() => {
     const buckets: Record<string, TeamRow[]> = {}
@@ -127,7 +129,7 @@ function fullName(person: any): string {
 function rosterToneClass(tone: string) {
     if (tone === 'success') return 'bg-emerald-100 text-emerald-700'
     if (tone === 'danger') return 'bg-red-100 text-red-700'
-    return 'bg-amber-100 text-amber-700'
+    return 'bg-[#dcecff] text-[#034485]'
 }
 
 function buildQuery(extra: Record<string, any> = {}) {
@@ -153,6 +155,7 @@ function reload(extra: Record<string, any> = {}) {
 }
 
 function clearFilters() {
+    suppressAutoReload = true
     filters.search = ''
     filters.sport_id = ''
     filters.year = ''
@@ -162,6 +165,9 @@ function clearFilters() {
     filters.direction = 'desc'
     showFilters.value = false
     reload()
+    setTimeout(() => {
+        suppressAutoReload = false
+    }, 0)
 }
 
 function goToCreateTeam() {
@@ -194,6 +200,23 @@ function reactivateTeam(team: TeamRow) {
     pendingTeamAction.value = { type: 'reactivate', team }
     teamActionDialogOpen.value = true
 }
+
+watch(
+    () => filters.search,
+    () => {
+        if (suppressAutoReload) return
+        if (searchDebounce) clearTimeout(searchDebounce)
+        searchDebounce = setTimeout(() => reload({ page: 1 }), 250)
+    },
+)
+
+watch(
+    () => [filters.sport_id, filters.year, filters.coach_status, filters.roster_status, filters.sort, filters.direction],
+    () => {
+        if (suppressAutoReload) return
+        reload({ page: 1 })
+    },
+)
 
 function confirmTeamAction() {
     const action = pendingTeamAction.value
@@ -329,8 +352,8 @@ function formatTimestamp(value: string | null) {
                     placeholder="Search by team, sport, year, or coach"
                     :filter-count="activeFilterCount"
                     :show-filters="showFilters"
+                    :show-submit="false"
                     :show-clear="activeFilterCount > 0"
-                    @submit="reload()"
                     @toggle-filters="showFilters = !showFilters"
                     @clear="clearFilters"
                 >
@@ -495,7 +518,7 @@ function formatTimestamp(value: string | null) {
                         </div>
                         <div class="flex flex-wrap gap-1.5 text-xs">
                             <span class="rounded-full bg-slate-200 px-2 py-0.5 text-slate-700">Teams: {{ season.kpis.total }}</span>
-                            <span class="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">Roster Review: {{ season.kpis.rosterReview }}</span>
+                            <span class="rounded-full bg-[#dcecff] px-2 py-0.5 text-[#034485]">Roster Review: {{ season.kpis.rosterReview }}</span>
                             <span class="rounded-full bg-[#dcecff] px-2 py-0.5 text-[#034485]">Staffing Review: {{ season.kpis.staffingReview }}</span>
                         </div>
                     </div>
@@ -504,7 +527,7 @@ function formatTimestamp(value: string | null) {
                         <article
                             v-for="team in season.teams"
                             :key="team.id"
-                            class="page-card rounded-3xl bg-[#034485] p-5 text-white"
+                            class="page-card rounded-3xl border border-[#034485]/35 bg-white p-5 text-slate-900"
                         >
                             <div class="mb-3 flex items-start justify-between gap-3">
                                 <span
@@ -517,12 +540,12 @@ function formatTimestamp(value: string | null) {
                             </div>
 
                             <div class="flex items-start gap-3">
-                                <img :src="teamAvatarUrl(team.team_avatar)" alt="Team Avatar" class="h-14 w-14 rounded-2xl border border-white/20 bg-white/10 object-cover" />
+                                <img :src="teamAvatarUrl(team.team_avatar)" alt="Team Avatar" class="h-14 w-14 rounded-2xl border border-[#034485]/12 bg-[#f8fbff] object-cover" />
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate text-xl font-semibold text-white">{{ team.team_name }}</p>
-                                    <p class="mt-1 text-sm text-white/80">{{ team.sport?.name || 'No sport' }}</p>
-                                    <p class="mt-2 text-sm text-white/85">Head: {{ fullName(team.coach) }}</p>
-                                    <p class="text-sm text-white/70">Assistant: {{ fullName(team.assistantCoach) }}</p>
+                                    <p class="truncate text-xl font-semibold text-slate-900">{{ team.team_name }}</p>
+                                    <p class="mt-1 text-sm text-slate-500">{{ team.sport?.name || 'No sport' }}</p>
+                                    <p class="mt-2 text-sm text-slate-700">Head: {{ fullName(team.coach) }}</p>
+                                    <p class="text-sm text-slate-500">Assistant: {{ fullName(team.assistantCoach) }}</p>
                                 </div>
                             </div>
 
@@ -539,19 +562,19 @@ function formatTimestamp(value: string | null) {
                                 </span>
                             </div>
 
-                            <p class="mt-3 text-sm text-white/80">Players: {{ team.players_count }} / {{ team.max_players }}</p>
+                            <p class="mt-3 text-sm text-slate-600">Players: {{ team.players_count }} / {{ team.max_players }}</p>
 
                             <div class="mt-3 flex flex-wrap gap-2">
                                 <button
                                     type="button"
-                                    class="rounded-full border border-white/25 bg-white px-3 py-1.5 text-xs font-semibold text-[#034485] hover:bg-white/90"
+                                    class="rounded-full border border-[#034485]/25 bg-[#034485] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#02315f]"
                                     @click="goToRosterPage(team.id)"
                                 >
                                     View Roster
                                 </button>
                                 <button
                                     type="button"
-                                    class="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/15"
+                                    class="rounded-full border border-[#034485]/25 bg-white px-3 py-1.5 text-xs font-semibold text-[#034485] hover:bg-[#eef5ff]"
                                     @click="goToTeamSchedules(team.id)"
                                 >
                                     Schedules

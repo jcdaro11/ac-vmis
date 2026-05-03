@@ -718,7 +718,7 @@ watch(
 </script>
 
 <template>
-    <Head title="People" />
+    <Head title="Users" />
 
     <div class="space-y-5">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -237,6 +237,7 @@ watch(mobileMenuOpen, (open) => {
         <main class="public-body">
             <div class="public-content">
                 <header v-if="props.pageTitle || props.pageDescription" class="page-intro">
+                    
                     <h1 v-if="props.pageTitle" class="page-title">{{ props.pageTitle }}</h1>
                     <p v-if="props.pageDescription" class="page-desc">{{ props.pageDescription }}</p>
                 </header>
@@ -371,7 +372,7 @@ watch(mobileMenuOpen, (open) => {
 }
 
 .page-title {
-    margin: 0;
+    margin: 1;
     font-size: 1.7rem;
     font-weight: 800;
     letter-spacing: -0.01em;
@@ -1006,6 +1007,10 @@ watch(mobileMenuOpen, (open) => {
 @media (max-width: 640px) {
     .public-body {
         padding: 0 1rem 2.4rem;
+    }
+
+    .page-intro {
+        padding-top: 3.25rem;
     }
 
     .corner-badge {

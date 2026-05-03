@@ -185,13 +185,12 @@ function removeAssistantCoach() {
         <section class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
             <section class="page-card rounded-3xl border border-[#034485]/20 bg-white p-5 shadow-sm">
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#034485]">Current Assignments</p>
-                    <h2 class="mt-2 text-xl font-semibold text-slate-900">Team Staff</h2>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#034485]">Current Coaches</p>
                 </div>
 
                 <div class="mt-5 space-y-4">
                     <article class="page-card rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                        <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Head Coach</p>
+                        <p class="inline-flex rounded-full bg-[#034485] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">Head Coach</p>
                         <div class="mt-3 flex items-center gap-3">
                             <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700">
                                 <img v-if="team.coach?.avatar" :src="userAvatarUrl(team.coach.avatar)" alt="Head coach photo" class="h-full w-full object-cover" />
@@ -208,7 +207,7 @@ function removeAssistantCoach() {
                     <article class="page-card rounded-2xl border border-slate-200 bg-slate-50 p-4">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Assistant Coach</p>
+                                <p class="inline-flex rounded-full bg-[#034485] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">Assistant Coach</p>
                             </div>
                             <button
                                 v-if="!readOnly && team.assistantCoach"

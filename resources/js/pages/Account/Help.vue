@@ -73,7 +73,7 @@ const helpContent = computed<HelpContent>(() => {
       faqs: [
         {
           question: 'Why is a newly registered student-athlete unable to log in yet?',
-          answer: 'Student-athlete accounts remain pending until an administrator approves them. Check the People Queue, review submitted details and requirements, then approve the account so the student-athlete can access the dashboard.',
+          answer: 'Student-athlete accounts remain pending until an administrator approves them. Check the Users Queue, review submitted details and requirements, then approve the account so the student-athlete can access the dashboard.',
         },
         {
           question: 'How should coach accounts be handled in AC-VMIS?',
@@ -216,20 +216,7 @@ function cardMotion(order: number) {
   <AccountShell active="help">
     <div class="space-y-6">
       <section class="account-card support-hero overflow-hidden rounded-3xl border border-[#034485]/25 bg-[#034485] px-6 py-6 text-white shadow-[0_24px_60px_-36px_rgba(3,68,133,0.45)]" :style="cardMotion(1)">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div class="max-w-2xl space-y-3">
-            <div class="flex flex-wrap items-center gap-3">
-              <span class="role-chip">{{ helpContent.roleLabel }}</span>
-              <span class="focus-chip">{{ helpContent.focusLabel }}</span>
-            </div>
-            <div>
-              <h2 class="section-title text-2xl text-white sm:text-[1.95rem]">Help and Support</h2>
-              <p class="settings-muted mt-2 max-w-xl text-sm leading-6 text-white/85">
-                {{ helpContent.roleSummary }}
-              </p>
-            </div>
-          </div>
-
+        <div class="flex justify-end">
           <div class="support-aside w-full rounded-2xl border border-white/20 bg-white/10 p-4 lg:max-w-sm">
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Need Assistance?</p>
             <p class="mt-2 text-sm font-semibold text-white">Varsity support desk</p>
@@ -381,11 +368,13 @@ function cardMotion(order: number) {
 .focus-chip {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   border-radius: 999px;
   padding: 0.42rem 0.9rem;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
+  text-align: left;
   text-transform: uppercase;
 }
 

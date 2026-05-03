@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue';
 
@@ -57,6 +57,8 @@ const form = reactive({
     start_date: props.wellness.filters.start_date ?? '',
     end_date: props.wellness.filters.end_date ?? '',
 });
+let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+let suppressAutoReload = false;
 
 function performanceTone(value: string | null) {
     const normalized = String(value ?? '').toLowerCase();
@@ -84,6 +86,7 @@ function reload(page = 1) {
 }
 
 function resetFilters() {
+    suppressAutoReload = true;
     form.search = '';
     form.injury_only = false;
     form.fatigue_min = '';
@@ -91,7 +94,27 @@ function resetFilters() {
     form.start_date = '';
     form.end_date = '';
     reload(1);
+    setTimeout(() => {
+        suppressAutoReload = false;
+    }, 0);
 }
+
+watch(
+    () => form.search,
+    () => {
+        if (suppressAutoReload) return;
+        if (searchDebounce) clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => reload(1), 250);
+    },
+);
+
+watch(
+    () => [form.injury_only, form.fatigue_min, form.team_id, form.start_date, form.end_date],
+    () => {
+        if (suppressAutoReload) return;
+        reload(1);
+    },
+);
 </script>
 
 <template>
@@ -143,12 +166,8 @@ function resetFilters() {
                         type="text"
                         placeholder="Search athlete, team, or schedule"
                         class="rounded-xl border border-slate-300 px-3 py-2.5 text-sm lg:flex-1"
-                        @keyup.enter="reload(1)"
                     />
                     <div class="flex gap-2">
-                        <button type="button" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm hover:bg-slate-100" @click="reload(1)">
-                            Search
-                        </button>
                         <button type="button" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm hover:bg-slate-100" @click="resetFilters">
                             Reset
                         </button>
@@ -190,12 +209,12 @@ function resetFilters() {
                 <article
                     v-for="row in wellness.logs.data"
                     :key="row.id"
-                    class="page-card rounded-2xl border border-[#034485]/35 bg-[#034485] p-5 text-white shadow-[0_20px_38px_-24px_rgba(3,68,133,0.6)]"
+                    class="page-card rounded-2xl border border-[#034485]/35 bg-white p-5 text-slate-900"
                 >
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                            <p class="text-lg font-semibold text-white">{{ row.student_name }}</p>
-                            <p class="text-sm text-white/72">{{ row.student_id_number || 'No student ID' }}</p>
+                            <p class="text-lg font-semibold text-slate-900">{{ row.student_name }}</p>
+                            <p class="text-sm text-slate-500">{{ row.student_id_number || 'No student ID' }}</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <span
@@ -210,30 +229,30 @@ function resetFilters() {
                         </div>
                     </div>
 
-                    <dl class="mt-4 grid grid-cols-1 gap-3 text-sm text-white/82 sm:grid-cols-2">
+                    <dl class="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-600 sm:grid-cols-2">
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Team</dt>
-                            <dd class="mt-1 text-white">{{ row.team_name || 'No team' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Team</dt>
+                            <dd class="mt-1 text-slate-900">{{ row.team_name || 'No team' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Session</dt>
-                            <dd class="mt-1 text-white">{{ row.schedule_title || 'Untitled session' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Session</dt>
+                            <dd class="mt-1 text-slate-900">{{ row.schedule_title || 'Untitled session' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Type</dt>
-                            <dd class="mt-1 capitalize text-white">{{ row.schedule_type || 'Unknown' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Type</dt>
+                            <dd class="mt-1 capitalize text-slate-900">{{ row.schedule_type || 'Unknown' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Fatigue Level</dt>
-                            <dd class="mt-1 text-white">{{ row.fatigue_level ?? 'N/A' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fatigue Level</dt>
+                            <dd class="mt-1 text-slate-900">{{ row.fatigue_level ?? 'N/A' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Log Date</dt>
-                            <dd class="mt-1 text-white">{{ row.log_date || 'N/A' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Log Date</dt>
+                            <dd class="mt-1 text-slate-900">{{ row.log_date || 'N/A' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wide text-white/60">Logged By</dt>
-                            <dd class="mt-1 text-white">{{ row.logged_by || 'N/A' }}</dd>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Logged By</dt>
+                            <dd class="mt-1 text-slate-900">{{ row.logged_by || 'N/A' }}</dd>
                         </div>
                     </dl>
 
@@ -242,9 +261,9 @@ function resetFilters() {
                             <p class="text-xs font-semibold uppercase tracking-wide text-rose-700">Injury Notes</p>
                             <p class="mt-1 text-sm text-rose-900">{{ row.injury_notes }}</p>
                         </div>
-                        <div v-if="row.remarks" class="rounded-2xl border border-white/18 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-white/72">Remarks</p>
-                            <p class="mt-1 text-sm text-white">{{ row.remarks }}</p>
+                        <div v-if="row.remarks" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Remarks</p>
+                            <p class="mt-1 text-sm text-slate-900">{{ row.remarks }}</p>
                         </div>
                     </div>
                 </article>

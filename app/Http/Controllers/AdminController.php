@@ -1142,10 +1142,13 @@ class AdminController extends Controller
 
     private function wellnessSnapshot(CarbonInterface $start, CarbonInterface $end): array
     {
+        $driver = DB::getDriverName();
+        $injuryExpr = $driver === 'pgsql' ? 'wl.injury_observed IS TRUE' : 'wl.injury_observed = 1';
+
         $rows = DB::table('performance_logs as wl')
             ->whereBetween('wl.log_date', [$start->toDateString(), $end->toDateString()])
             ->selectRaw('DATE(wl.log_date) as log_day')
-            ->selectRaw('SUM(CASE WHEN wl.injury_observed = 1 THEN 1 ELSE 0 END) as injury_count')
+            ->selectRaw("SUM(CASE WHEN {$injuryExpr} THEN 1 ELSE 0 END) as injury_count")
             ->selectRaw('AVG(wl.fatigue_level) as avg_fatigue')
             ->groupByRaw('DATE(wl.log_date)')
             ->orderByRaw('DATE(wl.log_date)')

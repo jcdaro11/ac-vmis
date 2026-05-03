@@ -152,8 +152,6 @@ function outcomeTone(value: string) {
 }
 
 function categoryTone(value: AuditRow['category']) {
-    if (value === 'Approval') return 'bg-blue-100 text-blue-700'
-    if (value === 'Academic Evaluation') return 'bg-violet-100 text-violet-700'
     return 'bg-slate-100 text-slate-700'
 }
 </script>

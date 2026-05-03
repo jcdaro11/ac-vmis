@@ -11,7 +11,6 @@ defineOptions({
     layout: AdminDashboard,
 });
 
-type ReadinessFilter = 'all' | 'ready' | 'incomplete';
 type QueueSort = 'newest' | 'oldest' | 'name_asc' | 'name_desc';
 type QueueStatus = 'pending' | 'rejected';
 
@@ -69,13 +68,11 @@ type PaginatedQueue = {
 type Filters = {
     search?: string;
     status?: QueueStatus;
-    readiness?: ReadinessFilter;
     sort?: QueueSort;
 };
 
 type Stats = {
     pending_total: number;
-    ready_total: number;
     incomplete_total: number;
     rejected_total: number;
 };
@@ -89,7 +86,6 @@ const props = defineProps<{
 
 const search = ref(props.filters?.search ?? '');
 const status = ref<QueueStatus>(props.filters?.status ?? 'pending');
-const readiness = ref<ReadinessFilter>(props.filters?.readiness ?? 'all');
 const sort = ref<QueueSort>(props.filters?.sort ?? 'newest');
 
 const approvingId = ref<number | null>(null);
@@ -111,7 +107,6 @@ let topTabTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const stats = computed(() => ({
     pending_total: props.stats?.pending_total ?? 0,
-    ready_total: props.stats?.ready_total ?? 0,
     incomplete_total: props.stats?.incomplete_total ?? 0,
     rejected_total: props.stats?.rejected_total ?? 0,
 }));
@@ -139,7 +134,6 @@ function buildQuery(resetPage = true) {
     return {
         search: search.value.trim() || undefined,
         status: status.value,
-        readiness: readiness.value === 'all' ? undefined : readiness.value,
         sort: sort.value,
         page: resetPage ? 1 : props.queue.current_page,
     };
@@ -172,13 +166,6 @@ watch(search, () => {
 });
 
 watch(status, () => {
-    if (status.value === 'rejected') {
-        readiness.value = 'all';
-    }
-    applyFilters({ resetPage: true });
-});
-
-watch(readiness, () => {
     applyFilters({ resetPage: true });
 });
 
@@ -358,7 +345,7 @@ function rejectUser() {
 </script>
 
 <template>
-    <Head title="People Queue" />
+    <Head title="Users Queue" />
 
     <div class="space-y-5">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -393,14 +380,10 @@ function rejectUser() {
             </div>
         </div>
 
-        <section class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <section class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             <article class="page-card rounded-xl border border-[#034485]/45 bg-white p-4">
                 <p class="text-[11px] leading-relaxed tracking-wide text-slate-500 uppercase">Pending Accounts</p>
                 <p class="mt-1 text-2xl font-bold text-slate-900">{{ stats.pending_total }}</p>
-            </article>
-            <article class="page-card rounded-xl border border-[#034485]/45 bg-white p-4">
-                <p class="text-[11px] leading-relaxed tracking-wide text-slate-500 uppercase">Ready To Approve</p>
-                <p class="mt-1 text-2xl font-bold text-[#034485]">{{ stats.ready_total }}</p>
             </article>
             <article class="page-card rounded-xl border border-[#034485]/45 bg-white p-4">
                 <p class="text-[11px] leading-relaxed tracking-wide text-slate-500 uppercase">Needs Requirements</p>
@@ -441,18 +424,8 @@ function rejectUser() {
                     v-model="search"
                     type="text"
                     placeholder="Search by name, email, or applicant status"
-                    class="w-full rounded-lg border border-[#034485]/20 px-3 py-2 text-sm text-slate-900 transition outline-none focus:border-[#034485] focus:ring-2 focus:ring-[#034485]/20 lg:col-span-6"
+                    class="w-full rounded-lg border border-[#034485]/20 px-3 py-2 text-sm text-slate-900 transition outline-none focus:border-[#034485] focus:ring-2 focus:ring-[#034485]/20 lg:col-span-9"
                 />
-
-                <select
-                    v-model="readiness"
-                    :disabled="isRejectedView"
-                    class="w-full rounded-lg border border-[#034485]/20 px-3 py-2 text-sm text-slate-900 transition outline-none focus:border-[#034485] focus:ring-2 focus:ring-[#034485]/20 lg:col-span-3"
-                >
-                    <option value="all">All Readiness</option>
-                    <option value="ready">Ready to Approve</option>
-                    <option value="incomplete">Incomplete Requirements</option>
-                </select>
 
                 <select
                     v-model="sort"
@@ -715,7 +688,7 @@ function rejectUser() {
                 <div v-else class="p-4">
                     <EmptyResultsState
                         :title="isRejectedView ? 'No rejected applications matched your filters' : 'No pending applications matched your filters'"
-                        :description="isRejectedView ? 'Try changing the applicant search, readiness, or sort options.' : 'Try changing the applicant search, readiness, or sort options.'"
+                        :description="isRejectedView ? 'Try changing the applicant search or sort options.' : 'Try changing the applicant search or sort options.'"
                     />
                 </div>
 
