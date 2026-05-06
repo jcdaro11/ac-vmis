@@ -8,17 +8,15 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\CreateTeamController;
 use App\Http\Controllers\Admin\OperationsWorkspaceController;
-use App\Http\Controllers\Admin\HealthWorkspaceController;
 use App\Http\Controllers\Admin\AcademicEligibilityController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Coaches\CoachTeamController;
 use App\Http\Controllers\StudentAthlete\StudentAthleteController;
 use App\Http\Controllers\Coaches\CoachScheduleController;
+use App\Http\Controllers\TrainingRequirementController;
 use App\Http\Controllers\Coaches\CoachDashboardController;
-use App\Http\Controllers\Coaches\PerformanceMonitoringController;
 use App\Http\Controllers\Coaches\AcademicVisibilityController;
 use App\Http\Controllers\StudentAthlete\ScheduleRecord;
-use App\Http\Controllers\StudentAthlete\PerformanceHistoryController;
 use App\Http\Controllers\StudentAthlete\AcademicSubmissionController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AccountSettingsController;
@@ -252,9 +250,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::redirect('/operations/attendance', '/operations?tab=attendance')
         ->name('admin.operations.attendance');
 
-    Route::get('/health', [HealthWorkspaceController::class, 'index'])
-        ->name('admin.health.index');
-
     Route::get('/academics', [AcademicEligibilityController::class, 'index'])
         ->name('admin.academics.index');
     Route::get('/audit-trail', [AdminController::class, 'auditTrail'])
@@ -311,7 +306,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/CreateTeam/{team}', [CreateTeamController::class, 'update']);
     Route::redirect('/ScheduleOverview', '/operations');
     Route::redirect('/AttendanceInsights', '/operations?tab=attendance');
-    Route::redirect('/WellnessOverview', '/health');
     Route::redirect('/AcademicEligibility', '/academics');
     Route::post('/AcademicEligibility/periods', [AcademicEligibilityController::class, 'storePeriod']);
     Route::put('/AcademicEligibility/periods/{period}/window', [AcademicEligibilityController::class, 'toggleWindow']);
@@ -332,16 +326,6 @@ Route::middleware(['auth', 'role:coach'])->group(function () {
         $query = $request->query();
         $tab = (string) ($query['tab'] ?? 'attendance');
 
-        if ($tab === 'wellness') {
-            unset($query['tab']);
-            if (isset($query['wellness_schedule_id']) && !isset($query['schedule_id'])) {
-                $query['schedule_id'] = $query['wellness_schedule_id'];
-            }
-            unset($query['wellness_schedule_id'], $query['attendance_schedule_id'], $query['attendance_page']);
-
-            return redirect()->route('coach.performance.index', $query);
-        }
-
         unset($query['tab'], $query['attendance_schedule_id'], $query['attendance_page'], $query['wellness_schedule_id']);
 
         return redirect()->route('coach.schedule.index', $query);
@@ -353,8 +337,6 @@ Route::middleware(['auth', 'role:coach'])->group(function () {
         ->name('coach.team_players.position');
     Route::put('/coach/team-players/{teamPlayer}/status', [CoachTeamController::class, 'updatePlayerStatus'])
         ->name('coach.team_players.status');
-    Route::post('/coach/team-players/{teamPlayer}/clear-injury', [CoachTeamController::class, 'clearInjury'])
-        ->name('coach.team_players.clear_injury');
     Route::post('/coach/team/requests', [CoachTeamController::class, 'requestChange'])
         ->middleware('throttle:coach-requests')
         ->name('coach.team.request');
@@ -370,12 +352,10 @@ Route::middleware(['auth', 'role:coach'])->group(function () {
         ->name('coach.attendance.roster');
     Route::post('/coach/schedules/{schedule}/attendance/bulk', [CoachScheduleController::class, 'bulkAttendance'])
         ->name('coach.attendance.bulk');
-    Route::get('/coach/performance', [PerformanceMonitoringController::class, 'index'])
-        ->name('coach.performance.index');
-    Route::get('/coach/performance/{schedule}/review', [PerformanceMonitoringController::class, 'review'])
-        ->name('coach.performance.review');
-    Route::post('/coach/performance', [PerformanceMonitoringController::class, 'store'])
-        ->name('coach.performance.store');
+    Route::post('/coach/schedules/{schedule}/training-requirements', [TrainingRequirementController::class, 'store'])
+        ->name('training-requirements.store');
+    Route::delete('/coach/schedules/{schedule}/training-requirements/{trainingRequirement}', [TrainingRequirementController::class, 'destroy'])
+        ->name('training-requirements.destroy');
     Route::get('/coach/academics', [AcademicVisibilityController::class, 'index'])
         ->name('coach.academics.index');
 
@@ -392,9 +372,14 @@ Route::middleware(['auth', 'role:coach'])->group(function () {
     Route::redirect('/CoachTeam', '/coach/team');
     Route::redirect('/CoachSchedule', '/coach/schedule');
     Route::redirect('/AttendanceRecord', '/coach/schedule');
-    Route::redirect('/WellnessMonitoring', '/coach/performance');
-    Route::redirect('/coach/wellness', '/coach/performance');
     Route::redirect('/CoachAcademicVisibility', '/coach/academics');
+});
+
+Route::middleware(['auth', 'role:coach,admin'])->group(function () {
+    Route::get('/schedules/{schedule}/training-requirements', [TrainingRequirementController::class, 'show'])
+        ->name('training-requirements.show');
+    Route::get('/schedules/{schedule}/training-requirements/print', [TrainingRequirementController::class, 'print'])
+        ->name('training-requirements.print');
 });
 
 Route::middleware(['auth', 'role:student-athlete,student'])->group(function () {
@@ -411,6 +396,4 @@ Route::middleware(['auth', 'role:student-athlete,student', 'academic.eligibility
     Route::put('/Student/TeamPlayers/{teamPlayer}/jersey', [StudentAthleteController::class, 'updateDesiredJersey'])
         ->name('student.team_players.jersey');
     Route::get('/MySchedule', [ScheduleRecord::class, 'mySchedules'])->name('MySchedule');
-    Route::get('/PerformanceHistory', [PerformanceHistoryController::class, 'index'])->name('PerformanceHistory');
-    Route::redirect('/WellnessHistory', '/PerformanceHistory');
 });

@@ -19,8 +19,6 @@ type PlayerRow = {
     jersey_number: string | number | null
     athlete_position: string | null
     player_status?: PlayerStatus | null
-    latest_injury_notes?: string | null
-    has_unresolved_injury?: boolean
     student?: {
         first_name?: string
         last_name?: string
@@ -58,7 +56,6 @@ const requestSubmitting = ref(false)
 const detailsOpen = ref(false)
 const selectedPlayer = ref<PlayerRow | null>(null)
 const copiedField = ref<string | null>(null)
-const clearingInjuryPlayerId = ref<number | null>(null)
 
 const selectedTeamId = ref<number | null>(props.selectedTeamId ?? null)
 const { sportColor, sportTextColor } = useSportColors()
@@ -258,34 +255,6 @@ function printTeamRoster() {
     window.open(`/coach/team/print?${params.toString()}`, '_blank')
 }
 
-function clearInjury(player: PlayerRow) {
-    clearingInjuryPlayerId.value = player.id
-    router.post(
-        `/coach/team-players/${player.id}/clear-injury`,
-        {},
-        {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => {
-                showAppToast('Injury cleared successfully.', 'success', {
-                    summary: 'Team Roster',
-                })
-            },
-            onError: (errors) => {
-                const detail = Array.isArray(errors?.injury)
-                    ? errors.injury[0]
-                    : errors?.injury || 'Unable to clear injury right now.'
-
-                showAppToast(String(detail), 'error', {
-                    summary: 'Team Roster',
-                })
-            },
-            onFinish: () => {
-                clearingInjuryPlayerId.value = null
-            },
-        },
-    )
-}
 </script>
 
 <template>
@@ -507,23 +476,6 @@ function clearInjury(player: PlayerRow) {
                                 <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusTone((player.player_status ?? 'active') as PlayerStatus)">
                                     {{ (player.player_status ?? 'active').toString().toUpperCase() }}
                                 </span>
-                            </div>
-                            <div
-                                v-if="(player.player_status ?? 'active') === 'injured'"
-                                class="mt-2 rounded-xl border border-rose-300 bg-rose-50 p-3"
-                            >
-                                <p class="text-[11px] font-semibold uppercase tracking-wide text-rose-800">Injury Notes</p>
-                                <p class="mt-1 text-xs leading-5 text-rose-900">
-                                    {{ formatSimple(player.latest_injury_notes) }}
-                                </p>
-                                <button
-                                    type="button"
-                                    class="mt-3 rounded-md border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-800 hover:border-rose-400 disabled:cursor-not-allowed disabled:opacity-60"
-                                    :disabled="clearingInjuryPlayerId === player.id"
-                                    @click="clearInjury(player)"
-                                >
-                                    {{ clearingInjuryPlayerId === player.id ? 'Clearing...' : 'Clear Injury' }}
-                                </button>
                             </div>
                         </div>
                     </div>

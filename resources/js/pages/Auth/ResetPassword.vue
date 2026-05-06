@@ -108,7 +108,7 @@ function toLogin() {
 
                         <button type="submit" class="login-btn mt-3" :disabled="form.processing">
                             <span class="inline-flex items-center gap-2">
-                                <Spinner v-if="form.processing" class="h-4 w-4 text-[#034485]" />
+                                <Spinner v-if="form.processing" class="spinner-mark h-4 w-4" />
                                 {{ form.processing ? 'Saving...' : 'Reset Password' }}
                             </span>
                         </button>
@@ -125,11 +125,9 @@ function toLogin() {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
 .login-shell {
     padding: 1.4rem 0 2.2rem;
-    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    font-family: Poppins, 'Segoe UI', sans-serif;
 }
 
 .login-grid {
@@ -146,7 +144,7 @@ function toLogin() {
 }
 
 .copy-kicker {
-    font-size: 0.74rem;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: rgba(255, 255, 255, 0.75);
@@ -155,9 +153,9 @@ function toLogin() {
 
 .login-copy h1 {
     margin-top: 0.2rem;
-    font-size: 2rem;
+    font-size: var(--text-3xl);
     line-height: 1.1;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 800;
 }
 
@@ -172,11 +170,16 @@ function toLogin() {
     display: grid;
     gap: 0.75rem;
     min-width: 0;
+    border-radius: calc(var(--radius-lg) + 4px);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(14px);
 }
 
 .login-card h2 {
-    font-size: 1.35rem;
-    color: #ffffff;
+    font-size: var(--text-xl);
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 800;
 }
 
@@ -197,48 +200,50 @@ function toLogin() {
 
 .field-input {
     width: 100%;
-    border-radius: 12px;
-    border: 1px solid rgba(3, 68, 133, 0.25);
-    background: #ffffff;
-    color: #0b1b2b;
+    border-radius: var(--radius-sm);
+    border: 1px solid color-mix(in srgb, var(--color-brand) 30%, white);
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--color-text-primary);
     padding: 0.7rem 0.85rem;
-    font-size: 0.98rem;
+    font-size: var(--text-base);
+    box-shadow: var(--shadow-xs);
 }
 
 .field-input.is-error {
-    border-color: #dc2626;
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+    border-color: rgba(185, 28, 28, 0.88);
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
 }
 
 .field-input:focus {
     outline: none;
-    border-color: rgba(3, 68, 133, 0.45);
-    box-shadow: 0 0 0 2px rgba(3, 68, 133, 0.15);
+    border-color: color-mix(in srgb, var(--color-brand) 42%, white);
+    box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.14);
 }
 
 .login-btn {
     width: 100%;
     min-height: 56px;
-    border-radius: 12px;
-    font-size: 1rem;
+    border-radius: var(--radius-full);
+    font-size: var(--text-base);
     font-weight: 700;
-    border: 1px solid #ffffff;
-    background: #ffffff;
-    color: #034485;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--color-brand);
+    box-shadow: var(--shadow-sm);
 }
 
 .register-note {
     margin-top: 0.35rem;
     text-align: center;
     color: rgba(255, 255, 255, 0.82);
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     line-height: 1.6;
 }
 
 .register-link {
     border: none;
     background: none;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 700;
     margin-left: 0.3rem;
     cursor: pointer;
@@ -249,7 +254,11 @@ function toLogin() {
 }
 
 .toggle-eye {
-    color: rgba(3, 68, 133, 0.65);
+    color: color-mix(in srgb, var(--color-brand) 72%, white);
+}
+
+.spinner-mark {
+    color: var(--color-brand);
 }
 
 @media (max-width: 900px) {

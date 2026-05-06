@@ -24,7 +24,11 @@ function iconPath(icon: string) {
 </script>
 
 <template>
-  <nav class="student-bottom-nav" aria-label="Primary">
+  <nav
+    class="student-bottom-nav"
+    :style="{ gridTemplateColumns: `repeat(${Math.max(items.length, 1)}, minmax(0, 1fr))` }"
+    aria-label="Primary"
+  >
     <button
       v-for="item in items"
       :key="item.key"
@@ -49,7 +53,6 @@ function iconPath(icon: string) {
   bottom: 0;
   z-index: 45;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
   border-top: 1px solid #cbd5e1;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(10px);

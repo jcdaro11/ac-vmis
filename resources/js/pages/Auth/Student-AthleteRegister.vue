@@ -1085,7 +1085,7 @@ onBeforeUnmount(() => {
                                 accept=".pdf,image/*"
                                 @change="(event) => setFile('academic_document_file', event)"
                             />
-                            <p class="mt-1 text-xs text-slate-500">Selected: {{ selectedFileNames.academic }}</p>
+                            <p class="support-text mt-1">Selected: {{ selectedFileNames.academic }}</p>
                             <FieldError :message="shouldShowError('academic_document_file') ? fieldErrors.academic_document_file : ''" />
                         </div>
                     </div>
@@ -1106,7 +1106,7 @@ onBeforeUnmount(() => {
                         <button v-if="step < 3" type="button" class="btn-fill w-full sm:w-auto" :disabled="isSubmitting" @click="nextStep">Continue</button>
                         <button v-else type="button" class="btn-fill w-full sm:w-auto" :disabled="isSubmitting" @click="submit">
                             <span class="inline-flex items-center gap-2">
-                                <Spinner v-if="isSubmitting" class="h-4 w-4 text-white" />
+                                <Spinner v-if="isSubmitting" class="spinner-light h-4 w-4" />
                                 {{ isSubmitting ? 'Submitting...' : 'Submit Registration' }}
                             </span>
                         </button>
@@ -1118,8 +1118,8 @@ onBeforeUnmount(() => {
                         <span>Uploading required documents...</span>
                         <span>{{ uploadProgress }}%</span>
                     </div>
-                    <div class="h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
-                        <div class="h-full bg-[#1f2937] transition-all duration-150" :style="{ width: `${uploadProgress}%` }" />
+                    <div class="progress-rail">
+                        <div class="progress-fill" :style="{ width: `${uploadProgress}%` }" />
                     </div>
                 </div>
             </div>
@@ -1137,8 +1137,8 @@ onBeforeUnmount(() => {
         <div v-if="cropModalOpen" class="crop-overlay">
             <div class="crop-modal">
                 <div class="crop-header">
-                    <h3 class="text-base font-semibold text-slate-900">Crop Avatar</h3>
-                    <p class="text-xs text-slate-500">Drag to reposition. Use zoom for better framing.</p>
+                    <h3 class="crop-title">Crop Avatar</h3>
+                    <p class="crop-copy">Drag to reposition. Use zoom for better framing.</p>
                 </div>
 
                 <div ref="cropFrameEl" class="crop-frame" @pointerdown.prevent="beginCropDrag" @wheel.prevent="onCropWheel">
@@ -1148,7 +1148,7 @@ onBeforeUnmount(() => {
 
                 <div class="mt-3 space-y-2">
                     <div class="flex items-center gap-2">
-                        <button type="button" class="rounded border border-slate-300 px-2 py-1 text-xs" @click="adjustCropZoom(-0.1)">-</button>
+                        <button type="button" class="crop-zoom-btn" @click="adjustCropZoom(-0.1)">-</button>
                         <input
                             :value="cropScale"
                             type="range"
@@ -1158,7 +1158,7 @@ onBeforeUnmount(() => {
                             step="0.01"
                             @input="cropScale = Number(($event.target as HTMLInputElement).value)"
                         />
-                        <button type="button" class="rounded border border-slate-300 px-2 py-1 text-xs" @click="adjustCropZoom(0.1)">+</button>
+                        <button type="button" class="crop-zoom-btn" @click="adjustCropZoom(0.1)">+</button>
                     </div>
                     <p v-if="cropError" class="error-inline text-xs">{{ cropError }}</p>
                 </div>
@@ -1173,14 +1173,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
 .register-page {
     min-height: 100vh;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    color: #1f2937;
-    font-family: 'Poppins', 'Segoe UI', sans-serif;
-    font-size: 1rem;
+    background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-overlay) 100%);
+    color: var(--color-text-primary);
+    font-family: Poppins, 'Segoe UI', sans-serif;
+    font-size: var(--text-base);
     line-height: 1.6;
 }
 
@@ -1189,43 +1187,44 @@ onBeforeUnmount(() => {
     top: 0;
     z-index: 20;
     background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(2px);
-    border-bottom:  1px solid rgba(15, 23, 42, 0.56);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-border-strong);
 }
 
 .register-nav {
-    border:  1px solid rgba(15, 23, 42, 0.56);
-    border-radius: 14px;
-    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
     padding: 10px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.8rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .top-loading {
     height: 3px;
     width: 100%;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     margin-bottom: 8px;
-    background: linear-gradient(90deg, #1f2937 0%, #475569 40%, #94a3b8 100%);
+    background: linear-gradient(90deg, var(--color-brand-dark) 0%, var(--color-brand) 100%);
     background-size: 200% 100%;
     animation: loading-shimmer 1s linear infinite;
 }
 
 .kicker {
-    font-size: 10px;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.22em;
-    color: #94a3b8;
+    color: var(--color-text-muted);
 }
 
 .brand {
     margin-top: 2px;
-    font-size: 1rem;
+    font-size: var(--text-base);
     font-weight: 800;
-    color: #1f2937;
+    color: var(--color-text-primary);
 }
 
 .register-main {
@@ -1233,26 +1232,26 @@ onBeforeUnmount(() => {
 }
 
 .register-card {
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
 }
 
 .register-title {
     text-align: center;
-    font-size: 2rem;
+    font-size: var(--text-3xl);
     font-weight: 800;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
 }
 
 .register-subtitle {
     margin-top: 0.45rem;
     text-align: center;
-    font-size: 0.95rem;
+    font-size: var(--text-base);
     color: rgba(255, 255, 255, 0.86);
 }
 
 .register-card h2,
 .register-card h3 {
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
 }
 
 .register-card p,
@@ -1277,17 +1276,17 @@ onBeforeUnmount(() => {
 .step span {
     width: 34px;
     height: 34px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     border: 1px solid rgba(255, 255, 255, 0.45);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--color-surface);
 }
 
 .step small {
-    font-size: 11px;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     line-height: 1.35;
@@ -1295,13 +1294,12 @@ onBeforeUnmount(() => {
 }
 
 .step.active {
-    color: #ffffff;
+    color: var(--color-surface);
 }
 
 .step.active span {
-    border-color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.96);
     background: rgba(255, 255, 255, 0.18);
-    color: #ffffff;
 }
 
 .step-line {
@@ -1311,11 +1309,11 @@ onBeforeUnmount(() => {
 }
 
 .step-line.active {
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.96);
 }
 
 .label {
-    font-size: 0.86rem;
+    font-size: var(--text-sm);
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
     margin-bottom: 6px;
@@ -1324,18 +1322,19 @@ onBeforeUnmount(() => {
 
 .field {
     width: 100%;
-    border: 1px solid rgba(3, 68, 133, 0.25);
-    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--color-brand) 30%, white);
+    border-radius: var(--radius-md);
     padding: 10px 12px;
-    background: #ffffff;
-    color: #1f2937;
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--color-text-primary);
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+    box-shadow: var(--shadow-xs);
 }
 
 .field:focus {
-    border-color: rgba(3, 68, 133, 0.55);
-    box-shadow: 0 0 0 2px rgba(3, 68, 133, 0.2);
+    border-color: color-mix(in srgb, var(--color-brand) 42%, white);
+    box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.14);
 }
 
 .file-field {
@@ -1347,12 +1346,12 @@ onBeforeUnmount(() => {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     border: 1px solid rgba(190, 24, 93, 0.38);
     background: rgba(255, 241, 242, 0.96);
     color: #9f1239 !important;
     padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
+    font-size: var(--text-sm);
     font-weight: 600;
     line-height: 1.35;
 }
@@ -1361,12 +1360,12 @@ onBeforeUnmount(() => {
     content: '!';
     width: 1rem;
     height: 1rem;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: #be123c;
-    color: #ffffff;
+    color: var(--color-surface);
     font-size: 0.7rem;
     font-weight: 800;
     line-height: 1;
@@ -1376,11 +1375,11 @@ onBeforeUnmount(() => {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     border: 1px solid rgba(190, 24, 93, 0.28);
     background: rgba(255, 241, 242, 0.96);
     color: #9f1239 !important;
-    font-size: 0.74rem;
+    font-size: var(--text-xs);
     font-weight: 700;
     padding: 0.12rem 0.45rem;
 }
@@ -1389,12 +1388,12 @@ onBeforeUnmount(() => {
     content: '!';
     width: 0.85rem;
     height: 0.85rem;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: #be123c;
-    color: #ffffff;
+    color: var(--color-surface);
     font-size: 0.62rem;
     font-weight: 800;
 }
@@ -1402,51 +1401,49 @@ onBeforeUnmount(() => {
 .field.is-error {
     border-color: #e11d48;
     background: #fff1f2;
-    box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.22);
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.14);
 }
 
 .field.is-error:focus {
     border-color: #be123c;
-    box-shadow: 0 0 0 2px rgba(190, 24, 93, 0.24), 0 0 0 4px rgba(255, 255, 255, 0.22);
+    box-shadow: 0 0 0 3px rgba(190, 24, 93, 0.16);
 }
 
 .btn-outline {
-    color: #034485;
-    border: 1px solid rgba(3, 68, 133, 0.35);
-    background: #ffffff;
-    border-radius: 10px;
-    font-size: 14px;
+    color: var(--color-brand);
+    border: 1px solid color-mix(in srgb, var(--color-brand) 34%, white);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
     font-weight: 700;
     padding: 10px 14px;
+    box-shadow: var(--shadow-xs);
 }
 
 .btn-fill {
-    color: #ffffff;
-    border: 1px solid #034485;
-    background: #034485;
-    border-radius: 10px;
-    font-size: 14px;
+    color: var(--color-surface);
+    border: 1px solid var(--color-brand);
+    background: var(--color-brand);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
     font-weight: 700;
     padding: 10px 14px;
+    box-shadow: var(--shadow-xs);
 }
 
 .register-card .btn-outline {
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
     border-color: rgba(255, 255, 255, 0.6);
     background: transparent;
 }
 
 .register-card .btn-fill {
-    color: #034485;
-    border-color: #ffffff;
-    background: #ffffff;
+    color: var(--color-brand);
+    border-color: rgba(255, 255, 255, 0.34);
+    background: rgba(255, 255, 255, 0.96);
 }
 
-.btn-outline:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
+.btn-outline:disabled,
 .btn-fill:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -1454,14 +1451,14 @@ onBeforeUnmount(() => {
 
 .site-footer {
     margin-top: 0.5rem;
-    border-top:  1px solid rgba(15, 23, 42, 0.56);
-    background: linear-gradient(180deg, #f8fafc 0%, #f8fafc 100%);
+    border-top: 1px solid var(--color-border-strong);
+    background: linear-gradient(180deg, var(--color-overlay) 0%, var(--color-overlay) 100%);
     padding-top: 1rem;
 }
 
 .footer-shell {
     padding: 0.2rem 0 0;
-    color: #64748b;
+    color: var(--color-text-secondary);
 }
 
 .footer-grid {
@@ -1475,23 +1472,23 @@ onBeforeUnmount(() => {
 }
 
 .footer-brand {
-    color: #1f2937;
-    font-size: 1rem;
+    color: var(--color-text-primary);
+    font-size: var(--text-base);
     font-weight: 800;
 }
 
 .footer-copy {
     margin-top: 0.5rem;
-    color: #64748b;
+    color: var(--color-text-secondary);
     line-height: 1.55;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
 }
 
 .footer-heading {
-    color: #1f2937;
+    color: var(--color-text-primary);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: 0.74rem;
+    font-size: var(--text-xs);
     font-weight: 800;
 }
 
@@ -1502,9 +1499,9 @@ onBeforeUnmount(() => {
 }
 
 .footer-link {
-    color: #64748b;
+    color: var(--color-text-secondary);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
 }
 
 .footer-link-btn {
@@ -1518,7 +1515,7 @@ onBeforeUnmount(() => {
 .dialog-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.42);
     display: grid;
     place-items: center;
     z-index: 100;
@@ -1527,18 +1524,18 @@ onBeforeUnmount(() => {
 
 .dialog-card {
     width: min(100%, 420px);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     border: 1px solid rgba(239, 68, 68, 0.35);
-    background: #fff;
+    background: var(--color-surface);
     padding: 18px;
-    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.25);
+    box-shadow: var(--shadow-lg);
     text-align: left;
 }
 
 .dialog-icon {
     width: 28px;
     height: 28px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: #fee2e2;
     color: #b91c1c;
     display: inline-flex;
@@ -1549,15 +1546,15 @@ onBeforeUnmount(() => {
 }
 
 .dialog-title {
-    color: #1f2937;
-    font-size: 1rem;
+    color: var(--color-text-primary);
+    font-size: var(--text-base);
     font-weight: 700;
 }
 
 .dialog-message {
     margin-top: 6px;
-    color: #4b5563;
-    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
     line-height: 1.5;
 }
 
@@ -1576,11 +1573,11 @@ onBeforeUnmount(() => {
     width: min(96vw, 480px);
     max-height: 94vh;
     overflow: auto;
-    border-radius: 12px;
-    border: 1px solid rgba(15, 23, 42, 0.35);
-    background: #ffffff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
     padding: 1rem;
-    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.25);
+    box-shadow: var(--shadow-lg);
 }
 
 .crop-header {
@@ -1594,9 +1591,9 @@ onBeforeUnmount(() => {
     max-width: 320px;
     max-height: 320px;
     margin: 0 auto;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     overflow: hidden;
-    background: #e2e8f0;
+    background: var(--color-overlay);
     touch-action: none;
     user-select: none;
     cursor: grab;
@@ -1619,15 +1616,17 @@ onBeforeUnmount(() => {
 .crop-frame-ring {
     position: absolute;
     inset: 0;
-    border:  1px solid rgba(255, 255, 255, 0.95);
-    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: var(--radius-full);
     pointer-events: none;
     box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.2);
 }
 
 .step-fade-enter-active,
 .step-fade-leave-active {
-    transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition:
+        opacity var(--transition-slow) cubic-bezier(0.22, 1, 0.36, 1),
+        transform var(--transition-slow) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .step-fade-enter-from,
@@ -1636,9 +1635,54 @@ onBeforeUnmount(() => {
     transform: translateX(12px);
 }
 
+.support-text {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+}
+
+.progress-rail {
+    height: 0.5rem;
+    overflow: hidden;
+    border-radius: var(--radius-full);
+    background: var(--color-overlay);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-brand-dark) 0%, var(--color-brand) 100%);
+    transition: width var(--transition-fast);
+}
+
+.spinner-light {
+    color: var(--color-surface);
+}
+
+.crop-title {
+    color: var(--color-text-primary);
+    font-size: var(--text-base);
+    font-weight: 600;
+}
+
+.crop-copy {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+}
+
+.crop-zoom-btn {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    padding: 0.25rem 0.5rem;
+    color: var(--color-text-primary);
+    font-size: var(--text-xs);
+    box-shadow: var(--shadow-xs);
+}
+
 @media (max-width: 640px) {
     .brand {
-        font-size: 0.9rem;
+        font-size: var(--text-sm);
     }
 
     .footer-grid {
@@ -1647,13 +1691,13 @@ onBeforeUnmount(() => {
     }
 
     .step small {
-        font-size: 10px;
+        font-size: var(--text-xs);
     }
 }
 
 @media (min-width: 1024px) {
     .register-page {
-        font-size: 1.125rem;
+        font-size: var(--text-md);
     }
 }
 

@@ -10,6 +10,7 @@ use App\Models\Team;
 use App\Models\Student;
 use App\Models\TeamSchedule;
 use App\Models\ScheduleAttendance;
+use App\Models\TrainingRequirement;
 use Carbon\Carbon;
 
 class ScheduleRecord extends Controller
@@ -63,11 +64,30 @@ class ScheduleRecord extends Controller
             ->get()
             ->keyBy('schedule_id');
 
+        $requirementsBySchedule = TrainingRequirement::query()
+            ->with('coach.user')
+            ->where('student_id', $student->id)
+            ->get()
+            ->groupBy('schedule_id');
+
         $schedules = TeamSchedule::where('team_id', $team->id)
             ->orderBy('start_time')
             ->get()
-            ->map(function ($schedule) use ($attendanceBySchedule, $team) {
+            ->map(function ($schedule) use ($attendanceBySchedule, $requirementsBySchedule, $team) {
                 $attendance = $attendanceBySchedule->get($schedule->id);
+                $requirements = collect($requirementsBySchedule->get($schedule->id, []))
+                    ->map(function (TrainingRequirement $requirement) {
+                        return [
+                            'id' => $requirement->id,
+                            'category' => $requirement->category,
+                            'title' => $requirement->title,
+                            'description' => $requirement->description,
+                            'coach_name' => $requirement->coach?->full_name ?: 'Assigned Coach',
+                            'created_at' => optional($requirement->created_at)?->toIso8601String(),
+                        ];
+                    })
+                    ->values()
+                    ->all();
 
                 return [
                     'id' => $schedule->id,
@@ -82,6 +102,7 @@ class ScheduleRecord extends Controller
                     'calendar_url' => route('schedules.calendar', ['schedule' => $schedule->id]),
                     'attendance_status' => optional($attendance)->status,
                     'attendance_notes' => optional($attendance)->notes,
+                    'training_requirements' => $requirements,
                 ];
             });
 

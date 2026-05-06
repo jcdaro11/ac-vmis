@@ -149,7 +149,7 @@ function submit() {
               class="rounded-xl border border-[#034485]/25 bg-[#034485]/5 px-3 py-2 text-xs text-slate-700"
             >
               Status: <span class="font-semibold">{{ eligibilityLabel }}</span>
-              <span v-if="!canSubmit"> — submissions locked for this period.</span>
+              <span v-if="!canSubmit">: submissions locked for this period.</span>
             </div>
             <p class="text-xs text-slate-500">Choose the academic period and upload your latest grade document.</p>
             <p class="text-xs text-slate-500">
@@ -212,7 +212,7 @@ function submit() {
             </div>
             <div class="mt-1 text-[11px] text-slate-600">
               Window:
-              {{ selectedPeriod ? `${selectedPeriod.starts_on} to ${selectedPeriod.ends_on}` : '—' }}
+              {{ selectedPeriod ? `${selectedPeriod.starts_on} to ${selectedPeriod.ends_on}` : 'Not available' }}
             </div>
             <div class="mt-3 text-[11px] text-slate-500">Accepted: PDF, PNG, JPG.</div>
           </aside>

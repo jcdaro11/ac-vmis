@@ -100,7 +100,7 @@ function login() {
                 <section class="public-card login-copy">
                     <p class="copy-kicker">Account Access</p>
                     <h1>Welcome</h1>
-                    <p>Sign in to access schedules, attendance, performance records, academic updates, and varsity announcements.</p>
+                    <p>Sign in to access schedules, attendance, academic updates, and varsity announcements.</p>
                 </section>
 
                 <section class="public-card login-card">
@@ -177,7 +177,7 @@ function login() {
 
                         <button type="submit" class="login-btn" :disabled="isSubmitting">
                             <span class="inline-flex items-center gap-2">
-                                <Spinner v-if="isSubmitting" class="h-4 w-4 text-[#034485]" />
+                                <Spinner v-if="isSubmitting" class="spinner-mark h-4 w-4" />
                                 {{ isSubmitting ? 'Signing in...' : 'Sign In' }}
                             </span>
                         </button>
@@ -194,11 +194,9 @@ function login() {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
 .login-shell {
     padding: 1.4rem 0 2.2rem;
-    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    font-family: Poppins, 'Segoe UI', sans-serif;
 }
 
 .login-grid {
@@ -215,7 +213,7 @@ function login() {
 }
 
 .copy-kicker {
-    font-size: 0.74rem;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: rgba(255, 255, 255, 0.75);
@@ -224,9 +222,9 @@ function login() {
 
 .login-copy h1 {
     margin-top: 0.2rem;
-    font-size: 2rem;
+    font-size: var(--text-3xl);
     line-height: 1.1;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 800;
 }
 
@@ -241,11 +239,16 @@ function login() {
     display: grid;
     gap: 0.75rem;
     min-width: 0;
+    border-radius: calc(var(--radius-lg) + 4px);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(14px);
 }
 
 .login-card h2 {
-    font-size: 1.35rem;
-    color: #ffffff;
+    font-size: var(--text-xl);
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 800;
 }
 
@@ -266,32 +269,33 @@ function login() {
 
 .field-input {
     width: 100%;
-    border-radius: 12px;
-    border: 1px solid rgba(3, 68, 133, 0.25);
-    background: #ffffff;
-    color: #0b1b2b;
+    border-radius: var(--radius-sm);
+    border: 1px solid color-mix(in srgb, var(--color-brand) 30%, white);
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--color-text-primary);
     padding: 0.7rem 0.85rem;
-    font-size: 0.98rem;
+    font-size: var(--text-base);
+    box-shadow: var(--shadow-xs);
 }
 
 .field-input.is-error {
-    border-color: #dc2626;
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+    border-color: rgba(185, 28, 28, 0.88);
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
 }
 
 .field-input:focus {
     outline: none;
-    border-color: rgba(3, 68, 133, 0.45);
-    box-shadow: 0 0 0 2px rgba(3, 68, 133, 0.15);
+    border-color: color-mix(in srgb, var(--color-brand) 42%, white);
+    box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.14);
 }
 
 .forgot-link {
     width: fit-content;
     border: none;
     background: transparent;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: var(--text-sm);
     padding: 0;
     cursor: pointer;
 }
@@ -303,26 +307,27 @@ function login() {
 .login-btn {
     width: 100%;
     margin-top: 0.85rem;
-    border-radius: 999px;
-    border: 1px solid #ffffff;
-    background: #ffffff;
-    color: #034485;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--color-brand);
     font-weight: 700;
     padding: 0.7rem 1rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .register-note {
     margin-top: 0.75rem;
     text-align: center;
     color: rgba(255, 255, 255, 0.82);
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     line-height: 1.6;
 }
 
 .register-link {
     border: none;
     background: none;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 700;
     margin-left: 0.3rem;
     cursor: pointer;
@@ -333,7 +338,11 @@ function login() {
 }
 
 .toggle-eye {
-    color: rgba(3, 68, 133, 0.65);
+    color: color-mix(in srgb, var(--color-brand) 72%, white);
+}
+
+.spinner-mark {
+    color: var(--color-brand);
 }
 
 @media (max-width: 900px) {

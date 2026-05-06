@@ -81,4 +81,9 @@ class Coach extends Model
     {
         return $this->hasMany(TeamStaffAssignment::class, 'coach_id');
     }
+
+    public function trainingRequirements()
+    {
+        return $this->hasMany(TrainingRequirement::class, 'coach_id');
+    }
 }

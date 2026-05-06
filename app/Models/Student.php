@@ -127,9 +127,9 @@ class Student extends Model
         return $this->hasMany(ScheduleAttendance::class, 'student_id');
     }
 
-    public function performanceLogs()
+    public function trainingRequirements()
     {
-        return $this->hasMany(PerformanceLog::class, 'student_id');
+        return $this->hasMany(TrainingRequirement::class, 'student_id');
     }
 
     public function academicDocuments()

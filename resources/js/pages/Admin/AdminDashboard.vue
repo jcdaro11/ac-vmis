@@ -4,6 +4,7 @@ import type { ApexOptions } from 'apexcharts';
 import { computed, onMounted, onUnmounted, ref, useSlots, watch } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 
+import AdminBottomNav from '@/components/admin/AdminBottomNav.vue';
 import RoleFooter from '@/components/ui/RoleFooter.vue';
 import Spinner from '@/components/ui/spinner/Spinner.vue';
 import UserAccountMenu from '@/components/UserAccountMenu.vue';
@@ -51,11 +52,6 @@ type DashboardPayload = {
         attendance_by_team: {
             labels: string[];
             rates: number[];
-        };
-        wellness_snapshot: {
-            labels: string[];
-            injury_observed: number[];
-            avg_fatigue: number[];
         };
     };
     recent_activity: Array<{
@@ -158,7 +154,6 @@ const pages: NavEntry[] = [
         ],
     },
     { name: 'Operations', route: '/operations', iconPaths: ['M3 3v18h18', 'M7 13l3-3 3 2 5-6'] },
-    { name: 'Performance', route: '/health', iconPaths: ['M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z', 'M9 12l2 2 4-4'] },
     {
         name: 'Academics',
         route: '/academics',
@@ -185,7 +180,6 @@ const footerLinks = [
     { label: 'User & Approval', href: '/people' },
     { label: 'Teams', href: '/teams' },
     { label: 'Operations', href: '/operations' },
-    { label: 'Performance', href: '/health' },
     { label: 'Academics', href: '/academics' },
     { label: 'Audit Trail', href: '/audit-trail' },
     { label: 'Reports', href: '/reports/attendance' },
@@ -194,15 +188,19 @@ const footerLinks = [
     { label: 'Settings', href: '/account/settings' },
 ];
 
+const adminBottomNavItems = [
+    { key: 'approvals', label: 'User & Approval', mobileLabel: 'Approval', route: '/people', icon: 'users' },
+    { key: 'teams', label: 'Teams', route: '/teams', icon: 'shield-users' },
+    { key: 'operations', label: 'Operations', route: '/operations', icon: 'bar-chart-3' },
+    { key: 'academics', label: 'Academics', route: '/academics', icon: 'graduation-cap' },
+] as const;
+
 const currentPageName = computed(() => {
     if (currentPath.value === '/people/queue' || currentPath.value.startsWith('/people/queue/')) {
         return 'User & Approval';
     }
     if (currentPath.value === '/operations/attendance' || currentPath.value.startsWith('/operations/attendance/')) {
         return 'Operations';
-    }
-    if (currentPath.value === '/health' || currentPath.value.startsWith('/health/')) {
-        return 'Performance';
     }
     if (currentPath.value === '/account/profile' || currentPath.value.startsWith('/account/profile/')) {
         return 'Profile';
@@ -406,82 +404,6 @@ const attendanceByTeamOptions = computed<ApexOptions>(() => ({
         y: {
             formatter: (value) => `${Number(value).toFixed(2)}%`,
         },
-    },
-}));
-
-const wellnessSnapshotSeries = computed(() => [
-    {
-        name: 'Injury Observed',
-        type: 'column',
-        data: dashboard.value?.trends.wellness_snapshot.injury_observed ?? [],
-    },
-    {
-        name: 'Average Fatigue',
-        type: 'line',
-        data: dashboard.value?.trends.wellness_snapshot.avg_fatigue ?? [],
-    },
-]);
-
-const wellnessSnapshotOptions = computed<ApexOptions>(() => ({
-    chart: {
-        type: 'line',
-        stacked: false,
-        toolbar: { show: false },
-        fontFamily: 'inherit',
-        foreColor: '#475569',
-    },
-    colors: ['#3b82f6', '#034485'],
-    stroke: {
-        width: [0, 3],
-        curve: 'smooth',
-    },
-    plotOptions: {
-        bar: {
-            borderRadius: 6,
-            columnWidth: '42%',
-        },
-    },
-    dataLabels: { enabled: false },
-    fill: {
-        opacity: [0.9, 1],
-    },
-    xaxis: {
-        categories: dashboard.value?.trends.wellness_snapshot.labels ?? [],
-        labels: {
-            style: {
-                colors: Array((dashboard.value?.trends.wellness_snapshot.labels ?? []).length).fill('#64748b'),
-                fontSize: '11px',
-            },
-        },
-    },
-    yaxis: [
-        {
-            min: 0,
-            title: { text: 'Injuries', style: { color: '#64748b' } },
-            labels: { style: { colors: ['#64748b'], fontSize: '11px' } },
-        },
-        {
-            opposite: true,
-            min: 0,
-            max: 5,
-            tickAmount: 5,
-            title: { text: 'Fatigue', style: { color: '#64748b' } },
-            labels: { style: { colors: ['#64748b'], fontSize: '11px' } },
-        },
-    ],
-    grid: {
-        borderColor: 'rgba(148, 163, 184, 0.18)',
-        strokeDashArray: 4,
-    },
-    legend: {
-        position: 'top',
-        horizontalAlign: 'left',
-        labels: { colors: '#475569' },
-    },
-    tooltip: {
-        theme: 'light',
-        shared: true,
-        intersect: false,
     },
 }));
 
@@ -831,15 +753,13 @@ watch(
     <div class="admin-shell min-h-screen bg-[#f5f7fb] text-slate-900">
         <div class="bg-[radial-gradient(circle_at_top_right,rgba(3,68,133,0.10),transparent_36%)] pointer-events-none fixed inset-0 -z-10" />
 
-        <div v-if="mobileNavOpen" class="admin-shell__mobile-overlay fixed inset-0 z-30 bg-slate-900/30 lg:hidden" @click="closeMobileNav" />
+        <div v-if="mobileNavOpen" class="admin-shell__mobile-overlay fixed inset-0 z-40 bg-slate-900/45 md:hidden" @click="closeMobileNav" />
 
         <aside
-            class="admin-shell__sidebar fixed left-0 z-30 border-r backdrop-blur transition-[transform,width] duration-300 ease-out will-change-[transform,width]"
+            class="admin-shell__sidebar hidden border-r backdrop-blur md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:flex-col"
             :class="[
-                mobileNavOpen ? 'translate-x-0' : '-translate-x-full',
-                'top-18 h-[calc(100vh-72px)]',
-                sidebarCollapsed ? 'w-70 max-w-[85vw] lg:w-22' : 'w-70 max-w-[85vw] lg:w-70',
-                'lg:translate-x-0',
+                'md:top-18 md:h-[calc(100vh-72px)]',
+                sidebarCollapsed ? 'md:w-20' : 'md:w-64',
                 isDarkMode
                     ? 'border-slate-800 bg-[#0b1220]/95'
                     : 'border-[#bfd4eb]/90 bg-[#eaf3ff]/95',
@@ -872,7 +792,7 @@ watch(
                                 sidebarCollapsed && !mobileNavOpen ? 'justify-center px-2' : '',
                             ]"
                             :title="sidebarCollapsed ? entry.name : ''"
-                            :aria-expanded="entry.children ? (sidebarCollapsed && !mobileNavOpen ? reportsHoverOpen : reportsExpanded) : undefined"
+                            :aria-expanded="entry.children ? (sidebarCollapsed ? reportsHoverOpen : reportsExpanded) : undefined"
                             :aria-haspopup="entry.children ? 'menu' : undefined"
                         >
                             <svg
@@ -902,7 +822,7 @@ watch(
                                 {{ entry.name }}
                             </span>
                             <svg
-                                v-if="entry.children && (!sidebarCollapsed || mobileNavOpen)"
+                                v-if="entry.children && !sidebarCollapsed"
                                 class="ml-auto h-4 w-4 shrink-0 transition-transform duration-200"
                                 :class="reportsExpanded ? 'rotate-180' : ''"
                                 viewBox="0 0 24 24"
@@ -918,7 +838,7 @@ watch(
                         </button>
 
                         <div
-                            v-if="entry.children && reportsExpanded && (!sidebarCollapsed || mobileNavOpen)"
+                            v-if="entry.children && reportsExpanded && !sidebarCollapsed"
                             class="space-y-1 pl-4"
                         >
                             <button
@@ -942,7 +862,7 @@ watch(
                         </div>
 
                         <div
-                            v-if="entry.children && reportsHoverOpen && sidebarCollapsed && !mobileNavOpen"
+                            v-if="entry.children && reportsHoverOpen && sidebarCollapsed"
                             :style="reportsHoverStyle"
                             class="admin-shell__submenu z-[60] w-56 overflow-hidden rounded-xl border shadow-[0_24px_60px_-24px_rgba(15,23,42,0.45)]"
                             :class="isDarkMode ? 'border-slate-700 bg-[#0f172a]' : 'border-[#bfd4eb] bg-[#f7fbff]'"
@@ -989,7 +909,7 @@ watch(
                                 : isDarkMode
                                     ? 'admin-shell__utility-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
                                     : 'admin-shell__utility-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
-                            sidebarCollapsed && !mobileNavOpen ? 'justify-center' : '',
+                            sidebarCollapsed ? 'justify-center' : '',
                         ]"
                         @click="goTo('/account/settings')"
                     >
@@ -1008,7 +928,7 @@ watch(
                                 d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.05.05a2 2 0 1 1-2.83 2.83l-.05-.05A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1v.2a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-.4-1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.87.34l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1-.4H2.8a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.87l-.05-.05A2 2 0 1 1 7.04 3.8l.05.05A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1V2.8a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 .4 1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.87-.34l.05-.05A2 2 0 1 1 20.2 7.04l-.05.05A1.7 1.7 0 0 0 19.4 9c0 .4.2.77.6 1 .3.2.64.35 1 .4h.2a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1 .4 1.7 1.7 0 0 0-.6 1z"
                             />
                         </svg>
-                        <span v-if="!sidebarCollapsed || mobileNavOpen" class="ml-2">Settings</span>
+                        <span v-if="!sidebarCollapsed" class="ml-2">Settings</span>
                     </button>
                     <button
                         type="button"
@@ -1021,7 +941,7 @@ watch(
                                 : isDarkMode
                                     ? 'admin-shell__utility-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
                                     : 'admin-shell__utility-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
-                            sidebarCollapsed && !mobileNavOpen ? 'justify-center' : '',
+                            sidebarCollapsed ? 'justify-center' : '',
                         ]"
                         @click="goTo('/account/help')"
                     >
@@ -1039,7 +959,7 @@ watch(
                             <path d="M12 17v.01" />
                             <path d="M12 13a2 2 0 1 0-2-2" />
                         </svg>
-                        <span v-if="!sidebarCollapsed || mobileNavOpen" class="ml-2">Help &amp; Support</span>
+                        <span v-if="!sidebarCollapsed" class="ml-2">Help &amp; Support</span>
                     </button>
                     <button
                         type="button"
@@ -1048,7 +968,7 @@ watch(
                             isDarkMode
                                 ? 'border-transparent text-rose-300 hover:border-rose-900/60 hover:bg-rose-950/30'
                                 : 'border-transparent text-rose-600 hover:border-rose-200 hover:bg-rose-50',
-                            sidebarCollapsed && !mobileNavOpen ? 'justify-center' : '',
+                            sidebarCollapsed ? 'justify-center' : '',
                         ]"
                         @click="logout"
                     >
@@ -1066,9 +986,187 @@ watch(
                             <path d="M16 17l5-5-5-5" />
                             <path d="M21 12H9" />
                         </svg>
-                        <span v-if="!sidebarCollapsed || mobileNavOpen" class="ml-2">Logout</span>
+                        <span v-if="!sidebarCollapsed" class="ml-2">Logout</span>
                     </button>
                 </div>
+            </div>
+        </aside>
+
+        <aside
+            class="admin-shell__mobile-sidebar fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs border-r p-4 transition md:hidden"
+            :class="[
+                isDarkMode ? 'border-slate-800 bg-[#0b1220]' : 'border-[#bfd4eb] bg-[#eef5ff]',
+                mobileNavOpen ? 'translate-x-0' : '-translate-x-full',
+            ]"
+        >
+            <div class="mb-4 flex items-center justify-between">
+                <p class="text-sm font-bold" :class="isDarkMode ? 'text-slate-100' : 'text-[#1f2937]'">Admin Menu</p>
+                <button
+                    type="button"
+                    class="rounded border px-2 py-1 text-xs"
+                    :class="isDarkMode ? 'border-slate-700 bg-[#111111] text-slate-200' : 'border-slate-300 text-slate-700'"
+                    @click="closeMobileNav"
+                >
+                    Close
+                </button>
+            </div>
+
+            <div class="space-y-2">
+                <template v-for="entry in pages" :key="`mobile-${entry.name}`">
+                    <button
+                        type="button"
+                        class="admin-shell__nav-item group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-[background-color,color,border-color,transform] duration-200 ease-out"
+                        :class="[
+                            isEntryActive(entry)
+                                ? isDarkMode
+                                    ? 'admin-shell__nav-item--active border-[#034485] bg-[#034485] text-white shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                    : 'admin-shell__nav-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                : isDarkMode
+                                    ? 'admin-shell__nav-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                    : 'admin-shell__nav-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white/70 hover:text-[#034485]',
+                        ]"
+                        @click="entry.children ? handleReportsEntryClick() : goTo(entry.route!)"
+                    >
+                        <svg
+                            class="h-4.5 w-4.5 shrink-0"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path
+                                v-for="(path, idx) in entry.iconPaths"
+                                :key="`mobile-${entry.name}-icon-${idx}`"
+                                :d="path"
+                            />
+                        </svg>
+                        <span class="ml-2">{{ entry.name }}</span>
+                        <svg
+                            v-if="entry.children"
+                            class="ml-auto h-4 w-4 shrink-0 transition-transform duration-200"
+                            :class="reportsExpanded ? 'rotate-180' : ''"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M6 9l6 6 6-6" />
+                        </svg>
+                    </button>
+
+                    <div v-if="entry.children && reportsExpanded" class="space-y-1 pl-4">
+                        <button
+                            v-for="child in entry.children"
+                            :key="`mobile-${entry.name}-${child.name}`"
+                            type="button"
+                            @click="goToNavTarget(child.route)"
+                            class="admin-shell__subnav-item flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-[background-color,color,border-color] duration-200"
+                            :class="[
+                                isChildActive(child.route)
+                                    ? isDarkMode
+                                        ? 'admin-shell__subnav-item--active border-[#034485] bg-[#034485] text-white'
+                                        : 'admin-shell__subnav-item--active border-[#034485]/18 bg-white text-[#034485]'
+                                    : isDarkMode
+                                        ? 'admin-shell__subnav-item--inactive border-transparent text-slate-300 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                        : 'admin-shell__subnav-item--inactive border-transparent text-slate-600 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
+                            ]"
+                        >
+                            <span class="truncate">{{ child.name }}</span>
+                        </button>
+                    </div>
+                </template>
+
+                <button
+                    type="button"
+                    class="admin-shell__utility-item group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all duration-200"
+                    :class="[
+                        isSettingsRoute
+                            ? isDarkMode
+                                ? 'admin-shell__utility-item--active border-[#034485] bg-[#034485] text-white shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                : 'admin-shell__utility-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                            : isDarkMode
+                                ? 'admin-shell__utility-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                : 'admin-shell__utility-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
+                    ]"
+                    @click="goTo('/account/settings')"
+                >
+                    <svg
+                        class="h-4.5 w-4.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.05.05a2 2 0 1 1-2.83 2.83l-.05-.05A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1v.2a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-.4-1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.87.34l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1-.4H2.8a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.87l-.05-.05A2 2 0 1 1 7.04 3.8l.05.05A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1V2.8a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 .4 1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.87-.34l.05-.05A2 2 0 1 1 20.2 7.04l-.05.05A1.7 1.7 0 0 0 19.4 9c0 .4.2.77.6 1 .3.2.64.35 1 .4h.2a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1 .4 1.7 1.7 0 0 0-.6 1z"
+                        />
+                    </svg>
+                    <span class="ml-2">Settings</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="admin-shell__utility-item group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all duration-200"
+                    :class="[
+                        isHelpRoute
+                            ? isDarkMode
+                                ? 'admin-shell__utility-item--active border-[#034485] bg-[#034485] text-white shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                                : 'admin-shell__utility-item--active border-[#034485]/18 bg-white text-[#034485] shadow-[0_18px_36px_-28px_rgba(3,68,133,0.55)]'
+                            : isDarkMode
+                                ? 'admin-shell__utility-item--inactive border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-900 hover:text-white'
+                                : 'admin-shell__utility-item--inactive border-transparent text-slate-700 hover:border-[#034485]/18 hover:bg-white hover:text-[#034485]',
+                    ]"
+                    @click="goTo('/account/help')"
+                >
+                    <svg
+                        class="h-4.5 w-4.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 17v.01" />
+                        <path d="M12 13a2 2 0 1 0-2-2" />
+                    </svg>
+                    <span class="ml-2">Help &amp; Support</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="admin-shell__logout-item group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all duration-200"
+                    :class="isDarkMode ? 'border-transparent text-rose-300 hover:border-rose-900/60 hover:bg-rose-950/30' : 'border-transparent text-rose-600 hover:border-rose-200 hover:bg-rose-50'"
+                    @click="logout"
+                >
+                    <svg
+                        class="h-4.5 w-4.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <path d="M16 17l5-5-5-5" />
+                        <path d="M21 12H9" />
+                    </svg>
+                    <span class="ml-2">Logout</span>
+                </button>
             </div>
         </aside>
 
@@ -1077,9 +1175,9 @@ watch(
                 <div class="flex min-w-0 items-center gap-3">
                     <button
                         type="button"
-                        class="admin-shell__nav-toggle inline-flex h-9 w-9 items-center justify-center rounded-md border lg:hidden"
+                        class="admin-shell__nav-toggle inline-flex h-10 w-10 items-center justify-center rounded-lg border md:hidden"
                         @click="mobileNavOpen = true"
-                        aria-label="Open admin navigation"
+                        aria-label="Open menu"
                     >
                         <span class="space-y-1">
                             <span class="block h-0.5 w-4 bg-current" />
@@ -1098,7 +1196,7 @@ watch(
 
                         <button
                             type="button"
-                            class="admin-shell__nav-toggle hidden h-9 w-9 items-center justify-center rounded-md border lg:inline-flex"
+                            class="admin-shell__nav-toggle hidden h-10 w-10 items-center justify-center rounded-lg border md:inline-flex"
                             @click="toggleSidebar"
                             :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
                             aria-label="Toggle sidebar"
@@ -1232,8 +1330,8 @@ watch(
             </div>
         </header>
 
-        <div class="pt-18 transition-[padding] duration-300 ease-out will-change-[padding]" :class="sidebarCollapsed ? 'lg:pl-22' : 'lg:pl-70'">
-            <main class="mx-auto max-w-400 px-4 py-5 sm:px-6">
+        <div class="admin-shell__content pt-18 transition-[padding] duration-300 ease-out will-change-[padding]" :class="sidebarCollapsed ? 'md:pl-20' : 'md:pl-64'">
+            <main class="mx-auto w-full max-w-400 px-4 py-4 sm:px-6 md:px-6 lg:px-8">
                 <slot v-if="hasDefaultSlot" />
 
                 <div v-else-if="dashboard" class="space-y-5">
@@ -1407,29 +1505,6 @@ watch(
                             />
                         </article>
 
-                        <article class="page-card rounded-2xl border border-[#034485]/18 bg-white p-4">
-                            <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Performance Snapshot</p>
-                                <h4 class="mt-1 text-base font-semibold text-slate-900">Injury And Fatigue Overview</h4>
-                                <p class="mt-1 text-xs text-slate-600">Track performance monitoring activity through observed injuries and average fatigue over the selected period.</p>
-                            </div>
-
-                            <div
-                                v-if="dashboard.trends.wellness_snapshot.labels.length === 0"
-                                class="mt-4 rounded-2xl border border-dashed border-[#034485]/25 bg-[#034485]/5 px-4 py-10 text-center text-sm text-slate-500"
-                            >
-                                No performance monitoring data is available for this period.
-                            </div>
-
-                            <VueApexCharts
-                                v-else
-                                class="mt-4"
-                                height="320"
-                                type="line"
-                                :options="wellnessSnapshotOptions"
-                                :series="wellnessSnapshotSeries"
-                            />
-                        </article>
                     </section>
 
                     <section class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.45fr)]">
@@ -1562,14 +1637,26 @@ watch(
 
             <RoleFooter
                 title="AC VMIS"
-                description="Manage varsity operations, health, and academic workflows from one dashboard."
+                description="Manage varsity operations, attendance, and academic workflows from one dashboard."
                 :links="footerLinks"
             />
         </div>
+
+        <AdminBottomNav :items="adminBottomNavItems" :is-active="isActive" />
     </div>
 </template>
 
 <style scoped>
+.admin-shell__content {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+    .admin-shell__content {
+        padding-bottom: 0;
+    }
+}
+
 :deep(.page-card) {
     animation: adminCardRise 0.5s ease-out both;
 }

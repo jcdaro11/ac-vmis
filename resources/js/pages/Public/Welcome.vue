@@ -11,7 +11,6 @@ const publicNavItems = [
     { id: 'how-it-works', label: 'Process Overview' },
     { id: 'about', label: 'About' },
     { id: 'features', label: 'System Services' },
-    { id: 'policies', label: 'Policies' },
     { id: 'faq', label: 'FAQ' },
     { id: 'contact', label: 'Support' },
 ];
@@ -20,25 +19,26 @@ const howItWorksSteps = [
     'Create your student-athlete account using the required personal and school information.',
     'Submit the required supporting documents during registration.',
     'Wait for administrative review and account approval before using restricted system features.',
-    'After approval, use the system regularly for schedules, attendance confirmation, post-training condition records, and academic updates.',
+    'After approval, use the system regularly for schedules, attendance confirmation, and academic updates.',
 ];
 const aboutHighlights = [
     {
         title: 'Institutional Purpose',
         description:
-            'AC-VMIS centralizes varsity-related records and communication so that schedules, attendance, health submissions, and academic requirements are managed in one organized system.',
+            'AC-VMIS centralizes varsity administration by maintaining official schedules, attendance records, academic compliance documents, and role-based communication within one organized institutional system.',
     },
     {
         title: 'Primary Users',
         items: [
-            'Student-athletes who need clear access to schedules, attendance records, post-training condition reporting, and academic status',
-            'Coaches who need accurate team records, attendance confirmation, and compliance visibility',
-            'Administrators who manage approvals, monitoring, and institutional reporting',
+            'Student-athletes who need clear access to official schedules, attendance records, assigned requirements, and academic status',
+            'Coaches who manage team schedules, attendance documentation, training requirements, and roster coordination',
+            'Administrators who oversee account approvals, academic review workflows, institutional records, and reporting',
         ],
     },
     {
         title: 'System Scope',
-        description: 'AC-VMIS is an institutional management and record-keeping platform. It does not replace medical, legal, or disciplinary processes.',
+        description:
+            'AC-VMIS is a varsity management and record-keeping platform that supports operational coordination, documentation, and reporting. It does not replace official academic, medical, legal, or disciplinary procedures.',
     },
 ];
 const featureCards = [
@@ -52,31 +52,31 @@ const featureCards = [
     },
     {
         title: 'Schedule Management',
-        description: 'Publishes training sessions, competitions, and related schedule updates for student-athletes and coaches.',
+        description: 'Publishes practices, competitions, meetings, and other approved team activities with role-appropriate schedule updates.',
     },
     {
         title: 'Attendance Confirmation',
-        description: 'Records attendance through approved methods and maintains clear session-based attendance records.',
+        description: 'Maintains session-based attendance records through approved confirmation workflows for student-athletes, coaches, and administrators.',
     },
     {
-        title: 'Post-Training Condition Records',
-        description: 'Allows student-athletes to record their physical condition after training or competition for ongoing monitoring.',
+        title: 'Training Requirements',
+        description: 'Allows coaches to assign schedule-based training instructions to selected student-athletes and maintain printable requirement records.',
     },
     {
         title: 'Academic Eligibility',
-        description: 'Tracks academic submissions and eligibility decisions for each student-athlete.',
+        description: 'Tracks academic document submissions, review outcomes, and eligibility decisions for each student-athlete.',
     },
     {
         title: 'Announcements & Alerts',
-        description: 'Provides timely notices regarding schedules, approvals, and other varsity-related updates.',
+        description: 'Provides official notices regarding schedules, approvals, reminders, and other varsity-related updates.',
     },
     {
         title: 'Email Notifications',
-        description: 'Delivers important account and process updates through official email communication.',
+        description: 'Delivers important account, approval, and process updates through official email communication.',
     },
     {
         title: 'Reports & Printing',
-        description: 'Produces printable records for attendance, post-training condition reporting, and academic monitoring.',
+        description: 'Produces printable records for attendance, academic documentation, and schedule-based training requirements.',
     },
 ];
 const faqs = [
@@ -101,8 +101,8 @@ const faqs = [
         answer: 'Attendance is recorded for each scheduled session so that student-athletes, coaches, and administrators can review attendance history accurately.',
     },
     {
-        question: 'Why do I need to record my post-training condition?',
-        answer: 'Post-session performance records help the varsity program monitor athlete condition, fatigue level, injury observation, and coach remarks after training or competition.',
+        question: 'Why should I keep my schedule and attendance records updated?',
+        answer: 'Accurate schedule and attendance records help the varsity program coordinate activities, confirm participation, and support academic follow-up when needed.',
     },
     {
         question: 'How does Academic Eligibility work?',
@@ -112,19 +112,6 @@ const faqs = [
         question: 'Where can I ask for help?',
         answer: 'Use the Support section to access official contact information, office assistance, and communication channels for system concerns.',
     },
-];
-const privacyPolicyItems = [
-    'Account and profile details',
-    'Team, schedule, and attendance records',
-    'Performance monitoring submissions',
-    'Academic documents and eligibility results',
-    'System announcements and notification logs',
-];
-const termsOfUseItems = [
-    'Use AC-VMIS only for legitimate school and varsity-related purposes.',
-    'Submit only accurate, complete, and truthful records.',
-    'Access only the information and functions assigned to your role.',
-    'Handle personal information and uploaded documents responsibly and confidentially.',
 ];
 const prefersReducedMotion = ref(false);
 let motionQuery: MediaQueryList | null = null;
@@ -347,7 +334,7 @@ watch(mobileMenuOpen, (open) => {
                         <h1>Official Varsity Management in One Institutional Platform</h1>
                         <p>
                             AC-VMIS provides student-athletes, coaches, and administrators with a centralized system for schedules, attendance
-                            confirmation, post-training condition records, academic requirements, and official updates.
+                            confirmation, academic requirements, and official updates.
                         </p>
                     </div>
                 </div>
@@ -381,7 +368,7 @@ watch(mobileMenuOpen, (open) => {
                         <h3>After Approval</h3>
                         <p>
                             Once approved, sign in and use the pages assigned to your role. Student-athletes remain connected to their official team roster so
-                            schedules, attendance records, post-training condition reports, and updates remain properly organized.
+                            schedules, attendance records, and updates remain properly organized.
                         </p>
                     </article>
                 </div>
@@ -389,11 +376,11 @@ watch(mobileMenuOpen, (open) => {
 
             <section class="role-strip-wrap section-shell welcome-reveal">
                 <div class="role-strip mx-auto max-w-6xl">
-                    <article class="role-card role-card-left">
+                        <article class="role-card role-card-left">
                         <div class="role-icon student-icon" aria-hidden="true"></div>
                         <div>
                             <h3>Student-Athletes</h3>
-                            <p>Review schedules, confirm attendance, submit requirements, and record post-training condition updates after each session.</p>
+                            <p>Review official schedules, confirm attendance, submit academic requirements, and check assigned training instructions.</p>
                         </div>
                     </article>
                     <div class="coach-card-wrap">
@@ -401,7 +388,7 @@ watch(mobileMenuOpen, (open) => {
                             <div class="role-icon coach-icon" aria-hidden="true"></div>
                             <div>
                             <h3>Coaches</h3>
-                            <p>Manage team schedules, confirm attendance, review student-athlete condition reports, and monitor compliance requirements.</p>
+                            <p>Manage team schedules, document attendance, assign training requirements, and oversee roster and compliance records.</p>
                             </div>
                         </article>
                     </div>
@@ -414,7 +401,7 @@ watch(mobileMenuOpen, (open) => {
                     <h2><span class="title-chip title-chip-blue">Designed for convenient use on mobile devices during training and competition days.</span></h2>
                     <div class="mobile-first-media" aria-hidden="true"></div>
                     <p>
-                        Access AC-VMIS from your mobile browser to review sessions, confirm attendance, and submit post-training condition entries after practice or competition. The
+                        Access AC-VMIS from your mobile browser to review sessions, confirm attendance, and submit academic requirements. The
                         same workflow is also available on tablet and desktop devices.
                     </p>
                 </div>
@@ -458,7 +445,7 @@ watch(mobileMenuOpen, (open) => {
 
                         <p class="departments-desc">
                             Student-athletes from Senior High School through college use the same platform, helping the institution maintain clear schedules,
-                            attendance records, post-training condition reports, and academic status in one place.
+                            attendance records and academic status in one place.
                         </p>
                     </div>
                 </div>
@@ -475,12 +462,45 @@ watch(mobileMenuOpen, (open) => {
                 </div>
             </section>
 
+            <section id="about" class="section-shell welcome-reveal public-anchor-section info-section">
+                <div class="about-section mx-auto max-w-6xl">
+                    <div class="about-hero">
+                        <div class="about-intro">
+                            <p class="section-kicker"><span class="title-chip">About AC-VMIS</span></p>
+                            <h2>
+                                <span class="title-chip title-chip-blue">An institutional system for organized varsity administration across teams and departments.</span>
+                            </h2>
+                            <p class="section-copy">
+                                AC-VMIS supports structured varsity operations for student-athletes, coaches, and administrators through accurate records, controlled access, and consistent institutional processes.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="about-grid">
+                        <article
+                            v-for="(item, index) in aboutHighlights"
+                            :key="item.title"
+                            class="about-card"
+                            :style="{ transitionDelay: `${index * 100}ms` }"
+                        >
+                            <p class="about-card-eyebrow">0{{ index + 1 }}</p>
+                            <h3>{{ item.title }}</h3>
+                            <p v-if="item.description">{{ item.description }}</p>
+                            <ul v-else class="about-list">
+                                <li v-for="entry in item.items" :key="entry">{{ entry }}</li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
             <section id="features" class="features-wrap welcome-reveal public-anchor-section">
                 <div class="section-shell features-minimal mx-auto max-w-6xl">
                     <p class="features-kicker"><span class="title-chip">System Services</span></p>
-                    <h2><span class="title-chip">Core services that support daily varsity operations and institutional monitoring.</span></h2>
+                    <h2><span class="title-chip">Core services that support daily varsity operations, academic compliance, and institutional record management.</span></h2>
                     <p class="features-copy">
-                        Each service is designed to support routine varsity responsibilities through a single, organized system.
+                        Each service is designed to support routine varsity responsibilities through one coordinated system for scheduling, documentation, communication, and reporting.
                     </p>
 
                     <div class="features-interactive-shell">
@@ -514,82 +534,6 @@ watch(mobileMenuOpen, (open) => {
                                 </article>
                             </Transition>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="about" class="section-shell welcome-reveal public-anchor-section info-section">
-                <div class="about-section mx-auto max-w-6xl">
-                    <div class="about-hero">
-                        <div class="about-intro">
-                            <p class="section-kicker"><span class="title-chip">About AC-VMIS</span></p>
-                            <h2>
-                                <span class="title-chip title-chip-blue">An institutional system for organized varsity administration across teams and departments.</span>
-                            </h2>
-                            <p class="section-copy">
-                                AC-VMIS supports structured varsity operations for student-athletes, coaches, and administrators through clear records and consistent processes.
-                            </p>
-                        </div>
-
-                        <div class="about-spotlight">
-                            <p class="about-spotlight-label">Designed for Daily Institutional Use</p>
-                            <p class="about-spotlight-copy">
-                                One connected space for schedules, attendance records, post-training condition reports, academic monitoring, and team coordination.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="about-grid">
-                        <article
-                            v-for="(item, index) in aboutHighlights"
-                            :key="item.title"
-                            class="about-card"
-                            :style="{ transitionDelay: `${index * 100}ms` }"
-                        >
-                            <p class="about-card-eyebrow">0{{ index + 1 }}</p>
-                            <h3>{{ item.title }}</h3>
-                            <p v-if="item.description">{{ item.description }}</p>
-                            <ul v-else class="about-list">
-                                <li v-for="entry in item.items" :key="entry">{{ entry }}</li>
-                            </ul>
-                        </article>
-                    </div>
-                </div>
-            </section>
-
-            <section id="policies" class="section-shell welcome-reveal public-anchor-section info-section">
-                <div class="info-panel mx-auto max-w-6xl">
-                    <div class="info-intro policies-intro">
-                        <p class="section-kicker"><span class="title-chip">Policies</span></p>
-                        <h2><span class="title-chip title-chip-blue">Privacy, responsible use, and user obligations in one section.</span></h2>
-                        <p class="section-copy">
-                            These policy notes explain what information is collected, how it is used, and what standards all users are expected to follow.
-                        </p>
-                    </div>
-
-                    <div class="policies-grid">
-                        <article id="privacy-policy" class="policy-card policy-card-privacy public-anchor-section">
-                            <p class="policy-card-label">Trust &amp; Data</p>
-                            <h3>Privacy Policy</h3>
-                            <p>Summary of how AC-VMIS collects, uses, stores, and protects user information.</p>
-                            <ul class="policy-chip-list">
-                                <li v-for="item in privacyPolicyItems" :key="item">{{ item }}</li>
-                            </ul>
-                            <p class="policy-note">
-                                Access is limited according to user role and account permissions. The institution is expected to maintain secure storage,
-                                appropriate backup practices, and responsible account control.
-                            </p>
-                        </article>
-
-                        <article id="terms-of-use" class="policy-card policy-card-terms public-anchor-section">
-                            <p class="policy-card-label">Compliance &amp; Use</p>
-                            <h3>Terms of Use</h3>
-                            <p>Standards for appropriate use and user responsibility within AC-VMIS.</p>
-                            <ul class="policy-chip-list">
-                                <li v-for="item in termsOfUseItems" :key="item">{{ item }}</li>
-                            </ul>
-                            <p class="policy-note">Accounts may be restricted, denied, or suspended when institutional policies or security requirements are violated.</p>
-                        </article>
                     </div>
                 </div>
             </section>
@@ -717,7 +661,7 @@ watch(mobileMenuOpen, (open) => {
                     <section class="footer-col footer-col-brand">
                         <p class="footer-brand">Asian College Varsity Management Information System</p>
                         <p class="footer-copy">
-                            An institutional platform for managing schedules, attendance records, post-training condition reports, academic eligibility, and official varsity communications.
+                            An institutional platform for managing schedules, attendance records, academic eligibility, and official varsity communications.
                         </p>
                         <p class="footer-contact">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="contact-icon" aria-hidden="true">
@@ -747,26 +691,13 @@ watch(mobileMenuOpen, (open) => {
                         <p class="footer-heading"><span class="title-chip">Public Pages</span></p>
                         <div class="footer-link-list">
                             <button
-                                v-for="item in publicNavItems.filter(({ id }) => id !== 'policies')"
+                                v-for="item in publicNavItems"
                                 :key="item.id"
                                 type="button"
                                 class="footer-link footer-link-btn"
                                 @click="handleSectionNavigation(item.id)"
                             >
                                 {{ item.label }}
-                            </button>
-                        </div>
-                    </nav>
-
-                    <nav class="footer-col" aria-label="Legal Pages">
-                        <p class="footer-heading"><span class="title-chip">Legal</span></p>
-                        <div class="footer-link-list">
-                            <button type="button" class="footer-link footer-link-btn" @click="handleSectionNavigation('policies')">Policies</button>
-                            <button type="button" class="footer-link footer-link-btn" @click="handleSectionNavigation('privacy-policy')">
-                                Privacy Policy
-                            </button>
-                            <button type="button" class="footer-link footer-link-btn" @click="handleSectionNavigation('terms-of-use')">
-                                Terms of Use
                             </button>
                         </div>
                     </nav>
@@ -2667,158 +2598,6 @@ watch(mobileMenuOpen, (open) => {
     gap: 0.4rem;
 }
 
-.policies-intro {
-    max-width: 64ch;
-}
-
-.policies-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-}
-
-.policy-card {
-    position: relative;
-    display: grid;
-    gap: 0.75rem;
-    padding: 1.15rem 1.1rem;
-    border-radius: 20px;
-    border: 1px solid rgba(3, 68, 133, 0.18);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 249, 255, 0.96));
-    box-shadow: 0 18px 36px -30px rgba(3, 68, 133, 0.34);
-    transition:
-        transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
-        border-color 260ms ease;
-}
-
-.policy-card::before {
-    content: '';
-    position: absolute;
-    left: 1.1rem;
-    right: 1.1rem;
-    top: 0.75rem;
-    height: 3px;
-    border-radius: 999px;
-    opacity: 0.95;
-}
-
-.policy-card-privacy::before {
-    background: linear-gradient(90deg, rgba(3, 68, 133, 0.45), rgba(3, 68, 133, 1));
-}
-
-.policy-card-terms::before {
-    background: linear-gradient(90deg, rgba(217, 119, 6, 0.55), rgba(180, 83, 9, 0.95));
-}
-
-.policy-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(3, 68, 133, 0.3);
-    box-shadow: 0 28px 50px -36px rgba(3, 68, 133, 0.42);
-}
-
-.policy-card-label {
-    margin: 0;
-    padding-top: 0.25rem;
-    font-size: 0.73rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    font-weight: 700;
-    color: var(--page-text-muted);
-}
-
-.policy-card h3 {
-    margin: 0;
-    font-size: 1.06rem;
-    color: var(--page-text);
-    font-weight: 800;
-}
-
-.policy-card > p {
-    margin: 0;
-    color: var(--page-text-muted);
-    font-size: 0.95rem;
-    line-height: 1.65;
-}
-
-.policy-chip-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 0.48rem;
-}
-
-.policy-chip-list li {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: fit-content;
-    max-width: 100%;
-    border-radius: 999px;
-    border: 1px solid rgba(3, 68, 133, 0.18);
-    background: rgba(3, 68, 133, 0.06);
-    color: var(--page-text);
-    font-size: 0.84rem;
-    font-weight: 600;
-    line-height: 1.4;
-    padding: 0.34rem 0.62rem;
-}
-
-.policy-chip-list li::before {
-    content: '';
-    width: 0.58rem;
-    height: 0.58rem;
-    border-radius: 999px;
-    background: linear-gradient(135deg, rgba(3, 68, 133, 1), rgba(147, 197, 253, 0.82));
-    flex-shrink: 0;
-}
-
-.policy-card-terms .policy-chip-list li {
-    border-color: rgba(180, 83, 9, 0.22);
-    background: rgba(245, 158, 11, 0.08);
-}
-
-.policy-card-terms .policy-chip-list li::before {
-    background: linear-gradient(135deg, rgba(180, 83, 9, 0.95), rgba(245, 158, 11, 0.85));
-}
-
-.policy-note {
-    margin-top: 0.2rem !important;
-    border-radius: 12px;
-    border: 1px solid rgba(3, 68, 133, 0.18);
-    background: rgba(239, 246, 255, 0.92);
-    color: #0f3f74 !important;
-    padding: 0.6rem 0.72rem;
-    font-size: 0.84rem !important;
-    font-weight: 600;
-}
-
-.policy-card-terms .policy-note {
-    border-color: rgba(180, 83, 9, 0.24);
-    background: rgba(255, 247, 237, 0.95);
-    color: #8a3f08 !important;
-}
-
-#policies.welcome-reveal .policy-card {
-    opacity: 0;
-    transform: translateY(16px);
-}
-
-#policies.is-visible .policy-card {
-    opacity: 1;
-    transform: translateY(0);
-    transition:
-        opacity 460ms ease,
-        transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
-        border-color 260ms ease;
-}
-
-#policies.is-visible .policy-card:nth-child(2) {
-    transition-delay: 80ms;
-}
-
 .register-cta-wrap {
     padding-top: clamp(1.6rem, 4vw, 2.5rem);
     padding-bottom: 1rem;
@@ -3112,10 +2891,6 @@ watch(mobileMenuOpen, (open) => {
 
     .about-hero,
     .about-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .policies-grid {
         grid-template-columns: 1fr;
     }
 

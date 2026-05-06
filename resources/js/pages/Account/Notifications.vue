@@ -16,11 +16,8 @@ const props = defineProps<{
     notify_approvals: boolean
     notify_schedule_changes: boolean
     notify_attendance_changes: boolean
-    notify_wellness_alerts: boolean
     notify_academic_alerts: boolean
     notify_attendance_exceptions: boolean
-    notify_wellness_injury_threshold: boolean
-    wellness_injury_threshold_level: number
   }
   scope: {
     notifications: string[]
@@ -42,8 +39,6 @@ const labelMap = computed(() => {
       notify_schedule_changes: 'Team Assignment (Coach)',
       notify_attendance_exceptions: 'Roster Changes (Assistants & Athletes)',
       notify_attendance_changes: 'Attendance Status Updates',
-      notify_wellness_alerts: 'Performance Monitoring Alerts',
-      notify_wellness_injury_threshold: 'Injury threshold alerts',
       notify_approvals: 'Newly pending accounts',
     }
   }
@@ -52,10 +47,8 @@ const labelMap = computed(() => {
     return {
       notify_academic_alerts: 'Academic Period Openings',
       notify_attendance_changes: 'Submission Status Updates',
-      notify_wellness_alerts: 'Performance Record Updates',
       notify_schedule_changes: 'Schedule Updates (Start, Change, Cancel)',
       notify_attendance_exceptions: 'Team Roster & Coaching Updates',
-      notify_wellness_injury_threshold: 'Injury Threshold Alerts',
       notify_approvals: 'Account Status Updates',
     }
   }
@@ -65,8 +58,6 @@ const labelMap = computed(() => {
     notify_schedule_changes: 'Schedules',
     notify_attendance_exceptions: 'Team Change Requests',
     notify_attendance_changes: 'Period Ending Soon',
-    notify_wellness_alerts: 'Clearance & Performance',
-    notify_wellness_injury_threshold: 'Injury Threshold Alerts',
     notify_approvals: 'Newly Pending Accounts',
   }
 })
@@ -76,11 +67,8 @@ const form = useForm({
   notify_approvals: Boolean(props.settings?.notify_approvals ?? true),
   notify_schedule_changes: Boolean(props.settings?.notify_schedule_changes ?? true),
   notify_attendance_changes: Boolean(props.settings?.notify_attendance_changes ?? true),
-  notify_wellness_alerts: Boolean(props.settings?.notify_wellness_alerts ?? true),
   notify_academic_alerts: Boolean(props.settings?.notify_academic_alerts ?? true),
   notify_attendance_exceptions: Boolean(props.settings?.notify_attendance_exceptions ?? true),
-  notify_wellness_injury_threshold: Boolean(props.settings?.notify_wellness_injury_threshold ?? true),
-  wellness_injury_threshold_level: Number(props.settings?.wellness_injury_threshold_level ?? 3),
 })
 
 function submitSettings() {
@@ -111,7 +99,7 @@ function cardMotion(order: number) {
         >
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Student alerts</p>
           <h1 class="mt-2 text-2xl font-bold text-white">Notifications</h1>
-          <p class="mt-2 text-sm leading-6 text-white/85">Choose how academic, schedule, roster, and performance monitoring updates reach you.</p>
+          <p class="mt-2 text-sm leading-6 text-white/85">Choose how academic, schedule, and roster updates reach you.</p>
         </section>
 
         <section
@@ -199,17 +187,6 @@ function cardMotion(order: number) {
                 <span class="font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-700'">{{ labelMap.notify_schedule_changes }}</span>
                 <label class="switch switch--sm">
                   <input v-model="form.notify_schedule_changes" type="checkbox" :disabled="!form.notification_email_enabled" />
-                  <span class="slider" />
-                </label>
-              </div>
-              <div
-                v-if="hasNotificationField('notify_wellness_alerts')"
-                class="toggle-row rounded-lg px-3 py-2 transition-colors"
-                :class="[isDarkMode ? 'text-white' : 'text-slate-700', { 'toggle-row--disabled': !form.notification_email_enabled }]"
-              >
-                <span class="font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-700'">{{ labelMap.notify_wellness_alerts }}</span>
-                <label class="switch switch--sm">
-                  <input v-model="form.notify_wellness_alerts" type="checkbox" :disabled="!form.notification_email_enabled" />
                   <span class="slider" />
                 </label>
               </div>

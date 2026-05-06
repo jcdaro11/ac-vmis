@@ -178,39 +178,12 @@ function timingClass(item: any) {
         : 'bg-[#034485]/5 text-[#1f2937] border border-[#034485]/20'
 }
 
-function hexToRgb(value: string) {
-    const hex = value.replace('#', '')
-    const normalized =
-        hex.length === 3
-            ? hex
-                .split('')
-                .map((c) => c + c)
-                .join('')
-            : hex
-    const num = parseInt(normalized, 16)
-    return {
-        r: (num >> 16) & 255,
-        g: (num >> 8) & 255,
-        b: num & 255,
-    }
-}
-
-function mixWithWhite(color: string, amount = 0.4) {
-    const { r, g, b } = hexToRgb(color)
-    const mix = (channel: number) => Math.round(channel + (255 - channel) * amount)
-    return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`
-}
-
-function stripeColors(sport: any) {
-    const base = sportColor(sport)
-    return {
-        base,
-        lighter: mixWithWhite(base, 0.5),
-    }
-}
-
 function cardMotion(order: number) {
     return { '--card-order': String(order) }
+}
+
+function hasTrainingRequirements(item: any) {
+    return Array.isArray(item.training_requirements) && item.training_requirements.length > 0
 }
 </script>
 
@@ -388,6 +361,24 @@ function cardMotion(order: number) {
                                 </div>
                                 <div v-if="item.notes" class="mt-3 rounded-2xl border border-[#034485]/12 bg-[#f8fbff] px-3 py-2 text-xs text-slate-600">{{ item.notes }}</div>
                                 <div v-if="item.attendance_notes" class="mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">Coach note: {{ item.attendance_notes }}</div>
+                                <div v-if="hasTrainingRequirements(item)" class="mt-3 rounded-2xl border border-[#034485]/15 bg-[#f8fbff] px-3 py-3">
+                                    <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Training Requirements</p>
+                                    <div class="mt-2 space-y-2">
+                                        <div
+                                            v-for="requirement in item.training_requirements"
+                                            :key="requirement.id"
+                                            class="rounded-2xl border border-[#034485]/12 bg-white px-3 py-3 text-xs text-slate-700"
+                                        >
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[10px] font-semibold text-[#034485]">
+                                                    {{ requirement.category }}
+                                                </span>
+                                                <span class="font-semibold text-slate-900">{{ requirement.title }}</span>
+                                            </div>
+                                            <p class="mt-2 text-slate-600">{{ requirement.description || 'No additional description provided.' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -450,6 +441,24 @@ function cardMotion(order: number) {
                                     </div>
                                     <div v-if="item.notes" class="mt-3 rounded-2xl border border-[#034485]/12 bg-[#f8fbff] px-3 py-2 text-xs text-slate-600">{{ item.notes }}</div>
                                     <div v-if="item.attendance_notes" class="mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">Coach note: {{ item.attendance_notes }}</div>
+                                    <div v-if="hasTrainingRequirements(item)" class="mt-3 rounded-2xl border border-[#034485]/15 bg-[#f8fbff] px-3 py-3">
+                                        <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Training Requirements</p>
+                                        <div class="mt-2 space-y-2">
+                                            <div
+                                                v-for="requirement in item.training_requirements"
+                                                :key="requirement.id"
+                                                class="rounded-2xl border border-[#034485]/12 bg-white px-3 py-3 text-xs text-slate-700"
+                                            >
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <span class="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[10px] font-semibold text-[#034485]">
+                                                        {{ requirement.category }}
+                                                    </span>
+                                                    <span class="font-semibold text-slate-900">{{ requirement.title }}</span>
+                                                </div>
+                                                <p class="mt-2 text-slate-600">{{ requirement.description || 'No additional description provided.' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                     </div>
                                 </div>
                             </div>

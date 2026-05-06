@@ -11,7 +11,6 @@ DELETE FROM academic_document_ocr_runs;
 DELETE FROM academic_eligibility_evaluations;
 DELETE FROM academic_documents;
 DELETE FROM schedule_attendances;
-DELETE FROM performance_logs;
 DELETE FROM team_players;
 DELETE FROM team_staff_assignments;
 DELETE FROM team_schedules;
@@ -70,23 +69,21 @@ INSERT INTO coaches (
 
 INSERT INTO user_settings (
     id, user_id, notification_email_enabled, notify_approvals, notify_schedule_changes,
-    notify_attendance_changes, notify_wellness_alerts, notify_academic_alerts,
-    notify_attendance_exceptions, notify_wellness_injury_threshold,
-    wellness_injury_threshold_level, created_at, updated_at
+    notify_attendance_changes, notify_academic_alerts, notify_attendance_exceptions, created_at, updated_at
 ) VALUES
-    (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, '2026-01-05 08:05:00', '2026-04-30 09:10:00'),
-    (2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 3, '2026-01-06 08:20:00', '2026-04-30 09:10:00'),
-    (3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 3, '2026-01-08 10:05:00', '2026-04-30 09:10:00'),
-    (4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 3, '2026-01-09 10:05:00', '2026-04-30 09:10:00'),
-    (5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 3, '2026-01-10 10:05:00', '2026-04-30 09:10:00'),
-    (6, 6, 1, 0, 1, 1, 1, 1, 1, 1, 3, '2026-01-12 07:50:00', '2026-04-30 09:10:00'),
-    (7, 7, 1, 0, 1, 1, 1, 1, 1, 1, 3, '2026-01-12 07:50:00', '2026-04-30 09:10:00'),
-    (8, 8, 1, 0, 1, 1, 1, 1, 1, 1, 4, '2026-01-12 07:52:00', '2026-04-30 09:10:00'),
-    (9, 9, 1, 0, 1, 1, 1, 1, 1, 1, 4, '2026-01-12 07:55:00', '2026-04-30 09:10:00'),
-    (10, 10, 1, 0, 1, 1, 1, 1, 1, 1, 3, '2026-01-12 07:57:00', '2026-04-30 09:10:00'),
-    (11, 11, 1, 0, 1, 1, 1, 1, 1, 1, 3, '2026-01-12 07:59:00', '2026-04-30 09:10:00'),
-    (12, 12, 1, 0, 1, 1, 1, 1, 1, 1, 3, '2026-04-27 13:10:00', '2026-04-30 09:10:00'),
-    (13, 13, 1, 0, 1, 1, 1, 1, 1, 1, 3, '2026-04-27 13:10:00', '2026-04-30 09:10:00');
+    (1, 1, 1, 1, 1, 1, 1, 1, '2026-01-05 08:05:00', '2026-04-30 09:10:00'),
+    (2, 2, 1, 1, 1, 1, 1, 1, '2026-01-06 08:20:00', '2026-04-30 09:10:00'),
+    (3, 3, 1, 1, 1, 1, 1, 1, '2026-01-08 10:05:00', '2026-04-30 09:10:00'),
+    (4, 4, 1, 1, 1, 1, 1, 1, '2026-01-09 10:05:00', '2026-04-30 09:10:00'),
+    (5, 5, 1, 1, 1, 1, 1, 1, '2026-01-10 10:05:00', '2026-04-30 09:10:00'),
+    (6, 6, 1, 0, 1, 1, 1, 1, '2026-01-12 07:50:00', '2026-04-30 09:10:00'),
+    (7, 7, 1, 0, 1, 1, 1, 1, '2026-01-12 07:50:00', '2026-04-30 09:10:00'),
+    (8, 8, 1, 0, 1, 1, 1, 1, '2026-01-12 07:52:00', '2026-04-30 09:10:00'),
+    (9, 9, 1, 0, 1, 1, 1, 1, '2026-01-12 07:55:00', '2026-04-30 09:10:00'),
+    (10, 10, 1, 0, 1, 1, 1, 1, '2026-01-12 07:57:00', '2026-04-30 09:10:00'),
+    (11, 11, 1, 0, 1, 1, 1, 1, '2026-01-12 07:59:00', '2026-04-30 09:10:00'),
+    (12, 12, 1, 0, 1, 1, 1, 1, '2026-04-27 13:10:00', '2026-04-30 09:10:00'),
+    (13, 13, 1, 0, 1, 1, 1, 1, '2026-04-27 13:10:00', '2026-04-30 09:10:00');
 
 INSERT INTO sports (id, name, created_at, updated_at) VALUES
     (1, 'Basketball', '2026-01-15 09:00:00', '2026-01-15 09:00:00'),
@@ -115,7 +112,7 @@ INSERT INTO team_players (
 ) VALUES
     (1, 1, 1, '7', 'Point Guard', 'active', 0, '2026-02-02 08:00:00', '2026-04-30 09:10:00'),
     (2, 1, 2, '12', 'Shooting Guard', 'active', 0, '2026-02-02 08:00:00', '2026-04-30 09:10:00'),
-    (3, 1, 5, '10', 'Small Forward', 'injured', 0, '2026-02-02 08:05:00', '2026-04-30 09:10:00'),
+    (3, 1, 5, '10', 'Small Forward', 'active', 0, '2026-02-02 08:05:00', '2026-04-30 09:10:00'),
     (4, 1, 6, '15', 'Center', 'inactive', 1, '2026-02-02 08:05:00', '2026-04-30 09:10:00'),
     (5, 2, 3, '3', 'Setter', 'active', 0, '2026-02-02 08:10:00', '2026-04-30 09:10:00'),
     (6, 2, 4, '9', 'Outside Hitter', 'active', 0, '2026-02-02 08:10:00', '2026-04-30 09:10:00'),
@@ -142,18 +139,6 @@ INSERT INTO schedule_attendances (
     (4, 1, 6, 'absent', 'manual_override', 3, '2026-04-28 18:10:00', '2026-04-28 18:15:00', 'Did not report to session.', 'Roster marked inactive for current week.', '2026-04-28 18:10:00', '2026-04-28 18:15:00'),
     (5, 5, 3, 'present', 'manual_override', 5, '2026-04-27 17:15:00', '2026-04-27 17:18:00', 'Completed reception drills.', NULL, '2026-04-27 17:15:00', '2026-04-27 17:18:00'),
     (6, 5, 4, 'present', 'manual_override', 5, '2026-04-27 17:15:00', '2026-04-27 17:18:00', 'No attendance issues recorded.', NULL, '2026-04-27 17:15:00', '2026-04-27 17:18:00');
-
-INSERT INTO performance_logs (
-    id, student_id, schedule_id, logged_by, log_date, injury_observed, injury_notes,
-    injury_resolved_at, injury_resolved_by, fatigue_level, performance_condition,
-    remarks, created_at, updated_at
-) VALUES
-    (1, 1, 1, 6, '2026-04-28', 0, NULL, NULL, NULL, 2, 'good', 'Felt energized after conditioning and cooldown.', '2026-04-28 19:00:00', '2026-04-28 19:00:00'),
-    (2, 2, 1, 7, '2026-04-28', 0, NULL, NULL, NULL, 3, 'good', 'Reported moderate leg fatigue after repeated sprints.', '2026-04-28 19:05:00', '2026-04-28 19:05:00'),
-    (3, 5, 1, 10, '2026-04-28', 1, 'Mild ankle discomfort observed during lateral movement drills.', NULL, NULL, 4, 'fair', 'Requested reduced load for the next session.', '2026-04-28 19:10:00', '2026-04-28 19:10:00'),
-    (4, 3, 5, 8, '2026-04-27', 0, NULL, NULL, NULL, 2, 'excellent', 'Recovered well and reported strong mobility.', '2026-04-27 18:00:00', '2026-04-27 18:00:00'),
-    (5, 4, 5, 9, '2026-04-27', 1, 'Right shoulder tightness after repeated spike repetitions.', '2026-04-29 09:00:00', 5, 3, 'fair', 'Coach advised stretching and load monitoring.', '2026-04-27 18:05:00', '2026-04-29 09:00:00'),
-    (6, 6, 7, 11, '2025-11-20', 0, NULL, NULL, NULL, 1, 'excellent', 'Season wrap-up report submitted without concerns.', '2025-11-20 16:00:00', '2025-11-20 16:00:00');
 
 INSERT INTO academic_periods (
     id, school_year, term, starts_on, ends_on, created_at, updated_at

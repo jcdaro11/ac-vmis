@@ -18,10 +18,8 @@ class SystemNotificationService
         'notify_approvals',
         'notify_schedule_changes',
         'notify_attendance_changes',
-        'notify_wellness_alerts',
         'notify_academic_alerts',
         'notify_attendance_exceptions',
-        'notify_wellness_injury_threshold',
     ];
 
     public function __construct(private BrevoTransactionalMailer $mailer)

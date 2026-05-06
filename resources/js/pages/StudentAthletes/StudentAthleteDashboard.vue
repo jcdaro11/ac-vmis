@@ -4,6 +4,7 @@ import type { ApexOptions } from 'apexcharts'
 import { computed, onMounted, onUnmounted, ref, useSlots, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 
+import StudentBottomNav from '@/components/student/StudentBottomNav.vue'
 import RoleFooter from '@/components/ui/RoleFooter.vue'
 import UserAccountMenu from '@/components/UserAccountMenu.vue'
 import { studentPrimaryNav, studentSecondaryNav } from '@/config/studentNav'
@@ -35,7 +36,6 @@ const kpis = computed(() => dashboard.value.kpis ?? {})
 const hasTeamAssignment = computed(() => Boolean(kpis.value.has_team_assignment))
 const charts = computed(() => dashboard.value.charts ?? {})
 const upcomingSeries = computed(() => charts.value.upcoming_sessions ?? [])
-const wellnessSeries = computed(() => charts.value.wellness_trend ?? [])
 const attendanceBreakdown = computed(() => charts.value.attendance_breakdown ?? { present: 0, absent: 0, excused: 0, no_response: 0 })
 const attendanceTotal = computed(() => {
     const values = attendanceBreakdown.value
@@ -62,7 +62,6 @@ const academicStatusLabel = computed(() => {
 const hasActionItems = computed(() =>
     Number(kpis.value.pending_responses || 0) > 0
     || Number(academicSubmissions.value.pending || 0) > 0
-    || Number(kpis.value.wellness_logs_30d || 0) === 0
     || isAcademicallyRestricted.value
 )
 const attendanceSeries = computed(() => [
@@ -72,9 +71,6 @@ const attendanceSeries = computed(() => [
     Number(attendanceBreakdown.value.no_response || 0),
 ])
 const hasAttendanceData = computed(() => attendanceSeries.value.some((value) => value > 0))
-const wellnessLabels = computed(() => wellnessSeries.value.map((item: any) => String(item.label ?? '')))
-const wellnessTrendValues = computed(() => wellnessSeries.value.map((item: any) => Number(item.value || 0)))
-const hasWellnessTrendData = computed(() => wellnessTrendValues.value.some((value: number) => value > 0))
 const heroSummary = computed(() => {
     const parts: string[] = []
 
@@ -87,7 +83,7 @@ const heroSummary = computed(() => {
     }
 
     if (parts.length === 0) {
-        return 'There are no immediate pending items. Please continue to monitor your schedule, academic requirements, and post-training condition updates.'
+        return 'There are no immediate pending items. Please continue to monitor your schedule and academic requirements.'
     }
 
     return `${parts.join(' • ')}.`
@@ -138,7 +134,6 @@ const footerLinks = [
     { label: 'Dashboard', href: '/StudentAthleteDashboard' },
     { label: 'My Schedule', href: '/MySchedule' },
     { label: 'My Team', href: '/MyTeam' },
-    { label: 'Performance', href: '/PerformanceHistory' },
     { label: 'Academics', href: '/AcademicSubmissions' },
     { label: 'Announcements', href: '/announcements' },
     { label: 'Profile', href: '/account/profile' },
@@ -394,58 +389,6 @@ const academicProgressOptions = computed<ApexOptions>(() => ({
     labels: ['Completed'],
 }))
 
-const wellnessTrendOptions = computed<ApexOptions>(() => ({
-    chart: {
-        type: 'area',
-        toolbar: { show: false },
-        fontFamily: 'inherit',
-        background: 'transparent',
-        foreColor: isDarkMode.value ? '#cbd5e1' : '#475569',
-    },
-    colors: ['#034485'],
-    stroke: {
-        curve: 'smooth',
-        width: 3,
-    },
-    fill: {
-        type: 'gradient',
-        gradient: {
-            shadeIntensity: 0.25,
-            opacityFrom: 0.35,
-            opacityTo: 0.05,
-            stops: [0, 90, 100],
-        },
-    },
-    dataLabels: { enabled: false },
-    xaxis: {
-        categories: wellnessLabels.value,
-        axisBorder: { color: 'rgba(148, 163, 184, 0.24)' },
-        axisTicks: { color: 'rgba(148, 163, 184, 0.24)' },
-        labels: {
-            style: {
-                colors: Array(wellnessLabels.value.length).fill(isDarkMode.value ? '#94a3b8' : '#64748b'),
-                fontSize: '11px',
-            },
-        },
-    },
-    yaxis: {
-        min: 0,
-        max: 5,
-        tickAmount: 5,
-        labels: {
-            style: {
-                colors: [isDarkMode.value ? '#94a3b8' : '#64748b'],
-                fontSize: '11px',
-            },
-        },
-    },
-    grid: {
-        borderColor: isDarkMode.value ? 'rgba(148, 163, 184, 0.12)' : 'rgba(148, 163, 184, 0.14)',
-        strokeDashArray: 4,
-    },
-    tooltip: { theme: isDarkMode.value ? 'dark' : 'light' },
-}))
-
 function onEsc(event: KeyboardEvent) {
     if (event.key === 'Escape') {
         mobileMenuOpen.value = false
@@ -471,15 +414,13 @@ watch(mobileMenuOpen, (open) => {
     <div class="student-shell min-h-screen" :class="isDarkMode ? 'bg-[#111111] text-slate-100' : 'bg-[#f5f7fb] text-slate-900'">
         <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(3,68,133,0.10),transparent_42%)]" />
 
-        <div v-if="mobileMenuOpen" class="fixed inset-0 z-30 bg-slate-900/40 lg:hidden" @click="mobileMenuOpen = false" />
+        <div v-if="mobileMenuOpen" class="fixed inset-0 z-40 bg-slate-900/45 md:hidden" @click="mobileMenuOpen = false" />
 
         <aside
-            class="student-shell__sidebar fixed -left-px z-30 border-r-0 backdrop-blur transition-[transform,width] duration-300 ease-out will-change-[transform,width] lg:left-0 lg:border-r"
+            class="student-shell__sidebar hidden border-r-0 backdrop-blur md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:flex-col md:border-r"
             :class="[
-                mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
-                'top-[71px] h-[calc(100vh-71px)]',
-                sidebarCollapsed ? 'w-70 max-w-[85vw] lg:w-22' : 'w-70 max-w-[85vw] lg:w-70',
-                'lg:translate-x-0',
+                'md:top-[71px] md:h-[calc(100vh-71px)]',
+                sidebarCollapsed ? 'md:w-20' : 'md:w-64',
                 isDarkMode ? 'border-[#2a2f3a] bg-[#111111]' : 'border-[#bfd4eb] bg-[#eaf3ff]',
             ]"
         >
@@ -497,7 +438,7 @@ watch(mobileMenuOpen, (open) => {
                                 : isDarkMode
                                     ? 'border-transparent text-slate-200 hover:border-[#2a2f3a] hover:bg-[#1f2937] hover:text-white'
                                     : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
-                            sidebarCollapsed && !mobileMenuOpen ? 'justify-center px-2' : '',
+                            sidebarCollapsed ? 'justify-center px-2' : '',
                         ]"
                         :title="sidebarCollapsed ? item.label : ''"
                     >
@@ -515,7 +456,7 @@ watch(mobileMenuOpen, (open) => {
                         </svg>
                         <span
                             class="origin-left whitespace-nowrap transition-[max-width,opacity,transform,margin] duration-200 ease-out"
-                            :class="sidebarCollapsed ? 'ml-0 max-w-45 scale-100 opacity-100 lg:max-w-0 lg:scale-95 lg:overflow-hidden lg:opacity-0' : 'ml-2 max-w-45 scale-100 opacity-100'"
+                            :class="sidebarCollapsed ? 'ml-0 max-w-45 scale-100 opacity-100 md:max-w-0 md:scale-95 md:overflow-hidden md:opacity-0' : 'ml-2 max-w-45 scale-100 opacity-100'"
                         >
                             {{ item.label }}
                         </span>
@@ -533,7 +474,7 @@ watch(mobileMenuOpen, (open) => {
                                     : isDarkMode
                                         ? 'border-transparent text-slate-200 hover:border-[#2a2f3a] hover:bg-[#1f2937] hover:text-white'
                                         : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
-                                sidebarCollapsed && !mobileMenuOpen ? 'justify-center' : '',
+                                sidebarCollapsed ? 'justify-center' : '',
                             ]"
                             @click="go('/account/settings')"
                             :title="sidebarCollapsed ? 'Settings' : ''"
@@ -552,7 +493,7 @@ watch(mobileMenuOpen, (open) => {
                             </svg>
                             <span
                                 class="origin-left whitespace-nowrap transition-[max-width,opacity,transform,margin] duration-200 ease-out"
-                                :class="sidebarCollapsed ? 'ml-0 max-w-45 scale-100 opacity-100 lg:max-w-0 lg:scale-95 lg:overflow-hidden lg:opacity-0' : 'ml-2 max-w-45 scale-100 opacity-100'"
+                                :class="sidebarCollapsed ? 'ml-0 max-w-45 scale-100 opacity-100 md:max-w-0 md:scale-95 md:overflow-hidden md:opacity-0' : 'ml-2 max-w-45 scale-100 opacity-100'"
                             >
                                 Settings
                             </span>
@@ -567,7 +508,7 @@ watch(mobileMenuOpen, (open) => {
                                     : isDarkMode
                                         ? 'border-transparent text-slate-200 hover:border-[#2a2f3a] hover:bg-[#1f2937] hover:text-white'
                                         : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
-                                sidebarCollapsed && !mobileMenuOpen ? 'justify-center' : '',
+                                sidebarCollapsed ? 'justify-center' : '',
                             ]"
                             @click="go('/account/help')"
                             :title="sidebarCollapsed ? 'Help & Support' : ''"
@@ -586,7 +527,7 @@ watch(mobileMenuOpen, (open) => {
                             </svg>
                             <span
                                 class="origin-left whitespace-nowrap transition-[max-width,opacity,transform,margin] duration-200 ease-out"
-                                :class="sidebarCollapsed ? 'ml-0 max-w-45 scale-100 opacity-100 lg:max-w-0 lg:scale-95 lg:overflow-hidden lg:opacity-0' : 'ml-2 max-w-45 scale-100 opacity-100'"
+                                :class="sidebarCollapsed ? 'ml-0 max-w-45 scale-100 opacity-100 md:max-w-0 md:scale-95 md:overflow-hidden md:opacity-0' : 'ml-2 max-w-45 scale-100 opacity-100'"
                             >
                                 Help &amp; Support
                             </span>
@@ -600,7 +541,7 @@ watch(mobileMenuOpen, (open) => {
                             isDarkMode
                                 ? 'border-transparent text-rose-300 hover:bg-rose-950/30'
                                 : 'text-rose-600 hover:border-rose-200 hover:bg-rose-50',
-                            sidebarCollapsed && !mobileMenuOpen ? 'justify-center' : '',
+                            sidebarCollapsed ? 'justify-center' : '',
                         ]"
                         @click="logout"
                     >
@@ -620,7 +561,7 @@ watch(mobileMenuOpen, (open) => {
                         </svg>
                         <span
                             class="origin-left whitespace-nowrap transition-[max-width,opacity,transform,margin] duration-200 ease-out"
-                            :class="sidebarCollapsed ? 'ml-0 max-w-45 scale-100 opacity-100 lg:max-w-0 lg:scale-95 lg:overflow-hidden lg:opacity-0' : 'ml-2 max-w-45 scale-100 opacity-100'"
+                            :class="sidebarCollapsed ? 'ml-0 max-w-45 scale-100 opacity-100 md:max-w-0 md:scale-95 md:overflow-hidden md:opacity-0' : 'ml-2 max-w-45 scale-100 opacity-100'"
                         >
                             Logout
                         </span>
@@ -629,14 +570,92 @@ watch(mobileMenuOpen, (open) => {
             </div>
         </aside>
 
+        <aside
+            class="student-shell__mobile-sidebar fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs border-r p-4 transition md:hidden"
+            :class="[
+                isDarkMode ? 'border-[#2a2f3a] bg-[#111111]' : 'border-[#bfd4eb] bg-[#eef5ff]',
+                mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
+            ]"
+        >
+            <div class="mb-4 flex items-center justify-between">
+                <p class="text-sm font-bold" :class="isDarkMode ? 'text-slate-100' : 'text-[#1f2937]'">Student Menu</p>
+                <button
+                    type="button"
+                    class="rounded border px-2 py-1 text-xs"
+                    :class="isDarkMode ? 'border-slate-700 bg-[#111111] text-slate-200' : 'border-slate-300 text-slate-700'"
+                    @click="mobileMenuOpen = false"
+                >
+                    Close
+                </button>
+            </div>
+
+            <div class="space-y-2">
+                <button
+                    v-for="item in [...primaryItems, ...secondaryItems]"
+                    :key="`mobile-${item.key}`"
+                    type="button"
+                    @click="go(item.route)"
+                    class="group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-[background-color,color,border-color] duration-200"
+                    :class="[
+                        isActive(item.route)
+                            ? 'border-[#034485] bg-[#034485] text-white'
+                            : isDarkMode
+                                ? 'border-transparent text-slate-200 hover:border-[#2a2f3a] hover:bg-[#1f2937] hover:text-white'
+                                : 'border-transparent text-slate-700 hover:border-[#bfd4eb] hover:bg-white/75',
+                    ]"
+                >
+                    <svg
+                        class="h-4.5 w-4.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path :d="iconPath(item.icon)" />
+                    </svg>
+                    <span class="ml-2">{{ item.label }}</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="group flex w-full items-center rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all duration-200"
+                    :class="[
+                        isDarkMode
+                            ? 'border-transparent text-rose-300 hover:bg-rose-950/30'
+                            : 'border-transparent text-rose-600 hover:border-rose-200 hover:bg-rose-50',
+                    ]"
+                    @click="logout"
+                >
+                    <svg
+                        class="h-4.5 w-4.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <path d="M16 17l5-5-5-5" />
+                        <path d="M21 12H9" />
+                    </svg>
+                    <span class="ml-2">Logout</span>
+                </button>
+            </div>
+        </aside>
+
         <header class="fixed inset-x-0 top-0 z-40 border-b border-[#02315f] bg-[#034485] shadow-none lg:shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)]">
             <div class="flex w-full items-center justify-between gap-3 py-3 pl-0 pr-2 sm:pr-3 lg:pr-4">
                 <div class="flex min-w-0 items-center gap-3">
                     <button
                         type="button"
-                        class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 text-white lg:hidden"
-                        @click="mobileMenuOpen = !mobileMenuOpen"
-                        :aria-label="mobileMenuOpen ? 'Close student navigation' : 'Open student navigation'"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 text-white md:hidden"
+                        @click="mobileMenuOpen = true"
+                        aria-label="Open menu"
                     >
                         <span class="space-y-1">
                             <span class="block h-0.5 w-4 bg-current" />
@@ -655,7 +674,7 @@ watch(mobileMenuOpen, (open) => {
 
                         <button
                             type="button"
-                            class="hidden h-9 w-9 items-center justify-center rounded-md border border-white/20 text-white lg:inline-flex"
+                            class="hidden h-10 w-10 items-center justify-center rounded-lg border border-white/20 text-white md:inline-flex"
                             @click="toggleSidebar"
                             :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
                             aria-label="Toggle sidebar"
@@ -780,8 +799,8 @@ watch(mobileMenuOpen, (open) => {
             </div>
         </header>
 
-        <div class="pt-18 transition-[padding] duration-300 ease-out will-change-[padding]" :class="sidebarCollapsed ? 'lg:pl-22' : 'lg:pl-70'">
-            <main class="mx-auto max-w-400 px-4 py-5 sm:px-6">
+        <div class="pt-18 transition-[padding] duration-300 ease-out will-change-[padding]" :class="sidebarCollapsed ? 'md:pl-20' : 'md:pl-64'">
+            <main class="mx-auto w-full max-w-400 px-4 py-4 pb-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] sm:px-6 md:px-6 md:pb-6 lg:px-8">
                 <section
                     v-if="isAcademicallyRestricted"
                     class="dashboard-card mb-4 overflow-hidden rounded-3xl border border-amber-200 bg-[linear-gradient(135deg,rgba(255,251,235,0.98),rgba(255,255,255,0.96))] shadow-sm"
@@ -843,12 +862,12 @@ watch(mobileMenuOpen, (open) => {
                                     <p class="mt-1 text-sm text-white/85">{{ heroSummary }}</p>
                                 </div>
                                 <div class="flex flex-wrap gap-2">
-                                    <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white">
+                                    <span class="hero-chip px-3 py-1 text-xs font-medium text-white">
                                         {{ upcomingSessionsCount }} sessions this week
                                     </span>
                                     <span
-                                        class="rounded-full px-3 py-1 text-xs font-medium"
-                                        :class="hasActionItems ? 'border border-white/20 bg-white text-[#034485]' : 'border border-white/20 bg-white/10 text-white'"
+                                        class="hero-chip px-3 py-1 text-xs font-medium"
+                                        :class="hasActionItems ? 'bg-white/14 text-white border-white/22' : 'text-white'"
                                     >
                                         {{ hasActionItems ? 'Action needed' : 'On track' }}
                                     </span>
@@ -857,37 +876,37 @@ watch(mobileMenuOpen, (open) => {
                         </section>
 
                         <section class="grid grid-cols-1 gap-3 md:grid-cols-4">
-                            <article class="dashboard-card rounded-xl border border-[#034485]/35 bg-white p-4" :style="cardMotion(3)">
+                            <article class="dashboard-card metric-tile ui-surface ui-surface-hover p-4" :style="cardMotion(3)">
                                 <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Attendance Rate</p>
                                 <p class="mt-2 text-2xl font-bold text-[#034485]">
-                                    {{ kpis.attendance_rate != null ? `${kpis.attendance_rate}%` : '—' }}
+                                    {{ kpis.attendance_rate != null ? `${kpis.attendance_rate}%` : 'N/A' }}
                                 </p>
                                 <p class="mt-1 text-xs text-slate-500">Present and excused sessions over the last 30 days.</p>
                             </article>
-                            <article class="dashboard-card rounded-xl border border-[#034485]/35 bg-[#f8fbff] p-4" :style="cardMotion(4)">
+                            <article class="dashboard-card metric-tile ui-tint ui-surface-hover p-4" :style="cardMotion(4)">
                                 <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Coach Attendance Queue</p>
                                 <p class="mt-2 text-2xl font-bold text-[#034485]">{{ kpis.pending_responses ?? 0 }}</p>
                                 <p class="mt-1 text-xs text-slate-500">Sessions still waiting for coach-posted attendance.</p>
                             </article>
-                            <article class="dashboard-card rounded-xl border border-[#034485]/35 bg-white p-4" :style="cardMotion(5)">
+                            <article class="dashboard-card metric-tile ui-surface ui-surface-hover p-4" :style="cardMotion(5)">
                                 <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Academic Standing</p>
                                 <p class="mt-1 text-2xl font-bold text-slate-900">{{ academicStatusLabel }}</p>
                                 <p class="mt-1 text-xs text-slate-500">Latest eligibility evaluation on file.</p>
                             </article>
-                            <article class="dashboard-card rounded-xl border border-[#034485]/35 bg-white p-4" :style="cardMotion(6)">
+                            <article class="dashboard-card metric-tile ui-surface ui-surface-hover p-4" :style="cardMotion(6)">
                                 <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Announcements</p>
                                 <p class="mt-2 text-2xl font-bold text-[#034485]">{{ notificationsCount }}</p>
                                 <p class="mt-1 text-xs text-slate-500">Unread notices from admin and system updates.</p>
                             </article>
                         </section>
 
-                        <section class="dashboard-card rounded-xl border border-[#034485]/30 bg-white p-5" :style="cardMotion(7)">
+                        <section class="dashboard-card surface-card ui-surface p-5" :style="cardMotion(7)">
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <h2 class="text-sm font-bold uppercase tracking-wide text-slate-600">Primary Actions</h2>
                                 <span class="text-xs text-slate-500">Primary student workflows</span>
                             </div>
 
-                            <div v-if="!hasTeamAssignment" class="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-600">
+                            <div v-if="!hasTeamAssignment" class="empty-state mt-4 px-4 py-5 text-sm text-slate-600">
                                 You are not assigned to a team yet.
                             </div>
 
@@ -895,7 +914,7 @@ watch(mobileMenuOpen, (open) => {
                                 <button
                                     type="button"
                                     @click="go('/MySchedule')"
-                                    class="dashboard-card group flex h-full min-h-[11rem] flex-col justify-between rounded-2xl border border-[#034485]/25 bg-white p-4 text-left transition hover:border-[#034485]/50 hover:bg-[#f8fbff]"
+                                    class="action-tile group flex h-full min-h-[11rem] flex-col justify-between p-4 text-left ui-focus-ring"
                                     :style="cardMotion(8)"
                                 >
                                     <div class="flex items-start gap-3">
@@ -917,7 +936,7 @@ watch(mobileMenuOpen, (open) => {
                                 <button
                                     type="button"
                                     @click="go('/AcademicSubmissions')"
-                                    class="dashboard-card group flex h-full min-h-[11rem] flex-col justify-between rounded-2xl border border-[#034485]/25 bg-white p-4 text-left transition hover:border-[#034485]/50 hover:bg-[#f8fbff]"
+                                    class="action-tile group flex h-full min-h-[11rem] flex-col justify-between p-4 text-left ui-focus-ring"
                                     :style="cardMotion(9)"
                                 >
                                     <div class="flex items-start gap-3">
@@ -940,30 +959,8 @@ watch(mobileMenuOpen, (open) => {
 
                                 <button
                                     type="button"
-                                    @click="go('/PerformanceHistory')"
-                                    class="dashboard-card group flex h-full min-h-[11rem] flex-col justify-between rounded-2xl border border-[#034485]/25 bg-white p-4 text-left transition hover:border-[#034485]/50 hover:bg-[#f8fbff]"
-                                    :style="cardMotion(10)"
-                                >
-                                    <div class="flex items-start gap-3">
-                                        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#034485]/10 text-[#034485]">
-                                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                                <path d="M22 12h-4l-3 8-4-16-3 8H2" />
-                                            </svg>
-                                        </span>
-                                        <div class="min-w-0">
-                                            <p class="text-sm font-semibold text-slate-900">Performance</p>
-                                            <p class="text-xs text-slate-500">Review recent post-session records and keep your condition history updated.</p>
-                                        </div>
-                                    </div>
-                                    <p class="mt-3 text-[11px] font-semibold text-emerald-700">
-                                        {{ kpis.wellness_logs_30d ?? 0 }} performance records in the last 30 days
-                                    </p>
-                                </button>
-
-                                <button
-                                    type="button"
                                     @click="go('/MyTeam')"
-                                    class="dashboard-card group flex h-full min-h-[11rem] flex-col justify-between rounded-2xl border border-[#034485]/25 bg-white p-4 text-left transition hover:border-[#034485]/50 hover:bg-[#f8fbff]"
+                                    class="action-tile group flex h-full min-h-[11rem] flex-col justify-between p-4 text-left ui-focus-ring"
                                     :style="cardMotion(11)"
                                 >
                                     <div class="flex items-start gap-3">
@@ -986,7 +983,7 @@ watch(mobileMenuOpen, (open) => {
                         </section>
 
                         <section class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                            <div class="dashboard-card rounded-xl border border-[#034485]/30 bg-white p-5" :style="cardMotion(12)">
+                            <div class="dashboard-card surface-card ui-surface p-5" :style="cardMotion(12)">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
                                         <h3 class="text-sm font-bold uppercase tracking-wide text-[#034485]">Upcoming Sessions</h3>
@@ -994,7 +991,7 @@ watch(mobileMenuOpen, (open) => {
                                     </div>
                                     <button
                                         type="button"
-                                        class="rounded-full border border-[#034485]/25 px-3 py-1.5 text-xs font-semibold text-[#034485] transition hover:bg-[#034485]/5"
+                                        class="section-chip px-3 py-1.5 text-xs font-semibold text-[#034485] ui-focus-ring"
                                         @click="go('/MySchedule')"
                                     >
                                         View Schedule
@@ -1011,47 +1008,42 @@ watch(mobileMenuOpen, (open) => {
                                 </div>
                             </div>
 
-                            <div class="dashboard-card rounded-xl border border-[#034485]/30 bg-white p-5" :style="cardMotion(13)">
+                            <div class="dashboard-card surface-card ui-surface p-5" :style="cardMotion(13)">
                                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
                                         <h3 class="text-sm font-bold uppercase tracking-wide text-[#034485]">Status Summary</h3>
-                                        <p class="mt-1 text-sm text-slate-500">Your current academics, performance records, and submission standing.</p>
+                                        <p class="mt-1 text-sm text-slate-500">Your current academics and submission standing.</p>
                                     </div>
                                 </div>
 
-                                <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                                    <div class="dashboard-card rounded-xl border border-[#034485]/20 bg-[#f8fbff] p-3" :style="cardMotion(14)">
+                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                    <div class="surface-inset p-3">
                                         <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Academic Standing</p>
                                         <p class="mt-1 text-lg font-semibold text-slate-900">{{ academicStatusLabel }}</p>
                                     </div>
-                                    <div class="dashboard-card rounded-xl border border-[#034485]/20 bg-[#f8fbff] p-3" :style="cardMotion(15)">
+                                    <div class="surface-inset p-3">
                                         <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Submission Progress</p>
                                         <p class="mt-1 text-lg font-semibold text-[#034485]">{{ submissionProgress }}%</p>
                                         <p class="mt-1 text-xs text-slate-500">{{ academicSubmissions.submitted }} of {{ submissionTotal || 0 }} requirements completed.</p>
-                                    </div>
-                                    <div class="dashboard-card rounded-xl border border-[#034485]/20 bg-[#f8fbff] p-3" :style="cardMotion(16)">
-                                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Performance Activity</p>
-                                        <p class="mt-1 text-lg font-semibold text-[#034485]">{{ kpis.wellness_logs_30d ?? 0 }}</p>
-                                        <p class="mt-1 text-xs text-slate-500">Recent post-session performance records from the last 30 days.</p>
                                     </div>
                                 </div>
                             </div>
                         </section>
 
                         <section class="grid gap-4 lg:grid-cols-2">
-                            <div class="dashboard-card rounded-xl border border-[#034485]/30 bg-white p-5" :style="cardMotion(17)">
+                            <div class="dashboard-card surface-card ui-surface p-5" :style="cardMotion(17)">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <h3 class="text-sm font-bold uppercase tracking-wide text-[#034485]">Action Needed</h3>
                                     <span
-                                        class="rounded-full px-2.5 py-1 text-[11px] font-semibold"
-                                        :class="hasActionItems ? 'border border-[#034485]/20 bg-[#034485] text-white' : 'border border-[#034485]/20 bg-[#f8fbff] text-[#034485]'"
+                                        class="section-chip px-2.5 py-1 text-[11px] font-semibold"
+                                        :class="hasActionItems ? 'bg-[#034485] text-white' : 'bg-[color:var(--color-brand-light)] text-[#034485]'"
                                     >
                                         {{ hasActionItems ? 'Action Required' : 'Up to Date' }}
                                     </span>
                                 </div>
 
                                 <div class="mt-4 space-y-3">
-                                    <div class="dashboard-card rounded-lg border border-[#034485]/20 bg-[#f8fbff] p-3" :style="cardMotion(18)">
+                                    <div class="surface-inset p-3">
                                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                             <div class="min-w-0">
                                                 <p class="text-sm font-semibold text-slate-900">Attendance Posting</p>
@@ -1063,7 +1055,7 @@ watch(mobileMenuOpen, (open) => {
                                             </div>
                                             <button
                                                 type="button"
-                                                class="w-full rounded-md bg-[#034485] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#02396f] sm:w-auto"
+                                                class="primary-inline-button w-full px-2.5 py-1 text-xs font-semibold text-white sm:w-auto ui-focus-ring"
                                                 @click="go('/MySchedule')"
                                             >
                                                 Open
@@ -1071,7 +1063,7 @@ watch(mobileMenuOpen, (open) => {
                                         </div>
                                     </div>
 
-                                    <div class="dashboard-card rounded-lg border border-[#034485]/20 bg-[#f8fbff] p-3" :style="cardMotion(19)">
+                                    <div class="surface-inset p-3">
                                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                             <div class="min-w-0">
                                                 <p class="text-sm font-semibold text-slate-900">Academic Submission Status</p>
@@ -1083,7 +1075,7 @@ watch(mobileMenuOpen, (open) => {
                                             </div>
                                             <button
                                                 type="button"
-                                                class="w-full rounded-md bg-[#034485] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#02396f] sm:w-auto"
+                                                class="primary-inline-button w-full px-2.5 py-1 text-xs font-semibold text-white sm:w-auto ui-focus-ring"
                                                 @click="go('/AcademicSubmissions')"
                                             >
                                                 Open
@@ -1091,29 +1083,10 @@ watch(mobileMenuOpen, (open) => {
                                         </div>
                                     </div>
 
-                                    <div class="dashboard-card rounded-lg border border-[#034485]/20 bg-[#f8fbff] p-3" :style="cardMotion(20)">
-                                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                            <div class="min-w-0">
-                                                <p class="text-sm font-semibold text-slate-900">Performance Check-In</p>
-                                                <p class="mt-1 text-xs text-slate-500">
-                                                    {{ Number(kpis.wellness_logs_30d || 0) === 0
-                                                        ? 'No recent post-session performance records are available. Please continue submitting updates as required.'
-                                                        : 'Continue maintaining your post-session condition and performance updates.' }}
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                class="w-full rounded-md bg-[#034485] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#02396f] sm:w-auto"
-                                                @click="go('/PerformanceHistory')"
-                                            >
-                                                Open
-                                            </button>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
-                            <div class="dashboard-card rounded-xl border border-[#034485]/30 bg-white p-5" :style="cardMotion(21)">
+                            <div class="dashboard-card surface-card ui-surface p-5" :style="cardMotion(21)">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <h3 class="text-sm font-bold uppercase tracking-wide text-[#034485]">Attendance Breakdown</h3>
                                     <span class="text-xs text-slate-500">{{ attendanceTotal }} total</span>
@@ -1124,7 +1097,7 @@ watch(mobileMenuOpen, (open) => {
                                     </div>
                                     <div
                                         v-else
-                                        class="rounded-2xl border border-dashed border-[#034485]/22 bg-[#f8fbff] px-4 py-10 text-center text-sm text-slate-500"
+                                        class="empty-state px-4 py-10 text-center text-sm text-slate-500"
                                     >
                                         No attendance records are available yet.
                                     </div>
@@ -1133,7 +1106,7 @@ watch(mobileMenuOpen, (open) => {
                         </section>
 
                         <section class="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-                            <div class="dashboard-card rounded-xl border border-[#034485]/30 bg-white p-5" :style="cardMotion(22)">
+                            <div class="dashboard-card surface-card ui-surface p-5" :style="cardMotion(22)">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
                                         <h3 class="text-sm font-bold uppercase tracking-wide text-[#034485]">Academic Submission Progress</h3>
@@ -1141,14 +1114,14 @@ watch(mobileMenuOpen, (open) => {
                                     </div>
                                     <button
                                         type="button"
-                                        class="rounded-full border border-[#034485]/25 px-3 py-1.5 text-xs font-semibold text-[#034485] transition hover:bg-[#034485]/5"
+                                        class="section-chip px-3 py-1.5 text-xs font-semibold text-[#034485] ui-focus-ring"
                                         @click="go('/AcademicSubmissions')"
                                     >
                                         Open Academics
                                     </button>
                                 </div>
 
-                                <div class="dashboard-card mt-4 rounded-xl border border-[#034485]/20 bg-[#f8fbff] p-4" :style="cardMotion(23)">
+                                <div class="surface-inset mt-4 p-4">
                                     <div class="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-center">
                                         <div>
                                             <VueApexCharts
@@ -1163,40 +1136,14 @@ watch(mobileMenuOpen, (open) => {
                                                 You have completed {{ academicSubmissions.submitted }} of {{ submissionTotal || 0 }} required submissions.
                                             </p>
                                             <div class="mt-4 grid grid-cols-2 gap-3 text-xs text-slate-600">
-                                                <div class="rounded-xl border border-[#034485]/18 bg-white px-3 py-3">
+                                                <div class="data-chip px-3 py-3">
                                                     <span class="font-semibold text-[#034485]">Submitted:</span> {{ academicSubmissions.submitted }}
                                                 </div>
-                                                <div class="rounded-xl border border-[#034485]/18 bg-white px-3 py-3">
+                                                <div class="data-chip px-3 py-3">
                                                     <span class="font-semibold text-[#034485]">Pending:</span> {{ academicSubmissions.pending }}
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="dashboard-card rounded-xl border border-[#034485]/30 bg-white p-5" :style="cardMotion(24)">
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <div>
-                                        <h3 class="text-sm font-bold uppercase tracking-wide text-[#034485]">Performance Trend</h3>
-                                        <p class="mt-1 text-sm text-slate-500">Recent performance records over the last seven days.</p>
-                                    </div>
-                                    <span class="text-xs font-medium text-slate-500">Last {{ wellnessSeries.length }}</span>
-                                </div>
-                                <div class="mt-4">
-                                    <div v-if="hasWellnessTrendData">
-                                        <VueApexCharts
-                                            height="300"
-                                            type="area"
-                                            :options="wellnessTrendOptions"
-                                            :series="[{ name: 'Average Fatigue', data: wellnessTrendValues }]"
-                                        />
-                                    </div>
-                                    <div
-                                        v-else
-                                        class="rounded-2xl border border-dashed border-[#034485]/22 bg-[#f8fbff] px-4 py-10 text-center text-sm text-slate-500"
-                                    >
-                                        No recent performance trend data is available yet.
                                     </div>
                                 </div>
                             </div>
@@ -1210,10 +1157,12 @@ watch(mobileMenuOpen, (open) => {
 
             <RoleFooter
                 title="Student-Athlete Workspace"
-                description="Review schedules, attendance, post-training condition records, and academic submissions."
+                description="Review schedules, attendance, and academic submissions."
                 :links="footerLinks"
             />
         </div>
+
+        <StudentBottomNav :items="primaryItems" :is-active="isActive" />
     </div>
 </template>
 
@@ -1246,5 +1195,74 @@ watch(mobileMenuOpen, (open) => {
         opacity: 1;
         transform: none;
     }
+}
+
+.surface-card {
+    border-radius: calc(var(--radius-md) + 8px);
+}
+
+.metric-tile {
+    border-radius: calc(var(--radius-md) + 4px);
+}
+
+.action-tile {
+    border-radius: calc(var(--radius-lg) + 6px);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    transition:
+        border-color var(--transition-base),
+        box-shadow var(--transition-base),
+        transform var(--transition-base),
+        background-color var(--transition-base);
+}
+
+.action-tile:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-md);
+    background: color-mix(in srgb, var(--color-brand-light) 55%, white);
+}
+
+.surface-inset {
+    border-radius: calc(var(--radius-sm) + 6px);
+    background: var(--color-brand-light);
+    border: 1px solid color-mix(in srgb, var(--color-brand) 20%, white);
+}
+
+.empty-state {
+    border-radius: calc(var(--radius-md) + 6px);
+    border: 1px dashed var(--color-border-strong);
+    background: color-mix(in srgb, var(--color-brand-light) 55%, white);
+}
+
+.hero-chip,
+.section-chip {
+    border-radius: var(--radius-full);
+    border: 1px solid color-mix(in srgb, var(--color-brand) 24%, white);
+}
+
+.hero-chip {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.section-chip {
+    background: var(--color-surface);
+}
+
+.primary-inline-button {
+    border-radius: var(--radius-sm);
+    background: var(--color-brand);
+}
+
+.primary-inline-button:hover {
+    background: var(--color-brand-dark);
+}
+
+.data-chip {
+    border-radius: calc(var(--radius-sm) + 4px);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-xs);
 }
 </style>

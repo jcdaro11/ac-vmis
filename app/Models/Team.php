@@ -102,18 +102,6 @@ class Team extends Model
         return $this->belongsTo(User::class, 'archived_by');
     }
 
-    public function performanceLogs()
-    {
-        return $this->hasManyThrough(
-            PerformanceLog::class,
-            TeamSchedule::class,
-            'team_id',
-            'schedule_id',
-            'id',
-            'id'
-        );
-    }
-
     public function getCoachIdAttribute(): ?int
     {
         $assignment = $this->relationLoaded('headCoachAssignment')

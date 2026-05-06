@@ -16,11 +16,8 @@ function createNotificationSettings(User $user, array $overrides = []): void
         'notify_approvals' => true,
         'notify_schedule_changes' => true,
         'notify_attendance_changes' => true,
-        'notify_wellness_alerts' => true,
         'notify_academic_alerts' => true,
         'notify_attendance_exceptions' => true,
-        'notify_wellness_injury_threshold' => true,
-        'wellness_injury_threshold_level' => 3,
         'theme_preference' => 'light',
         'timezone' => 'Asia/Manila',
     ], $overrides));

@@ -203,7 +203,7 @@ function cardMotion(order: number) {
         <!-- No team assigned -->
         <div v-if="!showTeam" class="page-card rounded-3xl border border-[#034485]/35 bg-white p-6 shadow-[0_18px_40px_-30px_rgba(3,68,133,0.35)]" :style="cardMotion(1)">
             <p class="text-slate-600 font-medium">You are not assigned to a team yet.</p>
-            <p class="text-sm text-slate-500 mt-1">Once your assignment is confirmed, your team information, schedule, and post-training condition records will appear here.</p>
+            <p class="text-sm text-slate-500 mt-1">Once your assignment is confirmed, your team information and schedule will appear here.</p>
         </div>
 
         <!-- Team card -->
@@ -239,13 +239,13 @@ function cardMotion(order: number) {
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <span class="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-3 py-1 text-xs font-semibold text-white">Athlete</span>
-                        <span class="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                        <span class="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
                             {{ totalPlayers }} Players
                         </span>
-                        <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                        <span class="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
                             {{ positionsFilled }} Positions Set
                         </span>
-                        <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                        <span class="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
                             {{ jerseysAssigned }} Jerseys Set
                         </span>
                     </div>
@@ -396,19 +396,19 @@ function cardMotion(order: number) {
 
                 <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
                     <span class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Jersey Request</span>
-                    <div class="flex items-center gap-2 rounded-full border border-[#034485]/30 bg-white px-3 py-2 shadow-sm">
+                    <div class="flex w-full flex-col gap-2 rounded-2xl border border-[#034485]/30 bg-white px-3 py-3 shadow-sm sm:w-auto sm:flex-row sm:items-center sm:rounded-full sm:px-3 sm:py-2">
                         <input
                             id="desired-jersey"
                             v-model="jerseyDraft"
                             type="text"
                             maxlength="20"
-                            class="w-20 bg-transparent text-sm font-semibold text-slate-700 outline-none"
+                            class="w-full min-w-0 bg-transparent text-sm font-semibold text-slate-700 outline-none sm:w-20"
                             placeholder="e.g. 7"
                         />
                         <button
                             @click="saveDesiredJersey"
                             :disabled="!jerseyDirty || jerseySaving"
-                            class="rounded-full bg-[#034485] px-3 py-1 text-xs font-semibold text-white hover:bg-[#033a70] disabled:opacity-50"
+                            class="w-full rounded-full bg-[#034485] px-3 py-2 text-xs font-semibold text-white hover:bg-[#033a70] disabled:opacity-50 sm:w-auto sm:py-1"
                         >
                             {{ jerseySaving ? 'Saving' : 'Save' }}
                         </button>
@@ -548,15 +548,20 @@ function cardMotion(order: number) {
         </div>
 
         <transition name="athlete-modal" @after-leave="finishDetailsClose">
-            <div v-if="detailsOpen && selectedPlayer" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm" @click.self="closeDetails">
+            <div
+                v-if="detailsOpen && selectedPlayer"
+                class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-6 backdrop-blur-sm"
+                @click.self="closeDetails"
+            >
+                <div class="flex min-h-full items-center justify-center">
                 <div
-                    class="w-full max-w-2xl rounded-3xl border p-6 shadow-[0_28px_80px_-30px_rgba(2,12,27,0.35)] sm:p-8"
+                    class="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border shadow-[0_28px_80px_-30px_rgba(2,12,27,0.35)]"
                     :class="isDarkMode
                         ? 'border-slate-800 bg-[#090909] text-slate-100 shadow-[0_28px_80px_-30px_rgba(2,12,27,0.9)]'
                         : 'border-[#034485]/35 bg-white text-slate-800'"
                 >
                     <div
-                        class="-mx-6 -mt-6 mb-6 rounded-t-3xl bg-[#034485] px-6 py-5 text-white sm:-mx-8 sm:-mt-8 sm:px-8"
+                        class="rounded-t-3xl bg-[#034485] px-6 py-5 text-white sm:px-8"
                     >
                         <p class="text-xs font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-white/70' : 'text-white/75'">Team Member</p>
                         <h3 class="mt-1 text-2xl font-bold text-white">
@@ -564,6 +569,7 @@ function cardMotion(order: number) {
                         </h3>
                         <p class="mt-1 text-xs" :class="isDarkMode ? 'text-white/75' : 'text-white/80'">ID: {{ selectedStudent?.student_id_number || '-' }}</p>
                     </div>
+                    <div class="overflow-y-auto p-6 sm:p-8">
                     <div class="flex flex-wrap items-start justify-between gap-6">
                         <div class="min-w-[220px] flex-1 space-y-4">
                             <div
@@ -660,6 +666,8 @@ function cardMotion(order: number) {
                             Close
                         </button>
                     </div>
+                </div>
+                </div>
                 </div>
             </div>
         </transition>

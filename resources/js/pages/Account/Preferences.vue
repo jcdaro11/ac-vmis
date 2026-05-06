@@ -17,11 +17,8 @@ const props = defineProps<{
     notify_approvals: boolean
     notify_schedule_changes: boolean
     notify_attendance_changes: boolean
-    notify_wellness_alerts: boolean
     notify_academic_alerts: boolean
     notify_attendance_exceptions: boolean
-    notify_wellness_injury_threshold: boolean
-    wellness_injury_threshold_level: number
   }
   scope: {
     notifications: string[]
@@ -50,11 +47,8 @@ const form = useForm({
   notify_approvals: Boolean(props.settings?.notify_approvals ?? true),
   notify_schedule_changes: Boolean(props.settings?.notify_schedule_changes ?? true),
   notify_attendance_changes: Boolean(props.settings?.notify_attendance_changes ?? true),
-  notify_wellness_alerts: Boolean(props.settings?.notify_wellness_alerts ?? true),
   notify_academic_alerts: Boolean(props.settings?.notify_academic_alerts ?? true),
   notify_attendance_exceptions: Boolean(props.settings?.notify_attendance_exceptions ?? true),
-  notify_wellness_injury_threshold: Boolean(props.settings?.notify_wellness_injury_threshold ?? true),
-  wellness_injury_threshold_level: Number(props.settings?.wellness_injury_threshold_level ?? 3),
 })
 
 function submitSettings() {

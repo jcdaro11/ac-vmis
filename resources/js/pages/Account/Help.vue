@@ -95,7 +95,7 @@ const helpContent = computed<HelpContent>(() => {
   if (role.value === 'coach') {
     return {
       roleLabel: 'Coach',
-      roleSummary: 'Track team schedules, attendance, performance monitoring, and roster activity with direct shortcuts for daily coaching tasks.',
+      roleSummary: 'Track team schedules, attendance, academics, and roster activity with direct shortcuts for daily coaching tasks.',
       focusLabel: 'Best place to start',
       topTaskLabel: 'Daily coaching actions',
       taskSummary: 'These are the most common tasks coaches perform before, during, and after team activities.',
@@ -118,12 +118,6 @@ const helpContent = computed<HelpContent>(() => {
           href: '/coach/schedule',
           cta: 'Open Schedule',
         },
-        {
-          title: 'Track performance updates',
-          description: 'Record athlete condition, fatigue level, injury observation, performance condition, and coach remarks after scheduled activities.',
-          href: '/coach/performance',
-          cta: 'Open Performance',
-        },
       ],
       faqs: [
         {
@@ -142,14 +136,14 @@ const helpContent = computed<HelpContent>(() => {
       supportNotes: [
         'When reporting attendance issues, include the schedule date and the student-athlete involved.',
         'For roster concerns, mention whether the issue is a role update, availability issue, or assignment conflict.',
-        'If performance monitoring data appears incomplete, note whether the post-session evaluation was expected after training or competition.',
+        'If attendance or roster data appears incomplete, include the session date and team when reporting the issue.',
       ],
     }
   }
 
   return {
     roleLabel: 'Student-Athlete',
-    roleSummary: 'Stay on top of approval status, schedules, attendance, performance records, and academic submissions from one place.',
+    roleSummary: 'Stay on top of approval status, schedules, attendance, and academic submissions from one place.',
     focusLabel: 'Best place to start',
     topTaskLabel: 'Most helpful student actions',
     taskSummary: 'These shortcuts cover the main actions student-athletes usually need after registration and during the season.',
@@ -196,7 +190,7 @@ const helpContent = computed<HelpContent>(() => {
     supportNotes: [
       'Include your full name, student number, and team when asking for help.',
       'If the issue is about login or approval, mention whether you recently registered or were already approved.',
-      'For file upload issues, specify whether the problem happened during performance monitoring or academics.',
+      'For file upload issues, specify which academic submission page or document type was involved.',
     ],
   }
 })

@@ -52,13 +52,13 @@ function toLogin() {
                         <div class="form-stack">
                             <input v-model="form.email" type="email" class="field-input" readonly />
                             <input v-model="form.first_name" type="text" class="field-input" placeholder="First name" />
-                            <p v-if="form.errors.first_name" class="text-xs text-red-600">{{ form.errors.first_name }}</p>
+                            <p v-if="form.errors.first_name" class="field-hint">{{ form.errors.first_name }}</p>
 
                             <input v-model="form.middle_name" type="text" class="field-input" placeholder="Middle name (optional)" />
-                            <p v-if="form.errors.middle_name" class="text-xs text-red-600">{{ form.errors.middle_name }}</p>
+                            <p v-if="form.errors.middle_name" class="field-hint">{{ form.errors.middle_name }}</p>
 
                             <input v-model="form.last_name" type="text" class="field-input" placeholder="Last name" />
-                            <p v-if="form.errors.last_name" class="text-xs text-red-600">{{ form.errors.last_name }}</p>
+                            <p v-if="form.errors.last_name" class="field-hint">{{ form.errors.last_name }}</p>
 
                             <div class="password-field__control">
                                 <input
@@ -79,7 +79,7 @@ function toLogin() {
                                     </svg>
                                 </button>
                             </div>
-                            <p v-if="form.errors.password" class="text-xs text-red-600">{{ form.errors.password }}</p>
+                            <p v-if="form.errors.password" class="field-hint">{{ form.errors.password }}</p>
 
                             <div class="password-field__control">
                                 <input
@@ -100,12 +100,12 @@ function toLogin() {
                                     </svg>
                                 </button>
                             </div>
-                            <p v-if="form.errors.password_confirmation" class="text-xs text-red-600">{{ form.errors.password_confirmation }}</p>
+                            <p v-if="form.errors.password_confirmation" class="field-hint">{{ form.errors.password_confirmation }}</p>
                         </div>
 
                         <button type="submit" class="login-btn mt-3" :disabled="form.processing">
                             <span class="inline-flex items-center gap-2">
-                                <Spinner v-if="form.processing" class="h-4 w-4 text-[#034485]" />
+                                <Spinner v-if="form.processing" class="spinner-mark h-4 w-4" />
                                 {{ form.processing ? 'Creating account...' : 'Create Administrator Account' }}
                             </span>
                         </button>
@@ -122,11 +122,9 @@ function toLogin() {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
 .login-shell {
     padding: 1.4rem 0 2.2rem;
-    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    font-family: Poppins, 'Segoe UI', sans-serif;
 }
 
 .login-grid {
@@ -143,7 +141,7 @@ function toLogin() {
 }
 
 .copy-kicker {
-    font-size: 0.74rem;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: rgba(255, 255, 255, 0.75);
@@ -152,9 +150,9 @@ function toLogin() {
 
 .login-copy h1 {
     margin-top: 0.2rem;
-    font-size: 2rem;
+    font-size: var(--text-3xl);
     line-height: 1.1;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 800;
 }
 
@@ -169,11 +167,16 @@ function toLogin() {
     display: grid;
     gap: 0.75rem;
     min-width: 0;
+    border-radius: calc(var(--radius-lg) + 4px);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(14px);
 }
 
 .login-card h2 {
-    font-size: 1.35rem;
-    color: #ffffff;
+    font-size: var(--text-xl);
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 800;
 }
 
@@ -189,43 +192,45 @@ function toLogin() {
 
 .field-input {
     width: 100%;
-    border-radius: 12px;
-    border: 1px solid rgba(3, 68, 133, 0.25);
-    background: #ffffff;
-    color: #0b1b2b;
+    border-radius: var(--radius-sm);
+    border: 1px solid color-mix(in srgb, var(--color-brand) 30%, white);
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--color-text-primary);
     padding: 0.7rem 0.85rem;
-    font-size: 0.98rem;
+    font-size: var(--text-base);
+    box-shadow: var(--shadow-xs);
 }
 
 .field-input:focus {
     outline: none;
-    border-color: rgba(3, 68, 133, 0.45);
-    box-shadow: 0 0 0 2px rgba(3, 68, 133, 0.15);
+    border-color: color-mix(in srgb, var(--color-brand) 42%, white);
+    box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.14);
 }
 
 .login-btn {
     width: 100%;
     min-height: 56px;
-    border-radius: 12px;
-    font-size: 1rem;
+    border-radius: var(--radius-full);
+    font-size: var(--text-base);
     font-weight: 700;
-    border: 1px solid #ffffff;
-    background: #ffffff;
-    color: #034485;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--color-brand);
+    box-shadow: var(--shadow-sm);
 }
 
 .register-note {
     margin-top: 0.35rem;
     text-align: center;
     color: rgba(255, 255, 255, 0.82);
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     line-height: 1.6;
 }
 
 .register-link {
     border: none;
     background: none;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.96);
     font-weight: 700;
     margin-left: 0.3rem;
     cursor: pointer;
@@ -233,6 +238,20 @@ function toLogin() {
 
 .register-link:hover {
     text-decoration: underline;
+}
+
+.toggle-eye {
+    color: color-mix(in srgb, var(--color-brand) 72%, white);
+}
+
+.field-hint {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+}
+
+.spinner-mark {
+    color: var(--color-brand);
 }
 
 @media (max-width: 900px) {

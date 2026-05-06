@@ -6,7 +6,6 @@ use App\Models\AcademicDocument;
 use App\Models\AcademicEligibilityEvaluation;
 use App\Models\AcademicPeriod;
 use App\Models\TeamPlayer;
-use App\Models\PerformanceLog;
 
 class TeamPlayerStatusService
 {
@@ -66,21 +65,7 @@ class TeamPlayerStatusService
             return TeamPlayer::STATUS_SUSPENDED;
         }
 
-        if ($this->hasConfirmedInjury((int) $teamPlayer->student_id, (int) $teamPlayer->team_id)) {
-            return TeamPlayer::STATUS_INJURED;
-        }
-
         return TeamPlayer::STATUS_ACTIVE;
-    }
-
-    private function hasConfirmedInjury(int $studentId, int $teamId): bool
-    {
-        return PerformanceLog::query()
-            ->where('student_id', $studentId)
-            ->where('injury_observed', true)
-            ->whereNull('injury_resolved_at')
-            ->whereHas('schedule', fn ($query) => $query->where('team_id', $teamId))
-            ->exists();
     }
 
     private function isAcademicallySuspended(int $studentId): bool

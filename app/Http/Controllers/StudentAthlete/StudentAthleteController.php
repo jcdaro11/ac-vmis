@@ -14,7 +14,6 @@ use App\Models\Team;
 use App\Models\TeamPlayer;
 use App\Models\TeamSchedule;
 use App\Models\Student;
-use App\Models\PerformanceLog;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 
@@ -226,14 +225,6 @@ class StudentAthleteController extends Controller
                 ->count();
         }
 
-        $wellnessLogsCount = 0;
-        if ($student) {
-            $wellnessLogsCount = PerformanceLog::query()
-                ->where('student_id', $student->id)
-                ->whereDate('log_date', '>=', $lastThirtyDays->toDateString())
-                ->count();
-        }
-
         $latestEvaluationStatus = null;
         if ($student) {
             $latestEvaluationStatus = AcademicEligibilityEvaluation::query()
@@ -264,27 +255,6 @@ class StudentAthleteController extends Controller
             ];
         }
 
-        $wellnessSeries = [];
-        $wellnessCounts = collect();
-        if ($student) {
-            $wellnessCounts = PerformanceLog::query()
-                ->where('student_id', $student->id)
-                ->whereDate('log_date', '>=', $sevenDaysStart->toDateString())
-                ->selectRaw('DATE(log_date) as day, AVG(fatigue_level) as value')
-                ->groupBy('day')
-                ->pluck('value', 'day');
-        }
-
-        for ($i = 0; $i < 7; $i++) {
-            $day = $sevenDaysStart->copy()->addDays($i);
-            $key = $day->toDateString();
-            $value = $wellnessCounts[$key] ?? 0;
-            $wellnessSeries[] = [
-                'label' => $day->format('M j'),
-                'value' => $value !== null ? round((float) $value, 1) : 0,
-            ];
-        }
-
         $openPeriodIds = AcademicPeriod::query()
             ->open()
             ->pluck('id');
@@ -307,12 +277,10 @@ class StudentAthleteController extends Controller
                 'has_team_assignment' => $teamIds->isNotEmpty(),
                 'attendance_rate' => $attendanceRate,
                 'pending_responses' => $pendingResponses,
-                'wellness_logs_30d' => $wellnessLogsCount,
                 'academic_status' => $latestEvaluationStatus,
             ],
             'charts' => [
                 'upcoming_sessions' => $upcomingSeries,
-                'wellness_trend' => $wellnessSeries,
                 'attendance_breakdown' => $attendanceBreakdown,
                 'academic_submissions' => [
                     'submitted' => $submittedCount,
@@ -329,12 +297,10 @@ class StudentAthleteController extends Controller
                 'has_team_assignment' => false,
                 'attendance_rate' => null,
                 'pending_responses' => 0,
-                'wellness_logs_30d' => 0,
                 'academic_status' => null,
             ],
             'charts' => [
                 'upcoming_sessions' => [],
-                'wellness_trend' => [],
                 'attendance_breakdown' => [
                     'present' => 0,
                     'absent' => 0,

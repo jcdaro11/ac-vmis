@@ -162,11 +162,6 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->hasMany(ScheduleAttendance::class, 'recorded_by');
     }
 
-    public function performanceLogs()
-    {
-        return $this->hasMany(PerformanceLog::class, 'logged_by');
-    }
-
     public function uploadedAcademicDocuments()
     {
         return $this->hasMany(AcademicDocument::class, 'uploaded_by');

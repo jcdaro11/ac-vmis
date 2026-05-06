@@ -70,6 +70,14 @@ return new class extends Migration
                 ->exists();
         }
 
+        if ($driver === 'sqlite') {
+            $rows = DB::select("PRAGMA index_list('{$table}')");
+
+            return collect($rows)->contains(function ($row) use ($index) {
+                return (string) ($row->name ?? '') === $index;
+            });
+        }
+
         return DB::table('information_schema.statistics')
             ->where('table_schema', DB::raw('DATABASE()'))
             ->where('table_name', $table)

@@ -50,7 +50,6 @@ class AccountSettingsController extends Controller
                         'User approvals and account lifecycle',
                         'Team creation and roster management',
                         'Operations attendance overrides and exports',
-                        'Wellness monitoring and athlete follow-up',
                         'Academic period controls and evaluations',
                     ],
                 ] : null,
@@ -207,11 +206,8 @@ class AccountSettingsController extends Controller
             'notify_approvals' => ['nullable', 'boolean'],
             'notify_schedule_changes' => ['nullable', 'boolean'],
             'notify_attendance_changes' => ['nullable', 'boolean'],
-            'notify_wellness_alerts' => ['nullable', 'boolean'],
             'notify_academic_alerts' => ['nullable', 'boolean'],
             'notify_attendance_exceptions' => ['nullable', 'boolean'],
-            'notify_wellness_injury_threshold' => ['nullable', 'boolean'],
-            'wellness_injury_threshold_level' => ['required', 'integer', 'between:1,5'],
         ]);
 
         UserSetting::updateOrCreate(
@@ -221,11 +217,8 @@ class AccountSettingsController extends Controller
                 'notify_approvals' => (bool) ($validated['notify_approvals'] ?? false),
                 'notify_schedule_changes' => (bool) ($validated['notify_schedule_changes'] ?? false),
                 'notify_attendance_changes' => (bool) ($validated['notify_attendance_changes'] ?? false),
-                'notify_wellness_alerts' => (bool) ($validated['notify_wellness_alerts'] ?? false),
                 'notify_academic_alerts' => (bool) ($validated['notify_academic_alerts'] ?? false),
                 'notify_attendance_exceptions' => (bool) ($validated['notify_attendance_exceptions'] ?? false),
-                'notify_wellness_injury_threshold' => (bool) ($validated['notify_wellness_injury_threshold'] ?? false),
-                'wellness_injury_threshold_level' => (int) $validated['wellness_injury_threshold_level'],
             ]
         );
 
@@ -413,7 +406,6 @@ class AccountSettingsController extends Controller
                 'notifications' => [
                     'notify_approvals',
                     'notify_attendance_exceptions',
-                    'notify_wellness_alerts',
                     'notify_academic_alerts',
                     'notification_email_enabled',
                 ],
@@ -426,10 +418,8 @@ class AccountSettingsController extends Controller
                 'notifications' => [
                     'notify_schedule_changes',
                     'notify_attendance_changes',
-                    'notify_wellness_alerts',
                     'notify_academic_alerts',
                     'notify_attendance_exceptions',
-                    'notify_wellness_injury_threshold',
                     'notification_email_enabled',
                 ],
                 'coach_preferences' => true,
@@ -437,13 +427,12 @@ class AccountSettingsController extends Controller
         }
 
         return [
-            'notifications' => [
-                'notify_schedule_changes',
-                'notify_attendance_changes',
-                'notify_wellness_alerts',
-                'notify_academic_alerts',
-                'notify_attendance_exceptions',
-                'notification_email_enabled',
+                'notifications' => [
+                    'notify_schedule_changes',
+                    'notify_attendance_changes',
+                    'notify_academic_alerts',
+                    'notify_attendance_exceptions',
+                    'notification_email_enabled',
             ],
             'coach_preferences' => false,
         ];
@@ -458,11 +447,8 @@ class AccountSettingsController extends Controller
                 'notify_approvals' => true,
                 'notify_schedule_changes' => true,
                 'notify_attendance_changes' => true,
-                'notify_wellness_alerts' => true,
                 'notify_academic_alerts' => true,
                 'notify_attendance_exceptions' => true,
-                'notify_wellness_injury_threshold' => true,
-                'wellness_injury_threshold_level' => 3,
             ]
         );
 
@@ -472,11 +458,8 @@ class AccountSettingsController extends Controller
                 'notify_approvals' => (bool) $settings->notify_approvals,
                 'notify_schedule_changes' => (bool) $settings->notify_schedule_changes,
                 'notify_attendance_changes' => (bool) $settings->notify_attendance_changes,
-                'notify_wellness_alerts' => (bool) $settings->notify_wellness_alerts,
                 'notify_academic_alerts' => (bool) $settings->notify_academic_alerts,
                 'notify_attendance_exceptions' => (bool) $settings->notify_attendance_exceptions,
-                'notify_wellness_injury_threshold' => (bool) $settings->notify_wellness_injury_threshold,
-                'wellness_injury_threshold_level' => (int) $settings->wellness_injury_threshold_level,
             ],
             'scope' => $this->settingsScopeForRole((string) $user->role),
             'compliance' => $this->buildCompliance($user),

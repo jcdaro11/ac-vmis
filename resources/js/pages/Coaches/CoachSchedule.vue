@@ -91,22 +91,6 @@ const sportsLegend = computed(() =>
     }))
 )
 
-function tintHex(hex: string, amount: number) {
-    const clean = hex.replace('#', '')
-    if (clean.length !== 6) return hex
-    const r = parseInt(clean.slice(0, 2), 16)
-    const g = parseInt(clean.slice(2, 4), 16)
-    const b = parseInt(clean.slice(4, 6), 16)
-    const mix = (channel: number) => Math.round(channel + (255 - channel) * amount)
-    return `#${mix(r).toString(16).padStart(2, '0')}${mix(g).toString(16).padStart(2, '0')}${mix(b).toString(16).padStart(2, '0')}`
-}
-
-function stripeColors(sport: any) {
-    const base = sportColor(sport)
-    const lighter = tintHex(base, 0.55)
-    return { base, lighter }
-}
-
 function cardMotion(order: number) {
     return { '--card-order': String(order) }
 }
@@ -338,21 +322,6 @@ function attendanceActionLabel(item: any) {
     return 'Take Attendance'
 }
 
-function canOpenWellness(item: any) {
-    return scheduleStatus(item) === 'completed'
-        && ['practice', 'game'].includes(String(item.type || '').toLowerCase())
-        && Number(item.attendance_count ?? 0) > 0
-}
-
-function openWellness(item: any) {
-    if (!canOpenWellness(item)) return
-
-    router.get(`/coach/performance/${item.id}/review`, {}, {
-        preserveScroll: true,
-        preserveState: false,
-    })
-}
-
 function openCalendar(url: string | null | undefined) {
     if (!url) return
     const link = document.createElement('a')
@@ -363,6 +332,10 @@ function openCalendar(url: string | null | undefined) {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+}
+
+function openTrainingRequirements(item: any) {
+    router.get(`/schedules/${item.id}/training-requirements`)
 }
 
 const groupedSchedules = computed(() => {
@@ -768,7 +741,7 @@ onBeforeUnmount(() => {
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Team scheduling</p>
             <h1 class="mt-2 text-2xl font-bold text-white">Schedule</h1>
             <p class="mt-2 max-w-3xl text-sm leading-6 text-white/85">
-                Plan sessions, review upcoming and completed fixtures, and connect attendance and performance monitoring actions from one coaching calendar.
+                Plan sessions, review upcoming and completed fixtures, and handle attendance actions from one coaching calendar.
             </p>
         </section>
 
@@ -869,10 +842,6 @@ onBeforeUnmount(() => {
                         <article v-for="(item, itemIndex) in section.items" :key="item.id" class="page-card relative overflow-hidden rounded-3xl border border-[#034485]/45 bg-white p-4 shadow-[0_20px_44px_-30px_rgba(3,68,133,0.45)]" :style="cardMotion(4 + sectionIndex * 6 + itemIndex)">
                             <div class="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/85"></div>
                             <div class="pointer-events-none absolute inset-x-0 top-14 h-14 bg-gradient-to-b from-[#034485]/18 to-transparent"></div>
-                            <div class="pointer-events-none absolute left-1/2 top-1/2 flex h-[140%] -translate-x-1/2 -translate-y-1/2 -rotate-6 gap-1 opacity-60">
-                                <span class="h-full w-1.5" :style="{ backgroundColor: stripeColors(item.sport).base }"></span>
-                                <span class="h-full w-1.5" :style="{ backgroundColor: stripeColors(item.sport).lighter }"></span>
-                            </div>
                             <div class="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <div class="text-base font-semibold text-white">{{ item.title }}</div>
@@ -911,11 +880,11 @@ onBeforeUnmount(() => {
                                     {{ attendanceActionLabel(item) }}
                                 </button>
                                 <button
-                                    v-if="canOpenWellness(item)"
-                                    @click="openWellness(item)"
+                                    type="button"
+                                    @click="openTrainingRequirements(item)"
                                     class="rounded-md border border-[#034485]/25 bg-white px-3 py-1.5 text-xs font-semibold text-[#034485] hover:border-[#034485]/45 hover:bg-[#f7fbff]"
                                 >
-                                    Open Performance
+                                    Training Requirements
                                 </button>
                                 <button
                                     v-if="item.is_owner && !isLocked(item)"
@@ -1057,6 +1026,16 @@ onBeforeUnmount(() => {
                     <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
                         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</p>
                         <p class="mt-2 text-sm text-slate-700 whitespace-pre-line">{{ selectedSchedule?.notes || 'No additional notes provided.' }}</p>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button
+                            type="button"
+                            class="rounded-md border border-[#034485]/25 bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#034485] hover:border-[#034485]/45 hover:bg-[#ddeaff]"
+                            @click="selectedSchedule ? openTrainingRequirements(selectedSchedule) : undefined"
+                        >
+                            Assign Training Requirements
+                        </button>
                     </div>
                 </div>
 

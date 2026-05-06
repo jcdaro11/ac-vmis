@@ -55,7 +55,6 @@ class AdminController extends Controller
                 $attendanceSummary = $this->attendanceSummary($start, $end);
                 $attendanceTrend = $this->attendanceTrend($start, $end);
                 $attendanceByTeam = $this->attendanceByTeam($start, $end);
-                $wellnessSnapshot = $this->wellnessSnapshot($start, $end);
                 $academicByTeam = $this->academicByTeam();
                 $pendingItems = $this->pendingItemsSummary($start, $end);
                 $recentActivity = $this->dashboardRecentActivity();
@@ -81,7 +80,6 @@ class AdminController extends Controller
                         'labels' => $attendanceTrend['labels'],
                         'attendance' => $attendanceTrend['series'],
                         'attendance_by_team' => $attendanceByTeam,
-                        'wellness_snapshot' => $wellnessSnapshot,
                     ],
                     'recent_activity' => $recentActivity,
                     ],
@@ -1140,41 +1138,6 @@ class AdminController extends Controller
         ];
     }
 
-    private function wellnessSnapshot(CarbonInterface $start, CarbonInterface $end): array
-    {
-        $driver = DB::getDriverName();
-        $injuryExpr = $driver === 'pgsql' ? 'wl.injury_observed IS TRUE' : 'wl.injury_observed = 1';
-
-        $rows = DB::table('performance_logs as wl')
-            ->whereBetween('wl.log_date', [$start->toDateString(), $end->toDateString()])
-            ->selectRaw('DATE(wl.log_date) as log_day')
-            ->selectRaw("SUM(CASE WHEN {$injuryExpr} THEN 1 ELSE 0 END) as injury_count")
-            ->selectRaw('AVG(wl.fatigue_level) as avg_fatigue')
-            ->groupByRaw('DATE(wl.log_date)')
-            ->orderByRaw('DATE(wl.log_date)')
-            ->get()
-            ->keyBy('log_day');
-
-        $labels = [];
-        $injuryObserved = [];
-        $avgFatigue = [];
-
-        $cursor = $start->copy()->startOfDay();
-        while ($cursor->lte($end)) {
-            $key = $cursor->toDateString();
-            $labels[] = $cursor->format('M j');
-            $injuryObserved[] = (int) ($rows[$key]->injury_count ?? 0);
-            $avgFatigue[] = round((float) ($rows[$key]->avg_fatigue ?? 0), 2);
-            $cursor = $cursor->addDay();
-        }
-
-        return [
-            'labels' => $labels,
-            'injury_observed' => $injuryObserved,
-            'avg_fatigue' => $avgFatigue,
-        ];
-    }
-
     private function academicByTeam(): array
     {
         $periodId = DB::table('academic_periods')->orderByDesc('starts_on')->value('id');
@@ -1530,8 +1493,6 @@ class AdminController extends Controller
     private function recentActivityLog(): array
     {
         $roleScope = ['student', 'student-athlete', 'coach'];
-        $driver = DB::getDriverName();
-        $injuryExpr = $driver === 'pgsql' ? 'wl.injury_observed IS TRUE' : 'wl.injury_observed = 1';
 
         $attendance = DB::table('schedule_attendances as sa')
             ->join('users as actor', 'actor.id', '=', 'sa.recorded_by')
@@ -1548,23 +1509,6 @@ class AdminController extends Controller
                 DB::raw("'attendance' as action_type"),
                 DB::raw("CONCAT('Recorded ', COALESCE(sa.status, 'attendance'), ' for ', COALESCE(su.first_name, ''), ' ', COALESCE(su.last_name, ''), CASE WHEN ts.title IS NOT NULL THEN CONCAT(' (', ts.title, ')') ELSE '' END) as description"),
                 DB::raw('COALESCE(sa.recorded_at, sa.updated_at, sa.created_at) as happened_at'),
-            ])
-            ->limit(80)
-            ->get();
-
-        $wellness = DB::table('performance_logs as wl')
-            ->join('users as actor', 'actor.id', '=', 'wl.logged_by')
-            ->leftJoin('students as st', 'st.id', '=', 'wl.student_id')
-            ->leftJoin('users as su', 'su.id', '=', 'st.user_id')
-            ->whereIn('actor.role', $roleScope)
-            ->select([
-                'wl.id as source_id',
-                'actor.id as actor_id',
-                DB::raw("TRIM(CONCAT(COALESCE(actor.first_name, ''), ' ', COALESCE(actor.last_name, ''))) as actor_name"),
-                'actor.role as actor_role',
-                DB::raw("'wellness' as action_type"),
-                DB::raw("CONCAT('Logged wellness for ', COALESCE(su.first_name, ''), ' ', COALESCE(su.last_name, ''), CASE WHEN {$injuryExpr} THEN ' (injury observed)' ELSE '' END) as description"),
-                DB::raw('COALESCE(wl.updated_at, wl.created_at) as happened_at'),
             ])
             ->limit(80)
             ->get();
@@ -1589,7 +1533,6 @@ class AdminController extends Controller
             ->get();
 
         $combined = $attendance
-            ->concat($wellness)
             ->concat($academics)
             ->filter(fn ($row) => !empty($row->happened_at))
             ->sortByDesc('happened_at')
@@ -1709,38 +1652,6 @@ class AdminController extends Controller
         $academicAlerts = $academicAlerts
             ->concat($evaluatedAlerts)
             ->unique('id')
-            ->take(4)
-            ->values();
-
-        $wellnessAlerts = DB::table('performance_logs as wl')
-            ->join('students as s', 's.id', '=', 'wl.student_id')
-            ->join('users as su', 'su.id', '=', 's.user_id')
-            ->where('wl.log_date', '>=', now()->subDays(7)->toDateString())
-            ->where(function ($query) {
-                $query->where('wl.injury_observed', true)
-                    ->orWhere('wl.fatigue_level', '>=', 4);
-            })
-            ->orderByDesc('wl.log_date')
-            ->limit(2)
-            ->get([
-                's.id as student_id',
-                'su.first_name',
-                'su.last_name',
-                'wl.log_date',
-                'wl.injury_observed',
-                'wl.fatigue_level',
-            ])
-            ->map(fn ($row) => [
-                'id' => 'health-wellness-' . $row->student_id . '-' . $row->log_date,
-                'title' => trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? '')),
-                'subtitle' => $row->injury_observed ? 'Injury concern logged in wellness monitoring' : 'High fatigue level logged in wellness monitoring',
-                'meta' => Carbon::parse($row->log_date)->toFormattedDateString(),
-                'urgency' => 'high',
-                'action_label' => 'Review Record',
-                'action_url' => '/health',
-            ]);
-
-        $healthAlerts = $wellnessAlerts
             ->take(4)
             ->values();
 
@@ -1874,16 +1785,6 @@ class AdminController extends Controller
                 'items' => $academicAlerts->all(),
             ],
             [
-                'key' => 'health_alerts',
-                'title' => 'Wellness Alerts',
-                'description' => 'Wellness concerns needing review and athlete follow-up.',
-                'count' => $healthAlerts->count(),
-                'action_label' => 'Open Wellness',
-                'action_url' => '/health',
-                'tone' => 'rose',
-                'items' => $healthAlerts->all(),
-            ],
-            [
                 'key' => 'attendance_exceptions',
                 'title' => 'Attendance Follow-Up',
                 'description' => 'Late, absent, no-response, and unresolved attendance issues from active schedules.',
@@ -1924,7 +1825,7 @@ class AdminController extends Controller
                 'open_issues' => $allIssues->count(),
                 'critical' => $criticalCount,
                 'due_today' => count($todaySchedules),
-                'pending_review' => $groups->whereIn('key', ['pending_approvals', 'academic_alerts', 'health_alerts'])->sum('count'),
+                'pending_review' => $groups->whereIn('key', ['pending_approvals', 'academic_alerts'])->sum('count'),
             ],
             'groups' => $groups->all(),
             'recent_activity' => [

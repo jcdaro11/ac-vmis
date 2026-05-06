@@ -12,7 +12,6 @@ use App\Models\TeamPlayer;
 use App\Models\TeamSchedule;
 use App\Models\TeamStaffAssignment;
 use App\Models\User;
-use App\Models\PerformanceLog;
 use App\Services\AcademicEligibilityAccessService;
 use App\Services\EmailVerificationService;
 use Illuminate\Support\Str;
@@ -161,10 +160,6 @@ class HandleInertiaRequests extends Middleware
                                 ->whereBetween('start_time', [$now, (clone $now)->addDays(7)])
                                 ->count();
 
-                            $wellnessCount = PerformanceLog::query()
-                                ->whereDate('log_date', '>=', (clone $now)->subDays(7)->toDateString())
-                                ->count();
-
                             $academicPeriodId = AcademicPeriod::query()
                                 ->open()
                                 ->orderByDesc('starts_on')
@@ -207,12 +202,6 @@ class HandleInertiaRequests extends Middleware
                                     'label' => 'Schedules',
                                     'count' => $scheduleCount,
                                     'href' => '/operations',
-                                ],
-                                [
-                                    'key' => 'wellness',
-                                    'label' => 'Wellness monitoring',
-                                    'count' => $wellnessCount,
-                                    'href' => '/health',
                                 ],
                                 [
                                     'key' => 'academic_submissions',
