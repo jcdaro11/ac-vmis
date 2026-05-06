@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 import EmptyResultsState from '@/components/ui/EmptyResultsState.vue';
@@ -132,21 +132,14 @@ const roleFilter = ref<RoleFilter>(props.filters?.role ?? 'all');
 const statusFilter = ref<UserStatusFilter>(props.filters?.status ?? 'active');
 const sortOption = ref<SortOption>(`${props.filters?.sort ?? 'created_at'}:${props.filters?.direction ?? 'desc'}` as SortOption);
 const topTab = ref<'active' | 'queue'>('active');
+const detailsModalOpen = ref(false);
 const createCoachOpen = ref(false);
-const coachOnboardingOpen = ref(false);
 const createCoachFeedback = ref<string | null>(null);
 const adminInviteOpen = ref(false);
 const adminInviteFeedback = ref<string | null>(null);
-const selectedSportIds = ref<number[]>([]);
-const copiedOnboardingPassword = ref(false);
-const copiedActivationLink = ref(false);
 const statusSwitching = ref(false);
 const statusSwitchNotice = ref<string | null>(null);
-const onboardingFlash = ref<CoachOnboardingFlash | null>(null);
-const onboardingMode = ref<'created' | 'regenerated'>('created');
 const createCoachPanel = ref<HTMLElement | null>(null);
-const onboardingPanel = ref<HTMLElement | null>(null);
-const page = usePage();
 const createCoachForm = useForm({
     first_name: '',
     middle_name: '',
@@ -182,16 +175,8 @@ const hasActiveFilters = computed(
 );
 const isDeactivatedView = computed(() => statusFilter.value === 'deactivated');
 const selectedUser = computed(() => props.users.data.find((user) => user.id === selectedUserId.value) ?? props.users.data[0] ?? null);
-const hasBlockingModal = computed(() => Boolean(deactivateTarget.value || reactivateTarget.value || regenerateTarget.value || createCoachOpen.value || coachOnboardingOpen.value || adminInviteOpen.value));
-const sportOptions = computed(() => props.sports ?? []);
+const hasBlockingModal = computed(() => Boolean(deactivateTarget.value || reactivateTarget.value || regenerateTarget.value || createCoachOpen.value || adminInviteOpen.value || detailsModalOpen.value));
 const assignableTeams = computed(() => props.assignableTeams ?? []);
-const filteredAssignableTeams = computed(() => {
-    if (selectedSportIds.value.length === 0) {
-        return assignableTeams.value;
-    }
-    const selected = new Set(selectedSportIds.value);
-    return assignableTeams.value.filter((team) => selected.has(team.sport_id));
-});
 
 function buildQuery(resetPage = true) {
     const [sort, direction] = sortOption.value.split(':') as [SortField, SortDirection];
@@ -260,6 +245,15 @@ function openInfo(user: UserRow) {
     selectedUserId.value = user.id;
 }
 
+function openMobileDetails(user: UserRow) {
+    selectedUserId.value = user.id;
+    detailsModalOpen.value = true;
+}
+
+function closeMobileDetails() {
+    detailsModalOpen.value = false;
+}
+
 function openCreateCoach() {
     createCoachOpen.value = true;
     resetCreateCoachViewport();
@@ -275,41 +269,13 @@ function closeCreateCoach() {
     createCoachForm.clearErrors();
     createCoachForm.assignment_role = 'assistant';
     createCoachForm.team_ids = [];
-    selectedSportIds.value = [];
     createCoachFeedback.value = null;
-    onboardingFlash.value = null;
-    onboardingMode.value = 'created';
-    copiedOnboardingPassword.value = false;
-    copiedActivationLink.value = false;
-}
-
-function openCoachOnboardingModal(mode: 'created' | 'regenerated') {
-    onboardingMode.value = mode;
-    coachOnboardingOpen.value = true;
-    createCoachOpen.value = false;
-    resetCreateCoachViewport();
-    focusOnboardingPanel();
-}
-
-function closeCoachOnboardingModal() {
-    coachOnboardingOpen.value = false;
-    onboardingFlash.value = null;
-    onboardingMode.value = 'created';
-    copiedOnboardingPassword.value = false;
-    copiedActivationLink.value = false;
 }
 
 function resetCreateCoachViewport() {
     nextTick(() => {
         if (!createCoachPanel.value) return;
         createCoachPanel.value.scrollTop = 0;
-    });
-}
-
-function focusOnboardingPanel() {
-    nextTick(() => {
-        onboardingPanel.value?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-        onboardingPanel.value?.focus({ preventScroll: true });
     });
 }
 
@@ -352,25 +318,14 @@ function submitCreateCoach() {
         preserveScroll: true,
         onSuccess: (visit) => {
             const flash = (visit.props as any)?.flash?.coach_onboarding as CoachOnboardingFlash | undefined;
-            onboardingFlash.value = flash ?? null;
-            onboardingMode.value = 'created';
             createCoachFeedback.value = flash
-                ? 'The coach account has been created. Please record the temporary password now, as it will only be shown once.'
+                ? (flash.email_sent
+                    ? `Coach account created. Onboarding details were sent to ${flash.email}.`
+                    : `Coach account created, but the onboarding email could not be sent to ${flash.email}.`)
                 : 'The coach account has been created successfully.';
             createCoachForm.reset();
             createCoachForm.assignment_role = 'assistant';
             createCoachForm.team_ids = [];
-            selectedSportIds.value = [];
-            copiedOnboardingPassword.value = false;
-            copiedActivationLink.value = false;
-            if (flash) {
-                createCoachForm.reset();
-                createCoachForm.assignment_role = 'assistant';
-                createCoachForm.team_ids = [];
-                selectedSportIds.value = [];
-                openCoachOnboardingModal('created');
-                return;
-            }
             createCoachOpen.value = false;
         },
         onError: () => {
@@ -378,32 +333,6 @@ function submitCreateCoach() {
             resetCreateCoachViewport();
         },
     });
-}
-
-async function copyOnboardingPassword() {
-    if (!onboardingFlash.value?.temporary_password) return;
-    try {
-        await navigator.clipboard.writeText(onboardingFlash.value.temporary_password);
-        copiedOnboardingPassword.value = true;
-        setTimeout(() => {
-            copiedOnboardingPassword.value = false;
-        }, 1400);
-    } catch {
-        copiedOnboardingPassword.value = false;
-    }
-}
-
-async function copyActivationLink() {
-    if (!onboardingFlash.value?.activation_url) return;
-    try {
-        await navigator.clipboard.writeText(onboardingFlash.value.activation_url);
-        copiedActivationLink.value = true;
-        setTimeout(() => {
-            copiedActivationLink.value = false;
-        }, 1400);
-    } catch {
-        copiedActivationLink.value = false;
-    }
 }
 
 function regenerateCoachCredentials(user: UserRow) {
@@ -425,16 +354,11 @@ function confirmRegenerateCoachCredentials() {
             preserveScroll: true,
             onSuccess: (visit) => {
                 const flash = (visit.props as any)?.flash?.coach_onboarding as CoachOnboardingFlash | undefined;
-                onboardingFlash.value = flash ?? null;
-                onboardingMode.value = 'regenerated';
-                copiedOnboardingPassword.value = false;
-                copiedActivationLink.value = false;
                 createCoachFeedback.value = flash
-                    ? 'Coach access credentials have been regenerated. Please record the new temporary password now.'
+                    ? (flash.email_sent
+                        ? `Coach access credentials were regenerated and sent to ${flash.email}.`
+                        : `Coach access credentials were regenerated, but the onboarding email could not be sent to ${flash.email}.`)
                     : 'Coach access credentials have been regenerated.';
-                if (flash) {
-                    openCoachOnboardingModal('regenerated');
-                }
                 closeRegenerateDialog();
             },
         },
@@ -671,6 +595,7 @@ function reactivateUser() {
 
 function onModalEscape(event: KeyboardEvent) {
     if (event.key === 'Escape') {
+        closeMobileDetails();
         closeDeactivateDialog();
         closeReactivateDialog();
         closeRegenerateDialog();
@@ -703,18 +628,6 @@ watch(
     },
 );
 
-watch(
-    () => (page.props as any)?.flash?.coach_onboarding,
-    (value) => {
-        onboardingFlash.value = (value as CoachOnboardingFlash | null) ?? null;
-        copiedOnboardingPassword.value = false;
-        copiedActivationLink.value = false;
-        if (onboardingFlash.value) {
-            openCoachOnboardingModal(onboardingMode.value);
-        }
-    },
-    { immediate: true },
-);
 </script>
 
 <template>
@@ -795,11 +708,11 @@ watch(
         </div>
 
         <div class="page-card rounded-xl border border-[#034485]/45 bg-white p-4">
-            <div class="mb-3 inline-grid w-full max-w-md grid-cols-2 items-center rounded-2xl border border-[#034485]/45 bg-[#f4f8ff] p-1 sm:inline-flex sm:rounded-full">
+            <div class="mb-3 grid w-full grid-cols-2 gap-2 rounded-2xl border border-[#034485]/45 bg-[#f4f8ff] p-2 sm:inline-flex sm:max-w-md sm:items-center sm:gap-0 sm:rounded-full sm:p-1">
                 <button
                     type="button"
                     @click="setStatusView('active')"
-                    class="relative inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-center text-xs font-semibold leading-tight transition sm:rounded-full sm:px-4"
+                    class="relative inline-flex min-w-0 flex-col items-start justify-center gap-1 rounded-xl px-3 py-2 text-left text-xs font-semibold leading-tight transition sm:flex-1 sm:flex-row sm:items-center sm:justify-center sm:gap-2 sm:text-center sm:rounded-full sm:px-4"
                     :class="statusFilter === 'active' ? 'bg-[#034485] text-white shadow-sm' : 'text-[#034485] hover:bg-white hover:text-[#02315f]'"
                     :aria-pressed="statusFilter === 'active'"
                     :disabled="statusSwitching"
@@ -813,13 +726,13 @@ watch(
                     </span>
                 </button>
                 <span
-                    class="mx-1 h-6 w-px bg-[#034485]/15"
+                    class="mx-1 hidden h-6 w-px bg-[#034485]/15 sm:block"
                     aria-hidden="true"
                 />
                 <button
                     type="button"
                     @click="setStatusView('deactivated')"
-                    class="relative inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-center text-xs font-semibold leading-tight transition sm:rounded-full sm:px-4"
+                    class="relative inline-flex min-w-0 flex-col items-start justify-center gap-1 rounded-xl px-3 py-2 text-left text-xs font-semibold leading-tight transition sm:flex-1 sm:flex-row sm:items-center sm:justify-center sm:gap-2 sm:text-center sm:rounded-full sm:px-4"
                     :class="statusFilter === 'deactivated' ? 'bg-amber-600 text-white shadow-sm' : 'text-amber-700 hover:bg-white hover:text-amber-800'"
                     :aria-pressed="statusFilter === 'deactivated'"
                     :disabled="statusSwitching"
@@ -900,7 +813,79 @@ watch(
                 class="page-card overflow-hidden rounded-xl border border-[#034485]/45 bg-white"
                 :class="statusSwitching ? 'opacity-75' : ''"
             >
-                <div v-if="users.data.length" class="grid gap-0 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                <div v-if="users.data.length" class="xl:hidden">
+                    <div class="border-b border-[#034485]/15 bg-[#eef5ff] px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">User Directory</p>
+                        <p v-if="isDeactivatedView" class="mt-1 text-sm text-slate-600">
+                            Review deactivated accounts and restore access without leaving the page.
+                        </p>
+                    </div>
+                    <div class="space-y-3 p-4">
+                        <article
+                            v-for="user in users.data"
+                            :key="`mobile-${user.id}`"
+                            class="rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4 shadow-[0_16px_34px_-30px_rgba(3,68,133,0.28)]"
+                        >
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-[#e9f2ff] text-sm font-bold text-[#034485]">
+                                    <img
+                                        v-if="user.avatar"
+                                        :src="resolveUserAvatarUrl(user.avatar)"
+                                        :alt="`${user.name} avatar`"
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <span v-else>{{ userInitials(user) }}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="text-sm font-semibold text-slate-900">{{ user.name }}</p>
+                                        <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize" :class="accountTone(user)">
+                                            {{ user.status }}
+                                        </span>
+                                        <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize" :class="roleTone(user)">
+                                            {{ formatRole(user.role) }}
+                                        </span>
+                                    </div>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{ user.student ? formatSimple(user.student.student_id_number) : user.email }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{ user.student ? user.email : formatSimple(getPrimaryPhone(user)) }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+                                <button
+                                    type="button"
+                                    class="w-full rounded-lg border border-[#034485]/35 bg-white px-3 py-2 text-sm font-semibold text-[#034485] transition hover:bg-[#eef5ff] sm:w-auto"
+                                    @click="openMobileDetails(user)"
+                                >
+                                    View Details
+                                </button>
+                                <button
+                                    v-if="user.status === 'active'"
+                                    type="button"
+                                    class="w-full rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700 sm:w-auto"
+                                    :disabled="actionLoadingId === user.id"
+                                    @click="openDeactivateDialog(user)"
+                                >
+                                    Deactivate
+                                </button>
+                                <button
+                                    v-else
+                                    type="button"
+                                    class="w-full rounded-lg bg-[#034485] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#02315f] sm:w-auto"
+                                    :disabled="actionLoadingId === user.id"
+                                    @click="openReactivateDialog(user)"
+                                >
+                                    Reactivate
+                                </button>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <div v-if="users.data.length" class="hidden xl:grid xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                             <div class="flex h-full min-h-full flex-col border-b border-slate-200 xl:border-r xl:border-b-0">
                         <div class="border-b border-[#034485]/15 bg-[#eef5ff] px-4 py-3">
                             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">User Directory</p>
@@ -909,7 +894,7 @@ watch(
                             </p>
                         </div>
                         <div class="flex-1 bg-white">
-                            <div class="max-h-[calc(100vh-24rem)] min-h-[24rem] overflow-y-auto">
+                            <div class="xl:max-h-[calc(100vh-24rem)] xl:min-h-[24rem] overflow-y-auto">
                             <button
                                 v-for="user in users.data"
                                 :key="user.id"
@@ -1235,6 +1220,91 @@ watch(
 
     <Transition name="modal-fade">
         <div
+            v-if="detailsModalOpen && selectedUser"
+            class="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:items-center"
+            @click.self="closeMobileDetails"
+        >
+            <div class="modal-panel my-6 w-full max-w-3xl rounded-2xl border border-[#034485]/45 bg-white p-5 sm:my-0 sm:p-6">
+                <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-4">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">User Details</p>
+                        <h2 class="mt-1 text-lg font-bold text-slate-900">{{ selectedUser.name }}</h2>
+                        <p class="mt-1 text-sm text-slate-600">{{ selectedUser.email }}</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            @click="copyEmail(selectedUser)"
+                            class="rounded-lg border border-[#034485]/35 bg-white px-3 py-2 text-sm font-semibold text-[#034485] transition hover:bg-[#eef5ff]"
+                        >
+                            {{ copiedUserId === selectedUser.id ? 'Copied' : 'Copy Email' }}
+                        </button>
+                        <button
+                            v-if="selectedUser.status === 'active'"
+                            type="button"
+                            @click="openDeactivateDialog(selectedUser); closeMobileDetails()"
+                            class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700"
+                        >
+                            Deactivate
+                        </button>
+                        <button
+                            v-if="selectedUser.status === 'deactivated'"
+                            type="button"
+                            @click="openReactivateDialog(selectedUser); closeMobileDetails()"
+                            class="rounded-lg bg-[#034485] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#02315f]"
+                        >
+                            Reactivate
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                    <section class="page-card rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Account Overview</p>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <div><p class="text-xs text-slate-500">User ID</p><p class="mt-1 text-sm font-medium text-slate-900">{{ selectedUser.id }}</p></div>
+                            <div><p class="text-xs text-slate-500">Profile Completeness</p><p class="mt-1 text-sm font-medium text-slate-900">{{ profileCompleteness(selectedUser) }}%</p></div>
+                            <div><p class="text-xs text-slate-500">Account Status</p><p class="mt-1 text-sm font-medium capitalize text-slate-900">{{ selectedUser.status }}</p></div>
+                            <div><p class="text-xs text-slate-500">Registered</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatDate(selectedUser.created_at) }}</p></div>
+                        </div>
+                    </section>
+
+                    <section class="page-card rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Contact</p>
+                        <div class="mt-3 grid gap-3">
+                            <div><p class="text-xs text-slate-500">Email</p><p class="mt-1 text-sm font-medium text-slate-900">{{ selectedUser.email }}</p></div>
+                            <div><p class="text-xs text-slate-500">Primary Phone</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(getPrimaryPhone(selectedUser)) }}</p></div>
+                        </div>
+                    </section>
+
+                    <section v-if="selectedUser.student" class="page-card rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Student Information</p>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <div><p class="text-xs text-slate-500">Student ID</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.student.student_id_number) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Course / Strand</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.student.course_or_strand) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Academic Level</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.student.academic_level_label || selectedUser.student.current_grade_level) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Enrollment Status</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.student.student_status) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Approval Status</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.student.approval_status) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Gender</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.student.gender) }}</p></div>
+                        </div>
+                    </section>
+
+                    <section v-if="selectedUser.coach" class="page-card rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Coach Information</p>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <div><p class="text-xs text-slate-500">Coach Name</p><p class="mt-1 text-sm font-medium text-slate-900">{{ coachDisplayName(selectedUser.coach) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Coach Status</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.coach.coach_status) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Phone</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.coach.phone_number) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Gender</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatSimple(selectedUser.coach.gender) }}</p></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </Transition>
+
+    <Transition name="modal-fade">
+        <div
             v-if="adminInviteOpen"
             class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:items-center"
             @click.self="closeAdminInvite"
@@ -1422,24 +1492,10 @@ watch(
                     </div>
 
                     <div class="lg:col-span-2">
-                        <label class="mb-1 block text-xs font-semibold tracking-wide text-slate-500 uppercase">Sports Filter (Optional)</label>
-                        <div class="flex flex-wrap gap-2 rounded-lg border border-[#034485]/15 bg-[#f6faff] p-2">
-                            <label
-                                v-for="sport in sportOptions"
-                                :key="sport.id"
-                                class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#034485]/20 bg-white px-3 py-1 text-xs font-semibold text-[#034485]"
-                            >
-                                <input v-model="selectedSportIds" type="checkbox" :value="sport.id" class="h-3.5 w-3.5" />
-                                {{ sport.name }}
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-2">
                         <label class="mb-1 block text-xs font-semibold tracking-wide text-slate-500 uppercase">Assign Team(s)</label>
                         <div class="max-h-56 space-y-2 overflow-y-auto rounded-lg border border-[#034485]/15 bg-[#f6faff] p-2">
                             <label
-                                v-for="team in filteredAssignableTeams"
+                                v-for="team in assignableTeams"
                                 :key="team.id"
                                 class="flex cursor-pointer items-start justify-between gap-3 rounded-lg border border-[#034485]/15 bg-white px-3 py-2 text-sm"
                                 :class="teamSlotTaken(team) ? 'opacity-60' : ''"
@@ -1461,8 +1517,8 @@ watch(
                                     class="mt-1 h-4 w-4"
                                 />
                             </label>
-                            <p v-if="filteredAssignableTeams.length === 0" class="px-1 py-2 text-xs text-slate-500">
-                                No teams found for the selected sport filter.
+                            <p v-if="assignableTeams.length === 0" class="px-1 py-2 text-xs text-slate-500">
+                                No team assignments are available for the selected role.
                             </p>
                         </div>
                         <p v-if="createCoachForm.errors.team_ids" class="mt-1 text-xs whitespace-pre-line text-rose-600">
@@ -1497,101 +1553,6 @@ watch(
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
-    </Transition>
-
-    <Transition name="modal-fade">
-        <div
-            v-if="coachOnboardingOpen && onboardingFlash"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
-            @click.self="closeCoachOnboardingModal"
-        >
-            <div class="modal-panel w-full max-w-xl rounded-2xl border border-[#034485]/35 bg-white p-6 shadow-2xl sm:p-7">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <p class="text-sm font-semibold text-[#034485]">
-                            {{ onboardingMode === 'regenerated' ? 'Coach access credentials regenerated' : 'New coach account credentials' }}
-                        </p>
-                        <p class="mt-1 text-sm text-slate-600">Please record these details now. The temporary password will not be displayed again.</p>
-                    </div>
-                    <button
-                        type="button"
-                        @click="closeCoachOnboardingModal"
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#034485]/30 bg-white text-[#034485] hover:bg-[#eef5ff]"
-                        aria-label="Close coach onboarding details"
-                    >
-                        <svg
-                            class="h-4 w-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            aria-hidden="true"
-                        >
-                            <path d="M18 6 6 18" />
-                            <path d="m6 6 12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <div
-                    ref="onboardingPanel"
-                    tabindex="-1"
-                    class="mt-5 rounded-xl border border-[#034485]/20 bg-[#f4f8ff] p-4 outline-none ring-0"
-                >
-                    <p class="text-xs font-semibold tracking-wide text-[#034485] uppercase">Coach Email</p>
-                    <p class="mt-1 text-sm font-semibold text-[#02315f]">{{ onboardingFlash.email }}</p>
-
-                    <div class="mt-4">
-                        <p class="text-xs font-semibold tracking-wide text-[#034485] uppercase">Temporary Password</p>
-                        <div class="mt-2 flex flex-wrap items-center gap-2">
-                            <span class="rounded-md border border-[#034485]/30 bg-white px-3 py-1.5 font-mono text-sm text-[#02315f]">
-                                {{ onboardingFlash.temporary_password }}
-                            </span>
-                            <button
-                                type="button"
-                                @click="copyOnboardingPassword"
-                                class="rounded-md border border-[#034485]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#034485] hover:bg-[#eef5ff]"
-                            >
-                                {{ copiedOnboardingPassword ? 'Copied' : 'Copy Temporary Password' }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <p class="text-xs font-semibold tracking-wide text-[#034485] uppercase">Activation Link</p>
-                        <div class="mt-2 flex flex-wrap items-center gap-2">
-                            <button
-                                type="button"
-                                @click="copyActivationLink"
-                                class="rounded-md border border-[#034485]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#034485] hover:bg-[#eef5ff]"
-                            >
-                                {{ copiedActivationLink ? 'Copied Link' : 'Copy Activation Link' }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <p class="mt-4 text-xs" :class="onboardingFlash.email_sent ? 'text-[#034485]' : 'text-[#1f3f73]'">
-                        {{
-                            onboardingFlash.email_sent
-                                ? 'The onboarding email was sent successfully.'
-                                : 'The onboarding email could not be sent. Please provide the temporary password manually.'
-                        }}
-                    </p>
-                </div>
-
-                <div class="mt-5 flex justify-end">
-                    <button
-                        type="button"
-                        @click="closeCoachOnboardingModal"
-                        class="rounded-md bg-[#034485] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#02315f]"
-                    >
-                        Close
-                    </button>
-                </div>
             </div>
         </div>
     </Transition>

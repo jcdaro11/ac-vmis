@@ -89,10 +89,10 @@ function cardMotion(order: number) {
             <h2 class="section-title">Appearance</h2>
             <p class="settings-muted mt-1 text-sm">Choose how AC-VMIS looks while you use the system.</p>
           </div>
-          <div class="inline-flex rounded-full border border-[#034485]/20 bg-[#034485]/5 p-1">
+          <div class="grid w-full grid-cols-2 rounded-2xl border border-[#034485]/20 bg-[#034485]/5 p-1 sm:inline-flex sm:w-auto sm:rounded-full">
             <button
               type="button"
-              class="rounded-full px-4 py-2 text-sm font-semibold transition"
+              class="w-full rounded-xl px-4 py-2 text-center text-sm font-semibold transition sm:rounded-full"
               :class="themeMode === 'light' ? 'bg-[#034485] text-white' : 'text-[#034485] hover:bg-[#034485]/10'"
               @click="setTheme('light')"
             >
@@ -100,7 +100,7 @@ function cardMotion(order: number) {
             </button>
             <button
               type="button"
-              class="rounded-full px-4 py-2 text-sm font-semibold transition"
+              class="w-full rounded-xl px-4 py-2 text-center text-sm font-semibold transition sm:rounded-full"
               :class="themeMode === 'dark' ? 'bg-[#034485] text-white' : 'text-[#034485] hover:bg-[#034485]/10'"
               @click="setTheme('dark')"
             >

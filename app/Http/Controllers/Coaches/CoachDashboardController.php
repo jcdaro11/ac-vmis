@@ -35,6 +35,8 @@ class CoachDashboardController extends Controller
             $now = Carbon::now(config('app.timezone'));
             $trendStart = $now->copy()->subDays(13)->startOfDay();
             $trendEnd = $now->copy()->endOfDay();
+            $scheduleLoadStart = $now->copy()->startOfWeek()->startOfDay();
+            $scheduleLoadEnd = $scheduleLoadStart->copy()->addWeeks(5)->endOfWeek()->endOfDay();
 
             $rosterTotal = TeamPlayer::where('team_id', $teamId)->count();
             $upcomingSessions = TeamSchedule::query()
@@ -76,6 +78,7 @@ class CoachDashboardController extends Controller
                 ],
                 'trends' => [
                     'attendance' => $this->attendanceTrend($teamId, $trendStart, $trendEnd),
+                    'schedule_load' => $this->scheduleLoadTrend($teamId, $scheduleLoadStart, $scheduleLoadEnd),
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -110,6 +113,10 @@ class CoachDashboardController extends Controller
                         'absent' => [],
                         'excused' => [],
                     ],
+                ],
+                'schedule_load' => [
+                    'labels' => [],
+                    'series' => [],
                 ],
             ],
         ];
@@ -148,6 +155,39 @@ class CoachDashboardController extends Controller
             $series['absent'][] = (int) ($rows[$key]->absent_count ?? 0);
             $series['excused'][] = (int) ($rows[$key]->excused_count ?? 0);
             $cursor->addDay();
+        }
+
+        return [
+            'labels' => $labels,
+            'series' => $series,
+        ];
+    }
+
+    private function scheduleLoadTrend(int $teamId, Carbon $start, Carbon $end): array
+    {
+        $rows = TeamSchedule::query()
+            ->where('team_id', $teamId)
+            ->whereBetween('start_time', [$start->toDateTimeString(), $end->toDateTimeString()])
+            ->selectRaw('YEAR(start_time) as schedule_year')
+            ->selectRaw('WEEK(start_time, 1) as schedule_week')
+            ->selectRaw('COUNT(*) as session_count')
+            ->groupByRaw('YEAR(start_time), WEEK(start_time, 1)')
+            ->get()
+            ->keyBy(fn ($row) => sprintf('%s-%s', $row->schedule_year, $row->schedule_week));
+
+        $labels = [];
+        $series = [];
+
+        $cursor = $start->copy()->startOfWeek();
+        while ($cursor->lte($end)) {
+            $weekYear = (int) $cursor->format('o');
+            $weekNumber = (int) $cursor->format('W');
+            $key = sprintf('%s-%s', $weekYear, $weekNumber);
+
+            $labels[] = $cursor->format('M j');
+            $series[] = (int) ($rows[$key]->session_count ?? 0);
+
+            $cursor->addWeek();
         }
 
         return [

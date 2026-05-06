@@ -30,6 +30,11 @@ type AttendanceTrend = {
   }
 }
 
+type ScheduleLoadTrend = {
+  labels: string[]
+  series: number[]
+}
+
 type AttendanceActionSchedule = {
   id: number
   title: string
@@ -49,6 +54,7 @@ const props = defineProps<{
   }
   trends?: {
     attendance?: Partial<AttendanceTrend>
+    schedule_load?: Partial<ScheduleLoadTrend>
   }
 }>()
 
@@ -83,8 +89,28 @@ const attendanceTrendSeries = computed(() => [
   { name: 'Excused', data: attendanceTrend.value.series.excused },
 ])
 
+const attendanceStatusTotals = computed(() => [
+  attendanceTrend.value.series.present.reduce((sum, value) => sum + Number(value || 0), 0),
+  attendanceTrend.value.series.late.reduce((sum, value) => sum + Number(value || 0), 0),
+  attendanceTrend.value.series.absent.reduce((sum, value) => sum + Number(value || 0), 0),
+  attendanceTrend.value.series.excused.reduce((sum, value) => sum + Number(value || 0), 0),
+])
+
+const scheduleLoadTrend = computed<ScheduleLoadTrend>(() => ({
+  labels: props.trends?.schedule_load?.labels ?? [],
+  series: props.trends?.schedule_load?.series ?? [],
+}))
+
 const hasAttendanceTrendData = computed(() =>
   attendanceTrendSeries.value.some((entry) => entry.data.some((value) => value > 0)),
+)
+
+const hasAttendanceStatusData = computed(() =>
+  attendanceStatusTotals.value.some((value) => value > 0),
+)
+
+const hasScheduleLoadData = computed(() =>
+  scheduleLoadTrend.value.series.some((value) => value > 0),
 )
 
 const attendanceChartOptions = computed<ApexOptions>(() => ({
@@ -167,6 +193,128 @@ const attendanceChartOptions = computed<ApexOptions>(() => ({
     },
   ],
 }))
+
+const attendanceStatusDonutOptions = computed<ApexOptions>(() => ({
+  chart: {
+    type: 'donut',
+    toolbar: { show: false },
+    fontFamily: 'inherit',
+    foreColor: '#475569',
+    background: 'transparent',
+  },
+  labels: ['Present', 'Late', 'Absent', 'Excused'],
+  colors: ['#034485', '#2563eb', '#60a5fa', '#93c5fd'],
+  stroke: {
+    colors: ['#ffffff'],
+    width: 4,
+  },
+  dataLabels: {
+    enabled: true,
+    formatter: (value: number) => `${Math.round(value)}%`,
+  },
+  legend: {
+    position: 'bottom',
+    fontSize: '12px',
+    labels: {
+      colors: isDarkMode.value ? '#94a3b8' : '#64748b',
+    },
+  },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '68%',
+        labels: {
+          show: true,
+          total: {
+            show: true,
+            label: 'Total',
+            color: isDarkMode.value ? '#94a3b8' : '#64748b',
+            formatter: () => String(attendanceStatusTotals.value.reduce((sum, value) => sum + Number(value || 0), 0)),
+          },
+          value: {
+            show: true,
+            color: isDarkMode.value ? '#f8fafc' : '#0f172a',
+            fontSize: '24px',
+            fontWeight: 700,
+          },
+        },
+      },
+    },
+  },
+  tooltip: {
+    theme: isDarkMode.value ? 'dark' : 'light',
+    y: {
+      formatter: (value: number) => `${Number(value)} record${Number(value) === 1 ? '' : 's'}`,
+    },
+  },
+}))
+
+const scheduleLoadChartOptions = computed<ApexOptions>(() => ({
+  chart: {
+    type: 'bar',
+    toolbar: { show: false },
+    fontFamily: 'inherit',
+    foreColor: '#475569',
+    background: 'transparent',
+  },
+  colors: ['#034485'],
+  dataLabels: { enabled: false },
+  plotOptions: {
+    bar: {
+      borderRadius: 6,
+      columnWidth: '52%',
+    },
+  },
+  xaxis: {
+    categories: scheduleLoadTrend.value.labels,
+    axisBorder: { color: 'rgba(148, 163, 184, 0.32)' },
+    axisTicks: { color: 'rgba(148, 163, 184, 0.32)' },
+    labels: {
+      style: {
+        colors: Array(scheduleLoadTrend.value.labels.length).fill(isDarkMode.value ? '#94a3b8' : '#64748b'),
+        fontSize: '11px',
+      },
+    },
+  },
+  yaxis: {
+    min: 0,
+    forceNiceScale: true,
+    labels: {
+      style: {
+        colors: [isDarkMode.value ? '#94a3b8' : '#64748b'],
+        fontSize: '11px',
+      },
+    },
+  },
+  grid: {
+    borderColor: isDarkMode.value ? 'rgba(148, 163, 184, 0.14)' : 'rgba(148, 163, 184, 0.18)',
+    strokeDashArray: 4,
+  },
+  tooltip: {
+    theme: isDarkMode.value ? 'dark' : 'light',
+    y: {
+      formatter: (value: number) => `${Number(value)} session${Number(value) === 1 ? '' : 's'}`,
+    },
+  },
+  responsive: [
+    {
+      breakpoint: 768,
+      options: {
+        plotOptions: {
+          bar: {
+            columnWidth: '66%',
+          },
+        },
+      },
+    },
+  ],
+}))
+
+const scheduleLoadSeries = computed(() => [
+  { name: 'Sessions', data: scheduleLoadTrend.value.series },
+])
+
+const attendanceStatusSeries = computed(() => attendanceStatusTotals.value)
 
 function formatScheduleDateTime(value?: string | null) {
   if (!value) return 'Recently completed'
@@ -280,6 +428,52 @@ function formatScheduleDateTime(value?: string | null) {
         </div>
       </section>
 
+      <section class="page-card rounded-2xl border border-[#034485]/22 bg-white p-5" :style="cardMotion(5.5)">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#034485]">Schedule Load</p>
+          <h2 class="mt-2 text-xl font-bold text-slate-900">Upcoming Weekly Session Load</h2>
+          <p class="mt-1 text-sm text-slate-600">Review how many team sessions are scheduled each week across the next six weeks.</p>
+        </div>
+
+        <div v-if="hasScheduleLoadData" class="mt-5">
+          <VueApexCharts
+            height="300"
+            type="bar"
+            :options="scheduleLoadChartOptions"
+            :series="scheduleLoadSeries"
+          />
+        </div>
+        <div
+          v-else
+          class="mt-5 rounded-2xl border border-dashed border-[#034485]/25 bg-[#034485]/5 px-4 py-10 text-center text-sm text-slate-500"
+        >
+          No upcoming session load is available right now.
+        </div>
+      </section>
+
+      <section class="page-card rounded-2xl border border-[#034485]/22 bg-white p-5" :style="cardMotion(5.75)">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#034485]">Attendance Status</p>
+          <h2 class="mt-2 text-xl font-bold text-slate-900">Attendance Status Breakdown</h2>
+          <p class="mt-1 text-sm text-slate-600">See the current mix of present, late, absent, and excused attendance records in one summary chart.</p>
+        </div>
+
+        <div v-if="hasAttendanceStatusData" class="mt-5">
+          <VueApexCharts
+            height="320"
+            type="donut"
+            :options="attendanceStatusDonutOptions"
+            :series="attendanceStatusSeries"
+          />
+        </div>
+        <div
+          v-else
+          class="mt-5 rounded-2xl border border-dashed border-[#034485]/25 bg-[#034485]/5 px-4 py-10 text-center text-sm text-slate-500"
+        >
+          No attendance status records are available right now.
+        </div>
+      </section>
+
       <section class="page-card rounded-2xl border border-[#034485]/22 bg-white p-5" :style="cardMotion(6)">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -288,10 +482,10 @@ function formatScheduleDateTime(value?: string | null) {
             <p class="mt-1 text-sm text-slate-600">Recent attendance posting for present, late, absent, and excused records.</p>
           </div>
 
-          <div class="inline-flex items-center rounded-full border border-[#034485]/18 bg-slate-50 p-1">
+          <div class="grid w-full grid-cols-2 rounded-2xl border border-[#034485]/18 bg-slate-50 p-1 sm:inline-flex sm:w-auto sm:items-center sm:rounded-full">
             <button
               type="button"
-              class="rounded-full px-3 py-1.5 text-xs font-semibold transition"
+              class="w-full rounded-xl px-3 py-2 text-center text-xs font-semibold transition sm:rounded-full sm:py-1.5"
               :class="attendanceChartMode === 'stacked' ? 'bg-[#034485] text-white shadow-sm' : 'text-slate-600 hover:text-[#034485]'"
               @click="attendanceChartMode = 'stacked'"
             >
@@ -299,7 +493,7 @@ function formatScheduleDateTime(value?: string | null) {
             </button>
             <button
               type="button"
-              class="rounded-full px-3 py-1.5 text-xs font-semibold transition"
+              class="w-full rounded-xl px-3 py-2 text-center text-xs font-semibold transition sm:rounded-full sm:py-1.5"
               :class="attendanceChartMode === 'line' ? 'bg-[#034485] text-white shadow-sm' : 'text-slate-600 hover:text-[#034485]'"
               @click="attendanceChartMode = 'line'"
             >

@@ -94,6 +94,7 @@ const approveTarget = ref<QueueUser | null>(null);
 const rejectTarget = ref<QueueUser | null>(null);
 const rejectRemarks = ref('');
 const selectedUserId = ref<number | null>(props.queue.data[0]?.id ?? null);
+const detailsModalOpen = ref(false);
 const previewDocument = ref<{
     title: string;
     url: string;
@@ -277,6 +278,15 @@ function closeDocumentPreview() {
     previewDocument.value = null;
 }
 
+function openMobileDetails(user: QueueUser) {
+    selectedUserId.value = user.id;
+    detailsModalOpen.value = true;
+}
+
+function closeMobileDetails() {
+    detailsModalOpen.value = false;
+}
+
 function openApproveDialog(user: QueueUser) {
     approveTarget.value = user;
 }
@@ -453,13 +463,72 @@ function rejectUser() {
                 class="page-card overflow-hidden rounded-xl border"
                 :class="isDarkMode ? 'border-slate-700 bg-[#0f172a]' : 'border-[#034485]/45 bg-white'"
             >
-                <div v-if="queue.data.length" class="grid gap-0 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                <div v-if="queue.data.length" class="xl:hidden">
+                    <div class="border-b border-[#034485]/15 bg-[#eef5ff] px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Approval Queue</p>
+                        <p class="mt-1 text-sm text-slate-600">Review pending or rejected applications using compact cards on smaller screens.</p>
+                    </div>
+                    <div class="space-y-3 p-4">
+                        <article
+                            v-for="(user, index) in queue.data"
+                            :key="`mobile-queue-${user.id}`"
+                            class="rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4 shadow-[0_16px_34px_-30px_rgba(3,68,133,0.28)]"
+                        >
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-[#e9f2ff] text-sm font-bold text-[#034485]">
+                                    <img v-if="user.avatar" :src="resolveUserAvatarUrl(user.avatar)" :alt="user.name" class="h-full w-full object-cover">
+                                    <span v-else>{{ userInitials(user) }}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="text-sm font-semibold text-slate-900">{{ user.name }}</p>
+                                        <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold" :class="readinessTone(user)">
+                                            {{ readinessLabel(user) }}
+                                        </span>
+                                    </div>
+                                    <p class="mt-1 text-xs text-slate-500">{{ infoValue(user.student?.student_id_number) }}</p>
+                                    <p class="mt-1 text-xs text-slate-500">{{ user.email }}</p>
+                                    <p class="mt-1 text-xs text-slate-500">Submitted {{ formatDate(user.created_at) }}</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+                                <button
+                                    type="button"
+                                    class="w-full rounded-lg border border-[#034485]/35 bg-white px-3 py-2 text-sm font-semibold text-[#034485] transition hover:bg-[#eef5ff] sm:w-auto"
+                                    @click="openMobileDetails(user)"
+                                >
+                                    View Details
+                                </button>
+                                <button
+                                    v-if="!isRejectedView"
+                                    type="button"
+                                    class="w-full rounded-lg bg-[#034485] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#02315f] sm:w-auto"
+                                    :disabled="!hasRequirements(user) || approvingId === user.id || rejectingId === user.id"
+                                    @click="openApproveDialog(user)"
+                                >
+                                    Approve
+                                </button>
+                                <button
+                                    v-if="!isRejectedView"
+                                    type="button"
+                                    class="w-full rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 sm:w-auto"
+                                    :disabled="approvingId === user.id || rejectingId === user.id"
+                                    @click="openRejectDialog(user)"
+                                >
+                                    Reject
+                                </button>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <div v-if="queue.data.length" class="hidden xl:grid xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                     <div class="border-b xl:border-r xl:border-b-0" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
                     <div class="border-b px-4 py-3" :class="isDarkMode ? 'border-slate-700 bg-[#111827]' : 'border-[#034485]/15 bg-[#eef5ff]'">
                             <p class="text-xs font-semibold uppercase tracking-[0.14em]" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">Applicants</p>
                             <p class="mt-1 text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Review applications efficiently while keeping all supporting details in view.</p>
                         </div>
-                        <div class="max-h-[calc(100vh-24rem)] overflow-y-auto">
+                        <div class="xl:max-h-[calc(100vh-24rem)] overflow-y-auto">
                             <button
                                 v-for="(user, index) in queue.data"
                                 :key="user.id"
@@ -719,6 +788,118 @@ function rejectUser() {
             </section>
         </Transition>
     </div>
+
+    <Transition name="modal-fade">
+        <div v-if="detailsModalOpen && selectedUser" class="fixed inset-0 z-[55] flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:items-center" @click.self="closeMobileDetails">
+            <div class="modal-panel my-6 w-full max-w-3xl rounded-2xl border border-[#034485]/45 bg-white p-5 sm:my-0 sm:p-6">
+                <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-4">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Applicant Details</p>
+                        <h2 class="mt-1 text-lg font-bold text-slate-900">{{ selectedUser.name }}</h2>
+                        <p class="mt-1 text-sm text-slate-600">{{ infoValue(selectedUser.student?.student_id_number) }} • {{ formatRole(selectedUser.role) }}</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            v-if="!isRejectedView"
+                            type="button"
+                            class="rounded-lg bg-[#034485] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#02315f]"
+                            :disabled="!hasRequirements(selectedUser) || approvingId === selectedUser.id || rejectingId === selectedUser.id"
+                            @click="openApproveDialog(selectedUser); closeMobileDetails()"
+                        >
+                            Approve
+                        </button>
+                        <button
+                            v-if="!isRejectedView"
+                            type="button"
+                            class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+                            :disabled="approvingId === selectedUser.id || rejectingId === selectedUser.id"
+                            @click="openRejectDialog(selectedUser); closeMobileDetails()"
+                        >
+                            Reject
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="!isRejectedView && requirementIssues(selectedUser).length" class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {{ requirementIssues(selectedUser).join(' | ') }}
+                </div>
+
+                <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                    <section class="page-card rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Identity</p>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <div><p class="text-xs text-slate-500">Full Name</p><p class="mt-1 text-sm font-medium text-slate-900">{{ selectedUser.name }}</p></div>
+                            <div><p class="text-xs text-slate-500">Student ID</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.student_id_number) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Birth Date</p><p class="mt-1 text-sm font-medium text-slate-900">{{ formatDate(selectedUser.student?.date_of_birth) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Gender</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.gender) }}</p></div>
+                        </div>
+                    </section>
+                    <section class="page-card rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Academic</p>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <div><p class="text-xs text-slate-500">Course / Strand</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.course_or_strand) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Year Level</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.academic_level_label || selectedUser.student?.current_grade_level) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Height</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.height) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Weight</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.weight) }}</p></div>
+                        </div>
+                    </section>
+                    <section class="page-card rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Contact</p>
+                        <div class="mt-3 grid gap-3">
+                            <div><p class="text-xs text-slate-500">Email</p><p class="mt-1 text-sm font-medium text-slate-900">{{ selectedUser.email }}</p></div>
+                            <div><p class="text-xs text-slate-500">Phone Number</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.phone_number) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Home Address</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.home_address) }}</p></div>
+                        </div>
+                    </section>
+                    <section class="page-card rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Emergency</p>
+                        <div class="mt-3 grid gap-3">
+                            <div><p class="text-xs text-slate-500">Contact Name</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.emergency_contact_name) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Relationship</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.emergency_contact_relationship) }}</p></div>
+                            <div><p class="text-xs text-slate-500">Emergency Phone</p><p class="mt-1 text-sm font-medium text-slate-900">{{ infoValue(selectedUser.student?.emergency_contact_phone) }}</p></div>
+                        </div>
+                    </section>
+                    <section class="page-card rounded-2xl border border-[#034485]/20 bg-white p-4 lg:col-span-2">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Documents</p>
+                            <p class="mt-1 text-sm text-slate-600">Preview supporting documents without crowding the approval card.</p>
+                        </div>
+                        <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Academic Supporting Document</p>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{
+                                            selectedUser.student?.latest_academic_document
+                                                ? `Type: ${formatDocumentType(selectedUser.student.latest_academic_document.document_type)}`
+                                                : 'No academic document has been submitted.'
+                                        }}
+                                    </p>
+                                </div>
+                                <span class="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold" :class="selectedUser.student?.latest_academic_document ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'">
+                                    {{ selectedUser.student?.latest_academic_document ? 'Submitted' : 'Missing' }}
+                                </span>
+                            </div>
+                            <div class="mt-3 space-y-2 text-sm text-slate-700">
+                                <p>Uploaded: {{ formatDateTime(selectedUser.student?.latest_academic_document?.uploaded_at) }}</p>
+                                <p>Document Type: {{ selectedUser.student?.latest_academic_document ? formatDocumentType(selectedUser.student.latest_academic_document.document_type) : '-' }}</p>
+                            </div>
+                            <div class="mt-4">
+                                <button
+                                    v-if="academicFileUrl(selectedUser.student?.latest_academic_document?.id)"
+                                    type="button"
+                                    class="w-full rounded-lg border border-[#034485]/30 bg-white px-3 py-2 text-sm font-semibold text-[#034485] transition hover:bg-[#eef5ff] sm:w-auto"
+                                    @click="openDocumentPreview('Academic Document', academicFileUrl(selectedUser.student?.latest_academic_document?.id)!, selectedUser.name)"
+                                >
+                                    Preview Document
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </Transition>
 
     <Transition name="modal-fade">
         <div v-if="approveTarget" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" @click.self="closeApproveDialog">

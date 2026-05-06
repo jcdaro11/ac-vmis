@@ -208,12 +208,11 @@ function cardMotion(order: number) {
 
         <!-- Team card -->
         <div v-else class="space-y-6">
-            <section class="page-card bg-[#034485] rounded-3xl border border-[#034485]/35 p-6 text-white" :style="cardMotion(2)">
-                <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+            <section class="page-card overflow-hidden rounded-3xl border border-[#034485]/35 bg-gradient-to-br from-[#034485] via-[#0b5aa6] to-[#02315f] p-6 text-white shadow-[0_22px_48px_-30px_rgba(3,68,133,0.42)]" :style="cardMotion(2)">
+                <div class="relative flex flex-col gap-5">
+                    <div class="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center">
                         <div
-                            class="h-20 w-20 rounded-2xl bg-white/10 border-2 overflow-hidden flex items-center justify-center"
-                            :style="{ borderColor: sportColor(props.team?.sport?.name ?? props.team?.sport) }"
+                            class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[22px] border border-white/18 bg-[#0a4f96]/70 shadow-[0_16px_36px_-24px_rgba(15,23,42,0.55)] sm:h-28 sm:w-28"
                         >
                             <img
                                 :src="teamAvatarUrl(props.team.team_avatar)"
@@ -221,38 +220,41 @@ function cardMotion(order: number) {
                                 alt="Team avatar"
                             />
                         </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-white/70">My Team</p>
-                            <h2 class="text-2xl font-bold text-white">{{ props.team.team_name }}</h2>
-                            <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/72">Team Overview</p>
+                            <h2 class="text-2xl font-bold text-white sm:text-[2rem]">{{ props.team.team_name }}</h2>
+                            <div class="mt-3 flex flex-wrap gap-2 text-xs">
                                 <span
                                     class="inline-flex items-center rounded-full px-3 py-1 font-semibold"
                                     :style="{ backgroundColor: sportColor(props.team?.sport?.name ?? props.team?.sport), color: sportTextColor(props.team?.sport?.name ?? props.team?.sport) }"
                                 >
                                     {{ sportLabel(props.team?.sport?.name ?? props.team?.sport) }}
                                 </span>
-                                <span class="inline-flex items-center rounded-full border border-white/30 px-3 py-1 font-semibold text-white/80">
+                                <span class="inline-flex items-center rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 font-semibold text-white/90">
                                     {{ props.team.year }}
+                                </span>
+                                <span class="inline-flex items-center rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 font-semibold text-white/90">
+                                    {{ totalPlayers }} Players
+                                </span>
+                                <span class="inline-flex items-center rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 font-semibold text-white/90">
+                                    {{ positionsFilled }} Positions Set
+                                </span>
+                                <span class="inline-flex items-center rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 font-semibold text-white/90">
+                                    {{ jerseysAssigned }} Jerseys Set
                                 </span>
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-3 py-1 text-xs font-semibold text-white">Athlete</span>
-                        <span class="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
-                            {{ totalPlayers }} Players
-                        </span>
-                        <span class="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
-                            {{ positionsFilled }} Positions Set
-                        </span>
-                        <span class="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
-                            {{ jerseysAssigned }} Jerseys Set
+
+                    <div class="flex w-full flex-col gap-2 border-t border-white/14 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
+                        <span class="inline-flex w-fit items-center rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 text-xs font-semibold text-white/90">
+                            Student-Athlete View
                         </span>
                     </div>
                 </div>
 
                 <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div class="page-card rounded-3xl border border-[#034485]/35 bg-[#f7fbff] p-4 text-slate-800 shadow-[0_18px_36px_-30px_rgba(3,68,133,0.35)]" :style="cardMotion(3)">
+                    <div class="page-card rounded-3xl border border-[#034485]/30 bg-[#eef4fb] p-4 text-slate-800 shadow-[0_18px_36px_-30px_rgba(3,68,133,0.26)]" :style="cardMotion(3)">
                         <p class="text-xs uppercase tracking-wide text-[#034485]">Head Coach</p>
                         <div class="mt-3 flex items-center gap-3">
                             <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-white text-sm font-bold text-[#034485] shadow-sm">
@@ -320,7 +322,7 @@ function cardMotion(order: number) {
                             </span>
                         </div>
                     </div>
-                    <div class="page-card rounded-3xl border border-[#034485]/35 bg-[#f7fbff] p-4 text-slate-800 shadow-[0_18px_36px_-30px_rgba(3,68,133,0.35)]" :style="cardMotion(4)">
+                    <div class="page-card rounded-3xl border border-[#034485]/30 bg-[#eef4fb] p-4 text-slate-800 shadow-[0_18px_36px_-30px_rgba(3,68,133,0.26)]" :style="cardMotion(4)">
                         <p class="text-xs uppercase tracking-wide text-[#034485]">Assistant Coach</p>
                         <div v-if="props.team.assistantCoach" class="mt-3 flex items-center gap-3">
                             <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-white text-sm font-bold text-[#034485] shadow-sm">
@@ -392,7 +394,7 @@ function cardMotion(order: number) {
                 </div>
             </section>
 
-            <section v-if="myMembership" class="page-card rounded-3xl border border-[#034485]/35 bg-[#f7fbff] p-6 shadow-[0_18px_40px_-30px_rgba(3,68,133,0.32)]" :style="cardMotion(5)">
+            <section v-if="myMembership" class="page-card rounded-3xl border border-[#034485]/30 bg-[#eef4fb] p-6 shadow-[0_18px_40px_-30px_rgba(3,68,133,0.24)]" :style="cardMotion(5)">
 
                 <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
                     <span class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Jersey Request</span>
@@ -425,7 +427,7 @@ function cardMotion(order: number) {
                 </div>
 
                 <div v-if="props.team.players?.length" class="mt-4 space-y-4">
-                    <div v-if="myMembership" class="page-card rounded-2xl border border-[#034485]/35 bg-[#f7fbff] p-4 shadow-[0_16px_34px_-28px_rgba(3,68,133,0.35)]" :style="cardMotion(7)">
+                    <div v-if="myMembership" class="page-card rounded-2xl border border-[#034485]/30 bg-[#eef4fb] p-4 shadow-[0_16px_34px_-28px_rgba(3,68,133,0.24)]" :style="cardMotion(7)">
                         <div class="pointer-events-none -mx-4 -mt-4 mb-4 h-14 rounded-t-2xl bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/90"></div>
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-start gap-3">
@@ -485,7 +487,7 @@ function cardMotion(order: number) {
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    <article v-for="(player, index) in otherPlayers" :key="player.id" class="page-card rounded-2xl border border-[#034485]/35 bg-[#f7fbff] p-4 shadow-[0_16px_34px_-28px_rgba(3,68,133,0.35)]" :style="cardMotion(8 + index)">
+                    <article v-for="(player, index) in otherPlayers" :key="player.id" class="page-card rounded-2xl border border-[#034485]/30 bg-[#eef4fb] p-4 shadow-[0_16px_34px_-28px_rgba(3,68,133,0.24)]" :style="cardMotion(8 + index)">
                         <div class="pointer-events-none -mx-4 -mt-4 mb-4 h-12 rounded-t-2xl bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/90"></div>
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-start gap-3">
@@ -548,124 +550,162 @@ function cardMotion(order: number) {
         </div>
 
         <transition name="athlete-modal" @after-leave="finishDetailsClose">
-            <div
-                v-if="detailsOpen && selectedPlayer"
-                class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-6 backdrop-blur-sm"
-                @click.self="closeDetails"
-            >
+            <div v-if="detailsOpen && selectedPlayer" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 px-4 py-6" @click.self="closeDetails">
                 <div class="flex min-h-full items-center justify-center">
-                <div
-                    class="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border shadow-[0_28px_80px_-30px_rgba(2,12,27,0.35)]"
-                    :class="isDarkMode
-                        ? 'border-slate-800 bg-[#090909] text-slate-100 shadow-[0_28px_80px_-30px_rgba(2,12,27,0.9)]'
-                        : 'border-[#034485]/35 bg-white text-slate-800'"
-                >
-                    <div
-                        class="rounded-t-3xl bg-[#034485] px-6 py-5 text-white sm:px-8"
-                    >
-                        <p class="text-xs font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-white/70' : 'text-white/75'">Team Member</p>
-                        <h3 class="mt-1 text-2xl font-bold text-white">
-                            {{ selectedStudent?.first_name }} {{ selectedStudent?.last_name }}
-                        </h3>
-                        <p class="mt-1 text-xs" :class="isDarkMode ? 'text-white/75' : 'text-white/80'">ID: {{ selectedStudent?.student_id_number || '-' }}</p>
-                    </div>
-                    <div class="overflow-y-auto p-6 sm:p-8">
-                    <div class="flex flex-wrap items-start justify-between gap-6">
-                        <div class="min-w-[220px] flex-1 space-y-4">
-                            <div
-                                class="grid gap-3 text-sm sm:grid-cols-2"
-                                :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'"
-                            >
-                                <div class="rounded-2xl border px-3 py-3" :class="isDarkMode ? 'border-slate-800 bg-[#141414]' : 'border-[#034485]/15 bg-[#f7fbff]'">
-                                    <p class="text-[10px] font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-400' : 'text-[#034485]'">Position</p>
-                                    <p class="mt-1 font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ selectedPlayer?.athlete_position || 'Unassigned' }}</p>
-                                </div>
-                                <div class="rounded-2xl border px-3 py-3" :class="isDarkMode ? 'border-slate-800 bg-[#141414]' : 'border-[#034485]/15 bg-[#f7fbff]'">
-                                    <p class="text-[10px] font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-400' : 'text-[#034485]'">Jersey</p>
-                                    <p class="mt-1 font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ selectedPlayer?.jersey_number || '-' }}</p>
-                                </div>
-                                <div class="rounded-2xl border px-3 py-3" :class="isDarkMode ? 'border-slate-800 bg-[#141414]' : 'border-[#034485]/15 bg-[#f7fbff]'">
-                                    <p class="text-[10px] font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-400' : 'text-[#034485]'">Course/Strand</p>
-                                    <p class="mt-1 font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ selectedStudent?.course_or_strand || '-' }}</p>
-                                </div>
-                                <div class="rounded-2xl border px-3 py-3" :class="isDarkMode ? 'border-slate-800 bg-[#141414]' : 'border-[#034485]/15 bg-[#f7fbff]'">
-                                    <p class="text-[10px] font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-400' : 'text-[#034485]'">Academic Level</p>
-                                    <p class="mt-1 font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ selectedStudent?.academic_level_label || selectedStudent?.current_grade_level || '-' }}</p>
-                                </div>
-                                <div class="rounded-2xl border px-3 py-3" :class="isDarkMode ? 'border-slate-800 bg-[#141414]' : 'border-[#034485]/15 bg-[#f7fbff]'">
-                                    <p class="text-[10px] font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-400' : 'text-[#034485]'">Height</p>
-                                    <p class="mt-1 font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ formatMeasure(selectedStudent?.height, 'cm') }}</p>
-                                </div>
-                                <div class="rounded-2xl border px-3 py-3" :class="isDarkMode ? 'border-slate-800 bg-[#141414]' : 'border-[#034485]/15 bg-[#f7fbff]'">
-                                    <p class="text-[10px] font-semibold uppercase tracking-wide" :class="isDarkMode ? 'text-slate-400' : 'text-[#034485]'">Weight</p>
-                                    <p class="mt-1 font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ formatMeasure(selectedStudent?.weight, 'kg') }}</p>
-                                </div>
-                                <p v-if="selectedStudent?.user?.email" class="sm:col-span-2">
-                                    <span class="font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Email:</span>
-                                    <span class="ml-1 inline-flex items-center gap-2">
-                                        {{ selectedStudent.user.email }}
-                                        <button
-                                            type="button"
-                                            class="inline-flex items-center gap-1 text-[11px] font-semibold"
-                                            :class="isDarkMode ? 'text-slate-300 hover:text-white' : 'text-[#034485] hover:text-[#0b5aa6]'"
-                                            @click="copyToClipboard(selectedStudent.user.email, 'student-email')"
-                                            title="Copy email"
-                                            aria-label="Copy email"
-                                        >
-                                            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor">
-                                                <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z" />
-                                            </svg>
-                                            <span v-if="copiedField === 'student-email'" class="text-[10px]">Email Copied</span>
-                                        </button>
-                                    </span>
-                                </p>
-                                <p v-if="selectedStudent?.phone_number" class="sm:col-span-2">
-                                    <span class="font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Phone:</span>
-                                    <span class="ml-1 inline-flex items-center gap-2">
-                                        {{ selectedStudent.phone_number }}
-                                        <button
-                                            type="button"
-                                            class="inline-flex items-center gap-1 text-[11px] font-semibold"
-                                            :class="isDarkMode ? 'text-slate-300 hover:text-white' : 'text-[#034485] hover:text-[#0b5aa6]'"
-                                            @click="copyToClipboard(selectedStudent.phone_number, 'student-phone')"
-                                            title="Copy phone number"
-                                            aria-label="Copy phone number"
-                                        >
-                                            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor">
-                                                <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z" />
-                                            </svg>
-                                            <span v-if="copiedField === 'student-phone'" class="text-[10px]">Phone Number Copied</span>
-                                        </button>
-                                    </span>
+                <div class="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[#034485]/35 bg-white shadow-[0_28px_70px_-34px_rgba(2,12,27,0.45)]">
+                <div class="rounded-t-3xl bg-[#034485] px-6 py-5 text-white sm:px-8">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-white/75">Player Details</p>
+                    <h3 class="mt-1 text-2xl font-bold text-white">
+                        {{ formatSimple(selectedStudent?.first_name) }} {{ formatSimple(selectedStudent?.last_name) }}
+                    </h3>
+                    <p class="mt-1 text-xs text-white/80">Student ID: {{ formatSimple(selectedStudent?.student_id_number) }}</p>
+                </div>
+                <div class="overflow-y-auto p-6 sm:p-8">
+                <div class="flex flex-wrap items-start justify-between gap-6">
+                    <div class="min-w-[220px] flex-1 space-y-4">
+                        <div class="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3 sm:col-span-2">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Student ID</p>
+                                <p class="mt-1 inline-flex items-center gap-2 font-semibold text-slate-900">
+                                    {{ formatSimple(selectedStudent?.student_id_number) }}
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 text-[11px] font-semibold text-[#034485] hover:text-[#033a70]"
+                                        @click="copyToClipboard(selectedStudent?.student_id_number, 'student-id')"
+                                        title="Copy student ID"
+                                        aria-label="Copy student ID"
+                                    >
+                                        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4">
+                                            <path fill="currentColor" d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z" />
+                                        </svg>
+                                        <span v-if="copiedField === 'student-id'" class="text-[10px]">Student ID Copied</span>
+                                    </button>
                                 </p>
                             </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Position</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedPlayer?.athlete_position) }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Jersey</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedPlayer?.jersey_number) }}</p>
+                            </div>
                         </div>
-                        <div
-                            class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border"
-                            :class="isDarkMode ? 'border-slate-800 bg-[#141414]' : 'border-[#034485]/20 bg-[#f7fbff]'"
-                        >
-                            <img
-                                v-if="selectedStudent?.user?.avatar"
-                                :src="userAvatarUrl(selectedStudent.user.avatar)"
-                                alt="Student avatar"
-                                class="h-full w-full object-cover"
-                            />
-                            <span v-else class="text-lg font-semibold" :class="isDarkMode ? 'text-slate-200' : 'text-[#034485]'">
-                                {{ (selectedStudent?.first_name?.[0] || '') + (selectedStudent?.last_name?.[0] || '') }}
-                            </span>
-                        </div>
-                    </div>
 
-                    <div class="mt-6 flex justify-end">
-                        <button
-                            type="button"
-                            class="rounded-full px-4 py-2 text-sm font-semibold text-white transition"
-                            :class="isDarkMode ? 'border border-slate-700 bg-[#141414] hover:bg-[#1c1c1c]' : 'bg-[#034485] hover:bg-[#033a70]'"
-                            @click="closeDetails"
-                        >
-                            Close
-                        </button>
+                        <div class="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Course/Strand</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedStudent?.course_or_strand) }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Academic Level</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedStudent?.academic_level_label ?? selectedStudent?.current_grade_level) }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Gender</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatSimple(selectedStudent?.gender) }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Height</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatMeasure(selectedStudent?.height, 'cm') }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#034485]/15 bg-[#f7fbff] px-3 py-3 sm:col-span-2">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Weight</p>
+                                <p class="mt-1 font-semibold text-slate-900">{{ formatMeasure(selectedStudent?.weight, 'kg') }}</p>
+                            </div>
+                        </div>
                     </div>
+                    <div class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#034485]/20 bg-[#f7fbff]">
+                        <img :src="userAvatarUrl(selectedStudent?.user?.avatar ?? null)" alt="Student avatar" class="h-full w-full object-cover" />
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t border-slate-200 pt-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Contact</p>
+                    <div class="mt-2 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                        <p>
+                            <span class="font-semibold text-slate-900">Email:</span>
+                            <span class="ml-1 inline-flex items-center gap-2">
+                                {{ formatSimple(selectedStudent?.user?.email) }}
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-[#034485] hover:text-[#033a70]"
+                                    @click="copyToClipboard(selectedStudent?.user?.email, 'email')"
+                                    title="Copy email"
+                                    aria-label="Copy email"
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4">
+                                        <path
+                                            fill="currentColor"
+                                            d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z"
+                                        />
+                                    </svg>
+                                    <span v-if="copiedField === 'email'" class="text-[10px]">Email Copied</span>
+                                </button>
+                            </span>
+                        </p>
+                        <p>
+                            <span class="font-semibold text-slate-900">Phone:</span>
+                            <span class="ml-1 inline-flex items-center gap-2">
+                                {{ formatSimple(selectedStudent?.phone_number) }}
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-[#034485] hover:text-[#033a70]"
+                                    @click="copyToClipboard(selectedStudent?.phone_number, 'phone')"
+                                    title="Copy phone number"
+                                    aria-label="Copy phone number"
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4">
+                                        <path
+                                            fill="currentColor"
+                                            d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z"
+                                        />
+                                    </svg>
+                                    <span v-if="copiedField === 'phone'" class="text-[10px]">Phone Number Copied</span>
+                                </button>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t border-slate-200 pt-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-[#034485]">Emergency Contact</p>
+                    <div class="mt-2 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                        <p><span class="font-semibold text-slate-900">Name:</span> {{ formatSimple(selectedStudent?.emergency_contact_name) }}</p>
+                        <p><span class="font-semibold text-slate-900">Relationship:</span> {{ formatSimple(selectedStudent?.emergency_contact_relationship) }}</p>
+                        <p class="sm:col-span-2">
+                            <span class="font-semibold text-slate-900">Phone:</span>
+                            <span class="ml-1 inline-flex items-center gap-2">
+                                {{ formatSimple(selectedStudent?.emergency_contact_phone) }}
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-[#034485] hover:text-[#033a70]"
+                                    @click="copyToClipboard(selectedStudent?.emergency_contact_phone, 'emergency-phone')"
+                                    title="Copy emergency phone"
+                                    aria-label="Copy emergency phone"
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4">
+                                        <path
+                                            fill="currentColor"
+                                            d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z"
+                                        />
+                                    </svg>
+                                    <span v-if="copiedField === 'emergency-phone'" class="text-[10px]">Emergency Contact Number Copied</span>
+                                </button>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button
+                        type="button"
+                        class="rounded-full bg-[#034485] px-4 py-2 text-sm font-semibold text-white hover:bg-[#033a70]"
+                        @click="closeDetails"
+                    >
+                        Close
+                    </button>
+                </div>
                 </div>
                 </div>
                 </div>

@@ -58,10 +58,13 @@ const selectedPlayer = ref<PlayerRow | null>(null)
 const copiedField = ref<string | null>(null)
 
 const selectedTeamId = ref<number | null>(props.selectedTeamId ?? null)
-const { sportColor, sportTextColor } = useSportColors()
+const { sportColor, sportTextColor, sportLabel } = useSportColors()
 
 const players = computed<PlayerRow[]>(() => props.team?.players ?? [])
 const selectedStudent = computed(() => selectedPlayer.value?.student ?? null)
+const totalPlayers = computed(() => players.value.length)
+const positionsFilled = computed(() => players.value.filter((player) => String(player.athlete_position ?? '').trim() !== '').length)
+const jerseysAssigned = computed(() => players.value.filter((player) => String(player.jersey_number ?? '').trim() !== '').length)
 
 watch(
     () => props.team?.players,
@@ -279,38 +282,49 @@ function printTeamRoster() {
         </div>
 
         <div v-else class="space-y-5">
-            <section class="page-card rounded-2xl border border-[#034485] bg-[#034485] p-5">
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-center">
-                    <img
-                        :src="teamAvatarUrl(props.team.team_avatar)"
-                        class="h-24 w-24 rounded-2xl object-cover ring-4 ring-white sm:h-28 sm:w-28"
-                    />
-
-                    <div class="flex-1">
-                        <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-white/90">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-white"
-                                :style="{
-                                    backgroundColor: sportColor(props.team.sport?.name ?? props.team.sport?.id ?? props.team.sport),
-                                    color: sportTextColor(props.team.sport?.name ?? props.team.sport?.id ?? props.team.sport),
-                                }"
-                            >
-                                {{ props.team.sport?.name }}
-                            </span>
-                            <span class="rounded-full bg-white/15 px-2 py-0.5 text-white">{{ props.team.year ?? 'N/A' }}</span>
+            <section class="page-card overflow-hidden rounded-3xl border border-[#034485]/35 bg-gradient-to-br from-[#034485] via-[#0b5aa6] to-[#02315f] p-6 shadow-[0_22px_48px_-30px_rgba(3,68,133,0.42)]">
+                <div class="relative flex flex-col gap-5">
+                    <div class="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center">
+                        <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[22px] border border-white/18 bg-[#0a4f96]/70 shadow-[0_16px_36px_-24px_rgba(15,23,42,0.55)] sm:h-28 sm:w-28">
+                            <img
+                                :src="teamAvatarUrl(props.team.team_avatar)"
+                                class="h-full w-full object-cover"
+                            />
                         </div>
-                        <h2 class="mt-2 text-2xl font-bold text-white">{{ props.team.team_name }}</h2>
+
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/72">Team Overview</p>
+                            <h2 class="mt-2 text-2xl font-bold text-white sm:text-[2rem]">{{ props.team.team_name }}</h2>
+                            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold">
+                                <span
+                                    class="rounded-full px-3 py-1"
+                                    :style="{
+                                        backgroundColor: sportColor(props.team.sport?.name ?? props.team.sport?.id ?? props.team.sport),
+                                        color: sportTextColor(props.team.sport?.name ?? props.team.sport?.id ?? props.team.sport),
+                                    }"
+                                >
+                                    {{ sportLabel(props.team.sport?.name ?? props.team.sport?.id ?? props.team.sport) }}
+                                </span>
+                                <span class="rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 text-white/90">{{ props.team.year ?? 'N/A' }}</span>
+                                <span class="rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 text-white/90">{{ totalPlayers }} Players</span>
+                                <span class="rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 text-white/90">{{ positionsFilled }} Positions Set</span>
+                                <span class="rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 text-white/90">{{ jerseysAssigned }} Jerseys Set</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex w-full flex-col gap-2 border-t border-white/14 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
+                        <span class="inline-flex w-fit items-center rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 text-xs font-semibold text-white/90">
+                            Coach Actions
+                        </span>
                         <button
-                            class="rounded-full border border-white bg-white px-4 py-2 text-xs font-semibold text-[#034485] hover:bg-white/90"
+                            class="rounded-full border border-white/24 bg-white px-4 py-2 text-xs font-semibold text-[#034485] shadow-sm transition hover:bg-[#eef5ff]"
                             @click="openRequest()"
                         >
                             Request Team Change
                         </button>
                         <button
-                            class="rounded-full border border-white bg-white px-4 py-2 text-xs font-semibold text-[#034485] hover:bg-white/90"
+                            class="rounded-full border border-white/24 bg-white px-4 py-2 text-xs font-semibold text-[#034485] shadow-sm transition hover:bg-[#eef5ff]"
                             @click="printTeamRoster"
                         >
                             Print Roster
@@ -318,19 +332,19 @@ function printTeamRoster() {
                     </div>
                 </div>
 
-                <div class="mt-5 grid gap-3 lg:grid-cols-2">
-                    <article class="page-card rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
-                        <div class="flex items-center justify-between gap-2">
-                            <p class="text-[11px] font-semibold uppercase tracking-wide text-white/75">Head Coach</p>
+                <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div class="page-card rounded-3xl border border-[#034485]/30 bg-[#eef4fb] p-4 text-slate-800 shadow-[0_18px_36px_-30px_rgba(3,68,133,0.26)]">
+                        <div class="flex items-start justify-between gap-3">
+                            <p class="text-xs uppercase tracking-wide text-[#034485]">Head Coach</p>
                             <span
                                 v-if="isCurrentCoach(props.team.coach)"
-                                class="inline-flex items-center rounded-full border border-white/30 bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white"
+                                class="inline-flex items-center rounded-full border border-[#034485]/20 bg-[#034485]/8 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#034485]"
                             >
                                 You
                             </span>
                         </div>
                         <div class="mt-3 flex items-center gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-white/15 text-sm font-bold text-white">
+                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-white text-sm font-bold text-[#034485] shadow-sm">
                                 <img
                                     v-if="props.team.coach?.user?.avatar"
                                     :src="coachAvatarUrl(props.team.coach)"
@@ -340,28 +354,73 @@ function printTeamRoster() {
                                 <span v-else>{{ initialsFromParts(props.team.coach?.first_name, props.team.coach?.last_name) }}</span>
                             </div>
                             <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold text-white">
+                                <p class="truncate text-sm font-semibold text-slate-900">
                                     {{ props.team.coach?.first_name }} {{ props.team.coach?.last_name }}
                                 </p>
-                                <p class="mt-1 text-xs text-white/75">
-                                    {{ props.team.coach?.user?.email || 'No email available' }}
+                                <p class="mt-1 text-xs text-slate-600">
+                                    {{ props.team.coach?.email || props.team.coach?.phone_number || 'Contact available below' }}
                                 </p>
                             </div>
                         </div>
-                    </article>
-
-                    <article class="page-card rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
-                        <div class="flex items-center justify-between gap-2">
-                            <p class="text-[11px] font-semibold uppercase tracking-wide text-white/75">Assistant Coach</p>
+                        <div class="mt-3 space-y-2 text-xs">
+                            <div
+                                v-if="props.team.coach?.email"
+                                class="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#034485]/15 bg-white px-3 py-2"
+                            >
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Email</p>
+                                    <p class="truncate text-sm font-medium text-slate-700">{{ props.team.coach.email }}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="copyToClipboard(props.team.coach.email, 'coach-email')"
+                                    class="inline-flex items-center gap-1 rounded-full border border-[#034485]/30 px-2.5 py-1 text-[11px] font-semibold text-[#034485] hover:bg-[#034485]/10"
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor">
+                                        <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z" />
+                                    </svg>
+                                    <span>{{ copiedField === 'coach-email' ? 'Copied' : 'Copy' }}</span>
+                                </button>
+                            </div>
+                            <div
+                                v-if="props.team.coach?.phone_number"
+                                class="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#034485]/15 bg-white px-3 py-2"
+                            >
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Phone</p>
+                                    <p class="text-sm font-medium text-slate-700">{{ props.team.coach.phone_number }}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="copyToClipboard(props.team.coach.phone_number, 'coach-phone')"
+                                    class="inline-flex items-center gap-1 rounded-full border border-[#034485]/30 px-2.5 py-1 text-[11px] font-semibold text-[#034485] hover:bg-[#034485]/10"
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor">
+                                        <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z" />
+                                    </svg>
+                                    <span>{{ copiedField === 'coach-phone' ? 'Copied' : 'Copy' }}</span>
+                                </button>
+                            </div>
+                            <span
+                                v-if="!props.team.coach?.email && !props.team.coach?.phone_number"
+                                class="text-slate-400"
+                            >
+                                Contact the administrator for assistance
+                            </span>
+                        </div>
+                    </div>
+                    <div class="page-card rounded-3xl border border-[#034485]/30 bg-[#eef4fb] p-4 text-slate-800 shadow-[0_18px_36px_-30px_rgba(3,68,133,0.26)]">
+                        <div class="flex items-start justify-between gap-3">
+                            <p class="text-xs uppercase tracking-wide text-[#034485]">Assistant Coach</p>
                             <span
                                 v-if="isCurrentCoach(props.team.assistantCoach)"
-                                class="inline-flex items-center rounded-full border border-white/30 bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white"
+                                class="inline-flex items-center rounded-full border border-[#034485]/20 bg-[#034485]/8 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#034485]"
                             >
                                 You
                             </span>
                         </div>
-                        <div class="mt-3 flex items-center gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-white/15 text-sm font-bold text-white">
+                        <div v-if="props.team.assistantCoach" class="mt-3 flex items-center gap-3">
+                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-white text-sm font-bold text-[#034485] shadow-sm">
                                 <img
                                     v-if="props.team.assistantCoach?.user?.avatar"
                                     :src="coachAvatarUrl(props.team.assistantCoach)"
@@ -371,15 +430,62 @@ function printTeamRoster() {
                                 <span v-else>{{ initialsFromParts(props.team.assistantCoach?.first_name, props.team.assistantCoach?.last_name) }}</span>
                             </div>
                             <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold text-white">
+                                <p class="truncate text-sm font-semibold text-slate-900">
                                     {{ props.team.assistantCoach?.first_name }} {{ props.team.assistantCoach?.last_name }}
                                 </p>
-                                <p class="mt-1 text-xs text-white/75">
-                                    {{ props.team.assistantCoach?.user?.email || 'No assistant coach assigned' }}
+                                <p class="mt-1 text-xs text-slate-600">
+                                    {{ props.team.assistantCoach?.email || props.team.assistantCoach?.phone_number || 'Contact available below' }}
                                 </p>
                             </div>
                         </div>
-                    </article>
+                        <p v-else class="mt-3 text-sm font-medium text-slate-400">Not assigned</p>
+                        <div v-if="props.team.assistantCoach" class="mt-3 space-y-2 text-xs">
+                            <div
+                                v-if="props.team.assistantCoach?.email"
+                                class="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#034485]/15 bg-white px-3 py-2"
+                            >
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Email</p>
+                                    <p class="truncate text-sm font-medium text-slate-700">{{ props.team.assistantCoach.email }}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="copyToClipboard(props.team.assistantCoach.email, 'assistant-email')"
+                                    class="inline-flex items-center gap-1 rounded-full border border-[#034485]/30 px-2.5 py-1 text-[11px] font-semibold text-[#034485] hover:bg-[#034485]/10"
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor">
+                                        <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z" />
+                                    </svg>
+                                    <span>{{ copiedField === 'assistant-email' ? 'Copied' : 'Copy' }}</span>
+                                </button>
+                            </div>
+                            <div
+                                v-if="props.team.assistantCoach?.phone_number"
+                                class="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#034485]/15 bg-white px-3 py-2"
+                            >
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-semibold uppercase tracking-wide text-[#034485]">Phone</p>
+                                    <p class="text-sm font-medium text-slate-700">{{ props.team.assistantCoach.phone_number }}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="copyToClipboard(props.team.assistantCoach.phone_number, 'assistant-phone')"
+                                    class="inline-flex items-center gap-1 rounded-full border border-[#034485]/30 px-2.5 py-1 text-[11px] font-semibold text-[#034485] hover:bg-[#034485]/10"
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor">
+                                        <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10ZM19 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H10V7h9Z" />
+                                    </svg>
+                                    <span>{{ copiedField === 'assistant-phone' ? 'Copied' : 'Copy' }}</span>
+                                </button>
+                            </div>
+                            <span
+                                v-if="!props.team.assistantCoach?.email && !props.team.assistantCoach?.phone_number"
+                                class="text-slate-400"
+                            >
+                                Contact the administrator for assistance
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -388,7 +494,7 @@ function printTeamRoster() {
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                <article v-for="player in filteredPlayers" :key="player.id" class="page-card rounded-2xl border border-[#034485]/35 bg-[#f7fbff] p-4 shadow-[0_16px_34px_-28px_rgba(3,68,133,0.35)]">
+                <article v-for="player in filteredPlayers" :key="player.id" class="page-card rounded-2xl border border-[#034485]/30 bg-[#eef4fb] p-4 shadow-[0_16px_34px_-28px_rgba(3,68,133,0.24)]">
                     <div class="pointer-events-none -mx-4 -mt-4 mb-4 h-12 rounded-t-2xl bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/90"></div>
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex min-w-0 items-start gap-3">

@@ -1446,10 +1446,10 @@ watch(
                                 <h4 class="mt-1 text-base font-semibold text-slate-900">Attendance Response Overview</h4>
                                 <p class="mt-1 text-xs text-slate-600">View attendance behavior as a stacked comparison or a trend line across the selected dashboard period.</p>
                             </div>
-                            <div class="flex gap-2">
+                            <div class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
                                 <button
                                     type="button"
-                                    class="rounded-full px-3 py-1 text-xs font-medium"
+                                    class="w-full rounded-full px-3 py-2 text-center text-xs font-medium sm:w-auto sm:py-1"
                                     :class="attendanceChartMode === 'stacked' ? 'bg-[#034485] text-white' : 'bg-slate-100 text-slate-700'"
                                     @click="attendanceChartMode = 'stacked'"
                                 >
@@ -1457,7 +1457,7 @@ watch(
                                 </button>
                                 <button
                                     type="button"
-                                    class="rounded-full px-3 py-1 text-xs font-medium"
+                                    class="w-full rounded-full px-3 py-2 text-center text-xs font-medium sm:w-auto sm:py-1"
                                     :class="attendanceChartMode === 'line' ? 'bg-[#034485] text-white' : 'bg-slate-100 text-slate-700'"
                                     @click="attendanceChartMode = 'line'"
                                 >

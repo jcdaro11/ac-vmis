@@ -261,8 +261,9 @@ function handleAvatarError() {
 }
 
 .menu-item-danger:hover {
-  background: #fff1f2;
-  border-color: #fda4af;
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
 }
 
 .menu-item-danger-dark {
@@ -272,9 +273,9 @@ function handleAvatarError() {
 }
 
 .menu-item-danger-dark:hover {
-  background: rgba(127, 29, 29, 0.42);
-  border-color: rgba(251, 113, 133, 0.52);
-  color: #fecdd3;
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #ffffff;
 }
 
 :global(html.theme-dark) .account-card-light,
@@ -323,8 +324,8 @@ function handleAvatarError() {
 
 :global(html.theme-dark) .menu-item-danger:hover,
 :global(html[data-theme='dark']) .menu-item-danger:hover {
-  background: rgba(127, 29, 29, 0.42);
-  border-color: rgba(251, 113, 133, 0.52);
-  color: #fecdd3;
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #ffffff;
 }
 </style>
