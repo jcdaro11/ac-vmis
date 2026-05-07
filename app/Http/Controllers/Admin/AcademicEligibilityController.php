@@ -306,6 +306,7 @@ class AcademicEligibilityController extends Controller
                 'd.id as document_id',
                 'd.student_id',
                 's.student_id_number',
+                's.current_grade_level',
                 'su.first_name',
                 'su.last_name',
                 'dt.code as document_type',
@@ -357,13 +358,17 @@ class AcademicEligibilityController extends Controller
                     'student_id' => (int) $row->student_id,
                     'student_name' => trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? '')),
                     'student_id_number' => $row->student_id_number,
+                    'student_education_level' => $this->educationLevelFromGradeLevel($row->current_grade_level),
                     'team_id' => $row->team_id ? (int) $row->team_id : null,
                     'team_name' => $row->team_name,
                     'document_type' => $row->document_type,
                     'uploaded_at' => $row->uploaded_at,
                     'notes' => $row->notes,
                     'file_url' => $row->document_id ? route('files.academic', $row->document_id) : null,
-                    'ocr' => $this->ocrPayload($document?->latestOcrRun),
+                    'ocr' => $this->ocrPayload(
+                        $document?->latestOcrRun,
+                        $this->educationLevelFromGradeLevel($row->current_grade_level)
+                    ),
                     'period' => $row->period_id ? [
                         'id' => (int) $row->period_id,
                         'school_year' => $row->school_year,
@@ -788,7 +793,7 @@ class AcademicEligibilityController extends Controller
             ->value('id');
     }
 
-    private function ocrPayload($ocrRun): ?array
+    private function ocrPayload($ocrRun, ?string $educationLevel = null): ?array
     {
         if (!$ocrRun) {
             return null;
@@ -796,7 +801,8 @@ class AcademicEligibilityController extends Controller
 
         $summary = $ocrRun->parsedSummary;
         $interpretation = AcademicEligibilityEvaluation::interpretGrade(
-            $summary && $summary->gwa !== null ? (float) $summary->gwa : null
+            $summary && $summary->gwa !== null ? (float) $summary->gwa : null,
+            $educationLevel
         );
 
         return [
@@ -827,6 +833,18 @@ class AcademicEligibilityController extends Controller
                 'label' => $interpretation['interpretation_label'],
             ],
         ];
+    }
+
+    private function educationLevelFromGradeLevel(?string $gradeLevel): ?string
+    {
+        $raw = trim((string) ($gradeLevel ?? ''));
+        if ($raw === '') {
+            return null;
+        }
+
+        $numeric = (int) preg_replace('/[^0-9]/', '', $raw);
+
+        return $numeric >= 11 ? 'Senior High' : 'College';
     }
 
     private function applyRecordsFilters($query, array $filters, string $documentAlias, string $studentAlias, string $evaluationAlias, string $studentUserAlias): void

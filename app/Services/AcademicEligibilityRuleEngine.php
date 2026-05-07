@@ -23,7 +23,10 @@ class AcademicEligibilityRuleEngine
         }
 
         $grade = (float) $summary->gwa;
-        $interpretation = AcademicEligibilityEvaluation::interpretGrade($grade);
+        $interpretation = AcademicEligibilityEvaluation::interpretGrade(
+            $grade,
+            $document->student?->education_level
+        );
 
         return DB::transaction(function () use ($document, $ocrRun, $grade, $interpretation) {
             $evaluation = AcademicEligibilityEvaluation::query()->updateOrCreate(

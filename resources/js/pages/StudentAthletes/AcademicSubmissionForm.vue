@@ -153,7 +153,7 @@ function submit() {
             </div>
             <p class="text-xs text-slate-500">Choose the academic period and upload your latest grade document.</p>
             <p class="text-xs text-slate-500">
-              Grade reports are automatically scanned to extract the GPA or general weighted average from the document.
+              Grade reports are automatically scanned to extract the academic result from the document.
             </p>
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
               <select v-model="academicPeriodId" class="bg-white border border-[#034485]/35 rounded-lg px-2 py-2 text-slate-700">

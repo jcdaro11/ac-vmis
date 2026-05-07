@@ -83,6 +83,9 @@ const page = usePage()
 const academicAccess = computed(() => (page.props.auth as any)?.academic_access ?? null)
 const isAcademicallyRestricted = computed(() => Boolean(academicAccess.value?.is_restricted))
 const restrictionEvaluation = computed(() => academicAccess.value?.evaluation ?? null)
+const studentMetricLabel = computed(() =>
+    String(props.student?.current_grade_level ?? '').match(/^(11|12)$/) ? 'GWA' : 'GPA'
+)
 
 const isSubmissionModalOpen = ref(false)
 const activePeriodId = ref<number | null>(null)
@@ -341,6 +344,10 @@ function selectedResultValue(row: Submission | null) {
     return row.evaluation?.gpa ?? row.ocr?.parsed_summary?.gwa ?? '-'
 }
 
+function metricWithFallback() {
+    return studentMetricLabel.value || 'Academic Result'
+}
+
 function selectedResultLabel(row: Submission | null) {
     if (!row) return 'Pending Review'
     return row.evaluation?.status
@@ -460,7 +467,7 @@ function cardMotion(order: number) {
                                 <span class="text-right font-medium text-slate-800">{{ restrictionEvaluation?.period_label ?? latestEvaluated?.period_label ?? '-' }}</span>
                             </div>
                             <div class="flex items-center justify-between gap-3">
-                                <span>GPA</span>
+                                <span>{{ metricWithFallback() }}</span>
                                 <span class="font-medium text-slate-800">{{ restrictionEvaluation?.gpa ?? latestEvaluated?.evaluation?.gpa ?? '-' }}</span>
                             </div>
                             <div class="flex items-start justify-between gap-3">
@@ -521,7 +528,7 @@ function cardMotion(order: number) {
                                 <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Evaluation Result</p>
                                 <p class="mt-2 text-lg font-semibold text-slate-900">{{ summaryStatusLabel(latestSubmission) }}</p>
                                 <p class="mt-1 text-xs text-slate-500">
-                                    GPA / Average: <span class="font-semibold text-slate-700">{{ selectedResultValue(latestSubmission) }}</span>
+                                    {{ metricWithFallback() }}: <span class="font-semibold text-slate-700">{{ selectedResultValue(latestSubmission) }}</span>
                                 </p>
                                 <p class="mt-3 text-xs text-slate-600">
                                     {{ latestSubmission.evaluation?.remarks || latestSubmission.ocr?.validation?.summary || 'Your submission is waiting for the final evaluation result.' }}
@@ -636,7 +643,7 @@ function cardMotion(order: number) {
                         <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Evaluation Result</p>
                         <p class="mt-2 text-lg font-semibold text-slate-900">{{ summaryStatusLabel(resultSubmission) }}</p>
                         <p class="mt-1 text-xs text-slate-500">
-                            GPA / Average: <span class="font-semibold text-slate-700">{{ selectedResultValue(resultSubmission) }}</span>
+                            {{ metricWithFallback() }}: <span class="font-semibold text-slate-700">{{ selectedResultValue(resultSubmission) }}</span>
                         </p>
                         <p class="mt-3 text-xs text-slate-600">
                             {{ resultSubmission.evaluation?.remarks || resultSubmission.ocr?.validation?.summary || 'Your submission is waiting for the final evaluation result.' }}
@@ -744,7 +751,7 @@ function cardMotion(order: number) {
                         <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
                             <p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Evaluation Result</p>
                             <div class="mt-2">Status: <span class="font-semibold text-slate-700">{{ summaryStatusLabel(row) }}</span></div>
-                            <div class="mt-1">GPA / Average: <span class="font-semibold text-slate-700">{{ selectedResultValue(row) }}</span></div>
+                            <div class="mt-1">{{ metricWithFallback() }}: <span class="font-semibold text-slate-700">{{ selectedResultValue(row) }}</span></div>
                             <div class="mt-1">{{ row.evaluation?.remarks || row.ocr?.validation?.summary || 'Waiting for evaluation remarks.' }}</div>
                         </div>
                         <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
@@ -795,7 +802,7 @@ function cardMotion(order: number) {
                             <td class="px-3 py-3">
                                 <div class="space-y-1 text-xs text-slate-500">
                                     <div>Status: <span class="font-semibold text-slate-700">{{ summaryStatusLabel(row) }}</span></div>
-                                    <div>GPA / Average: <span class="font-semibold text-slate-700">{{ selectedResultValue(row) }}</span></div>
+                                    <div>{{ metricWithFallback() }}: <span class="font-semibold text-slate-700">{{ selectedResultValue(row) }}</span></div>
                                     <div>
                                         <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold" :class="validationPill(row.ocr?.validation?.status)">
                                             {{ validationLabel(row.ocr?.validation?.status) }}
@@ -852,7 +859,7 @@ function cardMotion(order: number) {
                         <div class="rounded-3xl border border-[#034485]/15 bg-[#034485]/5 p-4 text-sm text-slate-600">
                             <p class="font-semibold text-slate-800">Instructions</p>
                             <p class="mt-1">
-                                Upload your latest grade report for this active academic period. The system will scan the document automatically and return the extracted GPA or general average after processing.
+                                Upload your latest grade report for this active academic period. The system will scan the document automatically and return the extracted {{ metricWithFallback() }} after processing.
                             </p>
                         </div>
 
@@ -878,7 +885,7 @@ function cardMotion(order: number) {
                                         </svg>
                                     </div>
                                     <p class="text-sm font-semibold text-slate-900">{{ file ? 'Replace selected document' : 'Click to upload a PDF, PNG, or JPG' }}</p>
-                                    <p class="text-xs text-slate-500">Clear image scans work best for automatic GPA extraction.</p>
+                                    <p class="text-xs text-slate-500">Clear image scans work best for automatic {{ metricWithFallback() }} extraction.</p>
                                 </div>
                             </label>
                         </div>

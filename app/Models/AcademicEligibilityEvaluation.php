@@ -67,9 +67,9 @@ class AcademicEligibilityEvaluation extends Model
         return self::$hasLegacyStatusColumn;
     }
 
-    public static function statusForGpa(?float $gpa): ?string
+    public static function statusForGpa(?float $gpa, ?string $expectedEducationLevel = null): ?string
     {
-        return self::interpretGrade($gpa)['status'];
+        return self::interpretGrade($gpa, $expectedEducationLevel)['status'];
     }
 
     public static function statusCaseSql(string $alias = 'e'): string
@@ -95,24 +95,26 @@ class AcademicEligibilityEvaluation extends Model
      *     review_required: bool
      * }
      */
-    public static function interpretGrade(?float $grade): array
+    public static function interpretGrade(?float $grade, ?string $expectedEducationLevel = null): array
     {
+        $expectedScale = self::expectedScaleForEducationLevel($expectedEducationLevel);
+
         if ($grade === null) {
             return [
-                'scale' => self::SCALE_UNKNOWN,
-                'value_label' => 'Grade',
+                'scale' => $expectedScale ?? self::SCALE_UNKNOWN,
+                'value_label' => self::valueLabelForScale($expectedScale),
                 'status' => null,
                 'interpretation_label' => 'Pending review',
                 'review_required' => true,
             ];
         }
 
-        $scale = self::detectGradingScale($grade);
+        $scale = $expectedScale ?? self::detectGradingScale($grade);
 
         if ($scale === self::SCALE_BASIC_EDUCATION) {
             return [
                 'scale' => $scale,
-                'value_label' => 'Average',
+                'value_label' => self::valueLabelForScale($scale),
                 'status' => $grade >= 75 ? 'eligible' : 'ineligible',
                 'interpretation_label' => $grade >= 75 ? 'Eligible' : 'Ineligible',
                 'review_required' => false,
@@ -123,7 +125,7 @@ class AcademicEligibilityEvaluation extends Model
             if ($grade <= 3.0) {
                 return [
                     'scale' => $scale,
-                    'value_label' => 'GPA',
+                    'value_label' => self::valueLabelForScale($scale),
                     'status' => 'eligible',
                     'interpretation_label' => 'Eligible',
                     'review_required' => false,
@@ -133,7 +135,7 @@ class AcademicEligibilityEvaluation extends Model
             if ($grade >= 5.0) {
                 return [
                     'scale' => $scale,
-                    'value_label' => 'GPA',
+                    'value_label' => self::valueLabelForScale($scale),
                     'status' => 'ineligible',
                     'interpretation_label' => 'Ineligible',
                     'review_required' => false,
@@ -142,7 +144,7 @@ class AcademicEligibilityEvaluation extends Model
 
             return [
                 'scale' => $scale,
-                'value_label' => 'GPA',
+                'value_label' => self::valueLabelForScale($scale),
                 'status' => 'pending_review',
                 'interpretation_label' => 'Pending Review',
                 'review_required' => true,
@@ -151,11 +153,31 @@ class AcademicEligibilityEvaluation extends Model
 
         return [
             'scale' => self::SCALE_UNKNOWN,
-            'value_label' => 'Grade',
+            'value_label' => self::valueLabelForScale(null),
             'status' => 'pending_review',
             'interpretation_label' => 'Pending Review',
             'review_required' => true,
         ];
+    }
+
+    public static function expectedScaleForEducationLevel(?string $educationLevel): ?string
+    {
+        $normalized = mb_strtolower(trim((string) $educationLevel));
+
+        return match ($normalized) {
+            'senior high', 'senior_high', 'shs' => self::SCALE_BASIC_EDUCATION,
+            'college', 'higher education', 'higher_education' => self::SCALE_HIGHER_EDUCATION,
+            default => null,
+        };
+    }
+
+    public static function valueLabelForScale(?string $scale): string
+    {
+        return match ($scale) {
+            self::SCALE_BASIC_EDUCATION => 'GWA',
+            self::SCALE_HIGHER_EDUCATION => 'GPA',
+            default => 'Academic Result',
+        };
     }
 
     public static function detectGradingScale(?float $grade): string

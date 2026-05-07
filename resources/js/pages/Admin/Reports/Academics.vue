@@ -111,7 +111,7 @@ function resetFilters() {
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-slate-900">Academic Submission Report</h1>
-                    <p class="text-sm text-slate-600">Track document submissions, academic evaluation status, and GPA context for varsity monitoring.</p>
+                    <p class="text-sm text-slate-600">Track document submissions, academic evaluation status, and academic result context for varsity monitoring.</p>
                 </div>
 
                 <div class="flex flex-wrap gap-2">
@@ -225,7 +225,7 @@ function resetFilters() {
                             <th class="px-5 py-4">Document</th>
                             <th class="px-5 py-4">Uploaded</th>
                             <th class="px-5 py-4">Status</th>
-                            <th class="px-5 py-4">GPA</th>
+                            <th class="px-5 py-4">Academic Result</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">

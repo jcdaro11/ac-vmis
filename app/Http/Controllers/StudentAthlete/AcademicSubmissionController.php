@@ -126,7 +126,7 @@ class AcademicSubmissionController extends Controller
                     'can_submit' => !$isEligible,
                 ];
             }),
-            'submissions' => $submissions->map(function ($doc) use ($evalByPeriod) {
+            'submissions' => $submissions->map(function ($doc) use ($evalByPeriod, $student) {
                 $evaluation = $doc->academic_period_id ? $evalByPeriod->get($doc->academic_period_id) : null;
                 return [
                     'id' => $doc->id,
@@ -138,7 +138,7 @@ class AcademicSubmissionController extends Controller
                     'file_url' => $doc->id ? route('files.academic', $doc->id) : null,
                     'uploaded_at' => optional($doc->uploaded_at)->toDateTimeString(),
                     'notes' => $doc->notes,
-                    'ocr' => $this->ocrPayload($doc->latestOcrRun),
+                    'ocr' => $this->ocrPayload($doc->latestOcrRun, $student->education_level),
                     'evaluation' => $evaluation ? [
                         'gpa' => $evaluation->gpa,
                         'status' => $evaluation->status,
@@ -326,7 +326,7 @@ class AcademicSubmissionController extends Controller
             ];
         })->values();
 
-        $submissionRows = $submissions->map(function ($doc) use ($evalByPeriod) {
+        $submissionRows = $submissions->map(function ($doc) use ($evalByPeriod, $student) {
             $evaluation = $doc->academic_period_id ? $evalByPeriod->get($doc->academic_period_id) : null;
 
             return [
@@ -337,6 +337,9 @@ class AcademicSubmissionController extends Controller
                 'uploaded_at' => optional($doc->uploaded_at)->format('M j, Y g:i A'),
                 'status' => $evaluation?->status,
                 'gpa' => $evaluation?->gpa,
+                'value_label' => AcademicEligibilityEvaluation::valueLabelForScale(
+                    AcademicEligibilityEvaluation::expectedScaleForEducationLevel($student->education_level)
+                ),
                 'extracted_gpa' => $doc->latestOcrRun?->parsedSummary?->gwa !== null
                     ? (float) $doc->latestOcrRun?->parsedSummary?->gwa
                     : null,
@@ -349,6 +352,7 @@ class AcademicSubmissionController extends Controller
             'student' => [
                 'name' => trim(($student->first_name ?? '') . ' ' . ($student->last_name ?? '')),
                 'student_id_number' => $student->student_id_number,
+                'education_level' => $student->education_level,
             ],
             'periods' => $periods,
             'submissions' => $submissionRows,
@@ -356,7 +360,7 @@ class AcademicSubmissionController extends Controller
         ]);
     }
 
-    private function ocrPayload($ocrRun): ?array
+    private function ocrPayload($ocrRun, ?string $educationLevel = null): ?array
     {
         if (!$ocrRun || !$this->academicOcrTablesReady()) {
             return null;
@@ -364,7 +368,8 @@ class AcademicSubmissionController extends Controller
 
         $summary = $this->academicParsedSummariesReady() ? $ocrRun->parsedSummary : null;
         $interpretation = AcademicEligibilityEvaluation::interpretGrade(
-            $summary && $summary->gwa !== null ? (float) $summary->gwa : null
+            $summary && $summary->gwa !== null ? (float) $summary->gwa : null,
+            $educationLevel
         );
 
         return [

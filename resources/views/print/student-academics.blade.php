@@ -5,6 +5,7 @@
 @section('meta')
     <div>Student: {{ $student['name'] }}</div>
     <div>Student ID: {{ $student['student_id_number'] ?? '-' }}</div>
+    <div>Academic Level: {{ $student['education_level'] ?? '-' }}</div>
     <div>Generated: {{ $generatedAt }}</div>
 @endsection
 
@@ -41,7 +42,7 @@
                 <th>Document</th>
                 <th>Uploaded</th>
                 <th>Status</th>
-                <th>GPA</th>
+                <th>Academic Result</th>
                 <th>Remarks</th>
             </tr>
         </thead>
@@ -52,7 +53,7 @@
                     <td>{{ $row['document_type'] }}</td>
                     <td class="nowrap">{{ $row['uploaded_at'] ?? '-' }}</td>
                     <td>{{ $row['status'] ?? 'Pending' }}</td>
-                    <td>{{ $row['gpa'] ?? '-' }}</td>
+                    <td>{{ $row['value_label'] ?? 'Academic Result' }}: {{ $row['gpa'] ?? '-' }}</td>
                     <td>{{ $row['remarks'] ?? '-' }}</td>
                 </tr>
             @empty

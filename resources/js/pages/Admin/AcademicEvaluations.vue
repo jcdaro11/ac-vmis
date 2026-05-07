@@ -52,6 +52,7 @@ type SubmissionRow = {
     student_id: number
     student_name: string
     student_id_number: string | null
+    student_education_level: string | null
     team_id: number | null
     team_name: string | null
     document_type: string
@@ -177,14 +178,26 @@ function scaleLabel(scale: string | null | undefined) {
     return 'Unknown scale'
 }
 
-function previewFinalStatus(value: string) {
+function isSeniorHigh(level: string | null | undefined) {
+    return String(level ?? '').toLowerCase() === 'senior high'
+}
+
+function metricLabel(row: SubmissionRow | null | undefined) {
+    return isSeniorHigh(row?.student_education_level) ? 'GWA' : 'GPA'
+}
+
+function previewFinalStatus(value: string, row: SubmissionRow | null | undefined) {
     if (value === '') return 'Pending'
 
     const numericValue = Number(value)
     if (Number.isNaN(numericValue)) return 'Pending'
-    if (numericValue >= 75 && numericValue <= 100) return 'Eligible'
+    if (isSeniorHigh(row?.student_education_level)) {
+        if (numericValue >= 75 && numericValue <= 100) return 'Eligible'
+        if (numericValue >= 0 && numericValue < 75) return 'Ineligible'
+        return 'Pending Review'
+    }
     if (numericValue >= 1 && numericValue <= 3) return 'Eligible'
-    if (numericValue >= 5 || (numericValue >= 0 && numericValue < 75)) return 'Ineligible'
+    if (numericValue >= 5) return 'Ineligible'
     return 'Pending Review'
 }
 
@@ -382,7 +395,7 @@ onMounted(() => {
                                 <div class="grid gap-1 text-xs text-slate-600">
                                     <div>Uploaded: <span class="font-semibold text-slate-800">{{ formatDateTime(row.uploaded_at) }}</span></div>
                                     <div>Document: <span class="font-semibold text-slate-800">{{ row.document_type }}</span></div>
-                                    <div>Detected GPA / Average: <span class="font-semibold text-slate-800">{{ row.ocr?.parsed_summary?.gwa ?? '-' }}</span></div>
+                                    <div>Detected {{ metricLabel(row) }}: <span class="font-semibold text-slate-800">{{ row.ocr?.parsed_summary?.gwa ?? '-' }}</span></div>
                                 </div>
                             </div>
                             <button
@@ -467,7 +480,7 @@ onMounted(() => {
                                     </span>
                                 </div>
                                 <div class="flex items-center justify-between gap-3">
-                                    <span>GPA / Average</span>
+                                    <span>{{ metricLabel(selectedRow) }}</span>
                                     <span class="font-medium text-slate-800">{{ selectedRow.evaluation?.gpa ?? selectedRow.ocr?.parsed_summary?.gwa ?? '-' }}</span>
                                 </div>
                                 <div class="flex items-start justify-between gap-3">
@@ -491,7 +504,7 @@ onMounted(() => {
                         </div>
                         <div class="mt-3 grid gap-3 md:grid-cols-2">
                             <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-600">
-                                <div>Extracted GPA / Average: <span class="font-semibold text-slate-800">{{ selectedRow.ocr?.parsed_summary?.gwa ?? '-' }}</span></div>
+                                <div>Extracted {{ metricLabel(selectedRow) }}: <span class="font-semibold text-slate-800">{{ selectedRow.ocr?.parsed_summary?.gwa ?? '-' }}</span></div>
                                 <div class="mt-1">Detected scale: <span class="font-semibold text-slate-800">{{ scaleLabel(selectedRow.ocr?.interpretation?.scale) }}</span></div>
                                 <div class="mt-1">Interpretation: <span class="font-semibold text-slate-800">{{ selectedRow.ocr?.interpretation?.label || '-' }}</span></div>
                             </div>
@@ -523,7 +536,7 @@ onMounted(() => {
                         </div>
                         <div class="mt-4 grid gap-4 md:grid-cols-2">
                             <label class="space-y-2">
-                                <span class="text-sm font-medium text-slate-700">GPA / General Average</span>
+                                <span class="text-sm font-medium text-slate-700">{{ metricLabel(selectedRow) }}</span>
                                 <input
                                     v-model="evaluationForm.gpa"
                                     type="number"
@@ -545,7 +558,7 @@ onMounted(() => {
                                     <option value="ineligible">Ineligible</option>
                                 </select>
                                 <p class="text-xs text-slate-500">
-                                    {{ evaluationForm.status ? `Selected: ${statusLabel(evaluationForm.status)}` : `Computed: ${previewFinalStatus(evaluationForm.gpa)}` }}
+                                    {{ evaluationForm.status ? `Selected: ${statusLabel(evaluationForm.status)}` : `Computed: ${previewFinalStatus(evaluationForm.gpa, selectedRow)}` }}
                                 </p>
                             </label>
                         </div>
