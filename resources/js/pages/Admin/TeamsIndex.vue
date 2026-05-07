@@ -255,28 +255,6 @@ function markRequestRead(id: number) {
     router.put(`/announcements/${id}/read`, {}, { preserveScroll: true })
 }
 
-function approveRequest(id: number) {
-    router.post(`/teams/requests/${id}/approve`, {}, {
-        preserveScroll: true,
-        onError: () => {
-            showAppToast('Unable to approve the team change request.', 'error', {
-                summary: 'Team Change Request',
-            })
-        },
-    })
-}
-
-function rejectRequest(id: number) {
-    router.post(`/teams/requests/${id}/reject`, {}, {
-        preserveScroll: true,
-        onError: () => {
-            showAppToast('Unable to reject the team change request.', 'error', {
-                summary: 'Team Change Request',
-            })
-        },
-    })
-}
-
 function parseRequestMessage(message: string) {
     const lines = String(message ?? '').split('\n').map((line) => line.trim()).filter(Boolean)
     const data = {
@@ -297,13 +275,6 @@ function parseRequestMessage(message: string) {
     }
 
     return data
-}
-
-function searchTeamFromRequest(teamName: string) {
-    if (!teamName) return
-    filters.search = teamName
-    showFilters.value = false
-    reload()
 }
 
 function formatTimestamp(value: string | null) {
@@ -444,35 +415,13 @@ function formatTimestamp(value: string | null) {
                             </p>
                         </div>
 
-                        <div class="mt-3 flex flex-wrap gap-2">
+                        <div v-if="!req.is_read" class="mt-3 flex flex-wrap gap-2">
                             <button
-                                type="button"
-                                class="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700"
-                                @click="approveRequest(req.id)"
-                            >
-                                Approve
-                            </button>
-                            <button
-                                type="button"
-                                class="rounded-md border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700"
-                                @click="rejectRequest(req.id)"
-                            >
-                                Reject
-                            </button>
-                            <button
-                                type="button"
-                                class="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700"
-                                @click="searchTeamFromRequest(parseRequestMessage(req.message).team)"
-                            >
-                                Find Team
-                            </button>
-                            <button
-                                v-if="!req.is_read"
                                 type="button"
                                 class="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700"
                                 @click="markRequestRead(req.id)"
                             >
-                                Mark Read
+                                Mark as Read
                             </button>
                         </div>
                     </article>
