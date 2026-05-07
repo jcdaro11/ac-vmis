@@ -936,7 +936,7 @@ watch(mobileMenuOpen, (open) => {
                             </div>
                         </section>
 
-                        <section class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                        <section>
                             <div class="dashboard-card surface-card ui-surface p-5" :style="cardMotion(12)">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
@@ -961,27 +961,6 @@ watch(mobileMenuOpen, (open) => {
                                     />
                                 </div>
                             </div>
-
-                            <div class="dashboard-card surface-card ui-surface p-5" :style="cardMotion(13)">
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <div>
-                                        <h3 class="text-sm font-bold uppercase tracking-wide text-[#034485]">Status Summary</h3>
-                                        <p class="mt-1 text-sm text-slate-500">Your current academics and submission standing.</p>
-                                    </div>
-                                </div>
-
-                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                                    <div class="surface-inset p-3">
-                                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Academic Standing</p>
-                                        <p class="mt-1 text-lg font-semibold text-slate-900">{{ academicStatusLabel }}</p>
-                                    </div>
-                                    <div class="surface-inset p-3">
-                                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Submission Progress</p>
-                                        <p class="mt-1 text-lg font-semibold text-[#034485]">{{ submissionProgress }}%</p>
-                                        <p class="mt-1 text-xs text-slate-500">{{ academicSubmissions.submitted }} of {{ submissionTotal || 0 }} requirements completed.</p>
-                                    </div>
-                                </div>
-                            </div>
                         </section>
 
                         <section class="grid gap-4 lg:grid-cols-2">
@@ -989,10 +968,10 @@ watch(mobileMenuOpen, (open) => {
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <h3 class="text-sm font-bold uppercase tracking-wide text-[#034485]">Action Needed</h3>
                                     <span
-                                        class="section-chip px-2.5 py-1 text-[11px] font-semibold"
-                                        :class="hasActionItems ? 'bg-[#034485] text-white' : 'bg-[color:var(--color-brand-light)] text-[#034485]'"
+                                        v-if="!hasActionItems"
+                                        class="section-chip bg-[color:var(--color-brand-light)] px-2.5 py-1 text-[11px] font-semibold text-[#034485]"
                                     >
-                                        {{ hasActionItems ? 'Action Required' : 'Up to Date' }}
+                                        Up to Date
                                     </span>
                                 </div>
 

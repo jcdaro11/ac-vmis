@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import { showAppToast } from '@/composables/useAppToast';
 import { useSportColors } from '@/composables/useSportColors';
@@ -53,6 +53,8 @@ const jerseyDirty = computed(() => {
 const detailsOpen = ref(false)
 const selectedPlayer = ref<any | null>(null)
 const selectedStudent = computed(() => selectedPlayer.value?.student ?? null)
+let restoreBodyOverflow: string | null = null
+let restoreHtmlOverflow: string | null = null
 
 function openDetails(player: any) {
     selectedPlayer.value = player
@@ -63,9 +65,26 @@ function closeDetails() {
     detailsOpen.value = false
 }
 
-function finishDetailsClose() {
-    selectedPlayer.value = null
-}
+watch(detailsOpen, (open) => {
+    if (typeof document === 'undefined') return
+
+    if (open) {
+        restoreBodyOverflow = document.body.style.overflow
+        restoreHtmlOverflow = document.documentElement.style.overflow
+        document.body.style.overflow = 'hidden'
+        document.documentElement.style.overflow = 'hidden'
+        return
+    }
+
+    document.body.style.overflow = restoreBodyOverflow ?? ''
+    document.documentElement.style.overflow = restoreHtmlOverflow ?? ''
+})
+
+onBeforeUnmount(() => {
+    if (typeof document === 'undefined') return
+    document.body.style.overflow = restoreBodyOverflow ?? ''
+    document.documentElement.style.overflow = restoreHtmlOverflow ?? ''
+})
 
 watch(
     myMembership,
@@ -153,14 +172,24 @@ function changeTeam() {
     })
 }
 
-function copyToClipboard(value: string | null | undefined, key: string) {
-    if (!value) return
-    navigator.clipboard?.writeText(value).then(() => {
-        copiedField.value = key
-        setTimeout(() => {
-            if (copiedField.value === key) copiedField.value = null
-        }, 1500)
-    }).catch(() => {})
+async function copyToClipboard(value?: string | number | null, key?: string) {
+    const text = formatSimple(value)
+    if (text === '-') return
+    try {
+        await navigator.clipboard.writeText(text)
+        copiedField.value = key ?? text
+        window.setTimeout(() => {
+            if (copiedField.value === (key ?? text)) copiedField.value = null
+        }, 1200)
+    } catch {
+        // silent fail
+    }
+}
+
+function formatSimple(value?: string | number | null) {
+    if (value === null || value === undefined) return '-'
+    const text = String(value).trim()
+    return text === '' ? '-' : text
 }
 
 function statusTone(status?: string | null) {
@@ -171,10 +200,10 @@ function statusTone(status?: string | null) {
 }
 
 function formatMeasure(value?: string | number | null, unit?: string) {
-    if (value === null || value === undefined) return '-'
-    const text = String(value).trim()
-    if (!text) return '-'
-    if (!unit || /[a-zA-Z]/.test(text)) return text
+    const text = formatSimple(value)
+    if (text === '-') return text
+    if (!unit) return text
+    if (/[a-zA-Z]/.test(text)) return text
     return `${text} ${unit}`
 }
 
@@ -246,11 +275,6 @@ function cardMotion(order: number) {
                         </div>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 border-t border-white/14 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
-                        <span class="inline-flex w-fit items-center rounded-full border border-white/18 bg-[#0a4f96]/55 px-3 py-1 text-xs font-semibold text-white/90">
-                            Student-Athlete View
-                        </span>
-                    </div>
                 </div>
 
                 <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -549,10 +573,11 @@ function cardMotion(order: number) {
             </section>
         </div>
 
-        <transition name="athlete-modal" @after-leave="finishDetailsClose">
-            <div v-if="detailsOpen && selectedPlayer" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 px-4 py-6" @click.self="closeDetails">
-                <div class="flex min-h-full items-center justify-center">
-                <div class="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[#034485]/35 bg-white shadow-[0_28px_70px_-34px_rgba(2,12,27,0.45)]">
+        <Teleport to="body">
+        <transition name="athlete-modal">
+            <div v-if="detailsOpen" class="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 px-4 py-6 backdrop-blur-sm">
+                <div class="flex min-h-full items-center justify-center" @click="closeDetails">
+                <div class="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[#034485]/35 bg-white shadow-[0_28px_70px_-34px_rgba(2,12,27,0.45)]" @click.stop>
                 <div class="rounded-t-3xl bg-[#034485] px-6 py-5 text-white sm:px-8">
                     <p class="text-xs font-semibold uppercase tracking-wide text-white/75">Player Details</p>
                     <h3 class="mt-1 text-2xl font-bold text-white">
@@ -711,6 +736,7 @@ function cardMotion(order: number) {
                 </div>
             </div>
         </transition>
+        </Teleport>
     </div>
 </template>
 
@@ -737,17 +763,17 @@ function cardMotion(order: number) {
 
 .athlete-modal-enter-active,
 .athlete-modal-leave-active {
-    transition: opacity 220ms ease, transform 220ms ease;
+    transition: opacity 180ms ease, transform 180ms ease;
 }
-
 .athlete-modal-enter-from,
 .athlete-modal-leave-to {
     opacity: 0;
+    transform: translateY(8px) scale(0.98);
 }
-
-.athlete-modal-enter-from > div,
-.athlete-modal-leave-to > div {
-    transform: translateY(16px) scale(0.98);
+.athlete-modal-enter-to,
+.athlete-modal-leave-from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {

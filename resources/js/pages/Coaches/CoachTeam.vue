@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3'
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 import ConfirmDialog from '@/components/ui/dialog/ConfirmDialog.vue'
 import { showAppToast } from '@/composables/useAppToast'
@@ -56,6 +56,8 @@ const requestSubmitting = ref(false)
 const detailsOpen = ref(false)
 const selectedPlayer = ref<PlayerRow | null>(null)
 const copiedField = ref<string | null>(null)
+let restoreBodyOverflow: string | null = null
+let restoreHtmlOverflow: string | null = null
 
 const selectedTeamId = ref<number | null>(props.selectedTeamId ?? null)
 const { sportColor, sportTextColor, sportLabel } = useSportColors()
@@ -180,6 +182,27 @@ function openDetails(player: PlayerRow) {
 function closeDetails() {
     detailsOpen.value = false
 }
+
+watch(detailsOpen, (open) => {
+    if (typeof document === 'undefined') return
+
+    if (open) {
+        restoreBodyOverflow = document.body.style.overflow
+        restoreHtmlOverflow = document.documentElement.style.overflow
+        document.body.style.overflow = 'hidden'
+        document.documentElement.style.overflow = 'hidden'
+        return
+    }
+
+    document.body.style.overflow = restoreBodyOverflow ?? ''
+    document.documentElement.style.overflow = restoreHtmlOverflow ?? ''
+})
+
+onBeforeUnmount(() => {
+    if (typeof document === 'undefined') return
+    document.body.style.overflow = restoreBodyOverflow ?? ''
+    document.documentElement.style.overflow = restoreHtmlOverflow ?? ''
+})
 
 function formatSimple(value?: string | number | null) {
     if (value === null || value === undefined) return '-'
@@ -589,10 +612,11 @@ function printTeamRoster() {
             </div>
         </div>
 
+        <Teleport to="body">
         <transition name="athlete-modal">
-            <div v-if="detailsOpen" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 px-4 py-6" @click.self="closeDetails">
-                <div class="flex min-h-full items-center justify-center">
-                <div class="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[#034485]/35 bg-white shadow-[0_28px_70px_-34px_rgba(2,12,27,0.45)]">
+            <div v-if="detailsOpen" class="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 px-4 py-6 backdrop-blur-sm">
+                <div class="flex min-h-full items-center justify-center" @click="closeDetails">
+                <div class="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[#034485]/35 bg-white shadow-[0_28px_70px_-34px_rgba(2,12,27,0.45)]" @click.stop>
                 <div class="rounded-t-3xl bg-[#034485] px-6 py-5 text-white sm:px-8">
                     <p class="text-xs font-semibold uppercase tracking-wide text-white/75">Player Details</p>
                     <h3 class="mt-1 text-2xl font-bold text-white">
@@ -751,6 +775,7 @@ function printTeamRoster() {
                 </div>
             </div>
         </transition>
+        </Teleport>
 
         <ConfirmDialog
             :open="requestDialogOpen"
