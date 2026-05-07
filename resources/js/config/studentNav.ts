@@ -7,7 +7,7 @@ export type StudentNavItem = {
 }
 
 export const studentPrimaryNav: StudentNavItem[] = [
-  { key: 'home', label: 'Home', route: '/StudentAthleteDashboard', icon: 'layout-grid', mobileLabel: 'Home' },
+  { key: 'dashboard', label: 'Dashboard', route: '/StudentAthleteDashboard', icon: 'layout-grid', mobileLabel: 'Dashboard' },
   { key: 'team', label: 'Team', route: '/MyTeam', icon: 'users', mobileLabel: 'Team' },
   { key: 'schedule', label: 'Schedule', route: '/MySchedule', icon: 'calendar', mobileLabel: 'Schedule' },
   { key: 'academics', label: 'Academics', route: '/AcademicSubmissions', icon: 'graduation-cap', mobileLabel: 'Academics' },
