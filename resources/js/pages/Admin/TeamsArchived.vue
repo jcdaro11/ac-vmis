@@ -182,6 +182,11 @@ function promptRestore(team: TeamRow) {
     restoreDialogOpen.value = true
 }
 
+function goToPage(page: number) {
+    if (page < 1 || page > props.teams.meta.last_page) return
+    reload({ page })
+}
+
 function confirmRestore() {
     if (!pendingRestoreTeam.value) return
     const team = pendingRestoreTeam.value
@@ -310,7 +315,7 @@ watch(
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                     <div class="flex min-w-0 items-start gap-4">
                         <div class="relative h-20 w-20 overflow-hidden rounded-2xl border border-[#034485]/12 bg-[#f8fbff]">
-                            <img :src="teamAvatarUrl(team.team_avatar)" alt="Team avatar" class="h-full w-full object-cover" />
+                            <img :src="teamAvatarUrl(team.team_avatar)" alt="Team avatar" loading="lazy" decoding="async" class="h-full w-full object-cover" />
                             <span class="absolute left-2 top-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
                                 Archived
                             </span>
@@ -455,5 +460,33 @@ watch(
             @update:open="restoreDialogOpen = $event"
             @confirm="confirmRestore"
         />
+
+        <section v-if="props.teams.meta.last_page > 1" class="page-card rounded-3xl border p-4" :class="isDarkMode ? 'border-[#034485]/40 bg-[#0f172a]' : 'border-[#034485]/35 bg-white'">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                    Page {{ props.teams.meta.current_page }} of {{ props.teams.meta.last_page }} • {{ props.teams.meta.total }} teams
+                </p>
+                <div class="flex gap-2">
+                    <button
+                        type="button"
+                        class="rounded-xl border px-4 py-2 text-sm font-semibold disabled:opacity-40"
+                        :class="isDarkMode ? 'border-slate-700 bg-slate-950 text-slate-100' : 'border-slate-300 bg-white text-slate-700'"
+                        :disabled="props.teams.meta.current_page <= 1"
+                        @click="goToPage(props.teams.meta.current_page - 1)"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        type="button"
+                        class="rounded-xl border px-4 py-2 text-sm font-semibold disabled:opacity-40"
+                        :class="isDarkMode ? 'border-slate-700 bg-slate-950 text-slate-100' : 'border-slate-300 bg-white text-slate-700'"
+                        :disabled="props.teams.meta.current_page >= props.teams.meta.last_page"
+                        @click="goToPage(props.teams.meta.current_page + 1)"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
+        </section>
     </div>
 </template>

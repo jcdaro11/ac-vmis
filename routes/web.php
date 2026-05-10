@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\CreateTeamController;
 use App\Http\Controllers\Admin\OperationsWorkspaceController;
 use App\Http\Controllers\Admin\AcademicEligibilityController;
+use App\Http\Controllers\Admin\DocumentReviewController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Coaches\CoachTeamController;
 use App\Http\Controllers\StudentAthlete\StudentAthleteController;
@@ -16,8 +17,10 @@ use App\Http\Controllers\Coaches\CoachScheduleController;
 use App\Http\Controllers\TrainingRequirementController;
 use App\Http\Controllers\Coaches\CoachDashboardController;
 use App\Http\Controllers\Coaches\AcademicVisibilityController;
+use App\Http\Controllers\Coaches\TeamDocumentController;
 use App\Http\Controllers\StudentAthlete\ScheduleRecord;
 use App\Http\Controllers\StudentAthlete\AcademicSubmissionController;
+use App\Http\Controllers\StudentAthlete\StudentDocumentController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\FileAccessController;
@@ -146,6 +149,7 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
     Route::put('/announcements/read-all', [AnnouncementController::class, 'markAllRead'])->name('announcements.readAll');
     Route::put('/announcements/{announcement}/read', [AnnouncementController::class, 'markRead'])->name('announcements.read');
     Route::get('/files/academic/{document}', [FileAccessController::class, 'academic'])->name('files.academic');
+    Route::get('/files/documents/{document}', [FileAccessController::class, 'document'])->name('files.documents.show');
     Route::get('/account/profile', [AccountSettingsController::class, 'profile'])->name('account.profile.show');
     Route::put('/account/profile', [AccountSettingsController::class, 'updateProfile'])->name('account.profile.update');
     Route::get('/account/settings', [AccountSettingsController::class, 'settings'])->name('account.settings.show');
@@ -252,6 +256,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/academics', [AcademicEligibilityController::class, 'index'])
         ->name('admin.academics.index');
+    Route::get('/documents', [DocumentReviewController::class, 'index'])
+        ->name('admin.documents.index');
+    Route::put('/documents/{document}/review', [DocumentReviewController::class, 'markReviewed'])
+        ->name('admin.documents.review');
     Route::get('/audit-trail', [AdminController::class, 'auditTrail'])
         ->name('admin.audit-trail.index');
     Route::redirect('/reports', '/reports/attendance')
@@ -359,6 +367,8 @@ Route::middleware(['auth', 'role:coach'])->group(function () {
         ->name('training-requirements.destroy');
     Route::get('/coach/academics', [AcademicVisibilityController::class, 'index'])
         ->name('coach.academics.index');
+    Route::get('/coach/documents', [TeamDocumentController::class, 'index'])
+        ->name('coach.documents.index');
 
     Route::post('/coach/schedules', [CoachScheduleController::class, 'store'])
         ->name('coach.schedules.store');
@@ -373,7 +383,7 @@ Route::middleware(['auth', 'role:coach'])->group(function () {
     Route::redirect('/CoachTeam', '/coach/team');
     Route::redirect('/CoachSchedule', '/coach/schedule');
     Route::redirect('/AttendanceRecord', '/coach/schedule');
-    Route::redirect('/CoachAcademicVisibility', '/coach/academics');
+    Route::redirect('/CoachAcademicVisibility', '/coach/documents');
 });
 
 Route::middleware(['auth', 'role:coach,admin'])->group(function () {
@@ -384,6 +394,8 @@ Route::middleware(['auth', 'role:coach,admin'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:student-athlete,student'])->group(function () {
+    Route::get('/documents/my', [StudentDocumentController::class, 'index'])->name('student.documents.index');
+    Route::post('/documents/my', [StudentDocumentController::class, 'store'])->name('student.documents.store');
     Route::get('/AcademicSubmissions', [AcademicSubmissionController::class, 'index'])->name('AcademicSubmissions');
     Route::get('/AcademicSubmissions/new', [AcademicSubmissionController::class, 'create'])->name('AcademicSubmissions.create');
     Route::get('/AcademicSubmissions/print', [AcademicSubmissionController::class, 'print'])->name('AcademicSubmissions.print');

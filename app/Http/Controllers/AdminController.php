@@ -12,6 +12,7 @@ use App\Models\AccountActionLog;
 use App\Models\AdminInvite;
 use App\Models\Announcement;
 use App\Models\Coach;
+use App\Models\DocumentType;
 use App\Models\Sport;
 use App\Models\StudentApprovalHistory;
 use App\Models\Student;
@@ -69,6 +70,8 @@ class AdminController extends Controller
                     ],
                     'kpis' => [
                         'attendance_rate' => $attendanceSummary['attendance_rate'],
+                        'attendance_present' => $attendanceSummary['present'],
+                        'attendance_total' => $attendanceSummary['total'],
                         'no_response' => $attendanceSummary['no_response'],
                         'pending_approvals' => $this->pendingStudentApprovalUsers()->count(),
                         'active_teams' => $activeTeamsCount,
@@ -179,10 +182,13 @@ class AdminController extends Controller
         }
 
         if (in_array($user->role, ['student-athlete', 'student'], true)) {
-            $academicDocument = $user->student?->latestAcademicDocument;
-            if (!$academicDocument) {
+            $registrationDocs = $user->student?->registrationDocuments()->with('documentTypeDefinition')->get() ?? collect();
+            $hasTor = $registrationDocs->contains(fn ($document) => $document->document_type === DocumentType::CODE_TOR);
+            $hasMedical = $registrationDocs->contains(fn ($document) => $document->document_type === DocumentType::CODE_MEDICAL_DOCUMENT);
+
+            if (!$hasTor || !$hasMedical) {
                 return back()->withErrors([
-                    'approval' => 'Cannot approve this student-athlete without academic document data.',
+                    'approval' => 'Cannot approve this student-athlete without both the academic registration file and medical clearance.',
                 ]);
             }
         }
@@ -431,14 +437,29 @@ class AdminController extends Controller
             if ($state === 'ready') {
                 $query->where(function ($q) {
                     $q->whereIn('role', ['student-athlete', 'student'])
-                        ->whereHas('student.latestAcademicDocument');
+                        ->whereHas('student.registrationDocuments', function ($documentQuery) {
+                            $documentQuery->whereHas('documentTypeDefinition', function ($typeQuery) {
+                                $typeQuery->whereIn('code', [
+                                    DocumentType::CODE_TOR,
+                                    DocumentType::CODE_MEDICAL_DOCUMENT,
+                                ]);
+                            });
+                        });
                 });
             }
 
             if ($state === 'incomplete') {
                 $query->whereIn('role', ['student-athlete', 'student'])
                     ->where(function ($q) {
-                        $q->whereDoesntHave('student.latestAcademicDocument');
+                        $q->whereDoesntHave('student.registrationDocuments', function ($documentQuery) {
+                            $documentQuery->whereHas('documentTypeDefinition', function ($typeQuery) {
+                                $typeQuery->where('code', DocumentType::CODE_TOR);
+                            });
+                        })->orWhereDoesntHave('student.registrationDocuments', function ($documentQuery) {
+                            $documentQuery->whereHas('documentTypeDefinition', function ($typeQuery) {
+                                $typeQuery->where('code', DocumentType::CODE_MEDICAL_DOCUMENT);
+                            });
+                        });
                     });
             }
         };
@@ -451,12 +472,12 @@ class AdminController extends Controller
             ->select(['id', 'first_name', 'middle_name', 'last_name', 'email', 'role', 'account_state', 'avatar', 'created_at'])
             ->with([
                 'student:id,user_id,student_id_number,home_address,course_or_strand,current_grade_level,approval_status,phone_number,date_of_birth,gender,height,weight,emergency_contact_name,emergency_contact_relationship,emergency_contact_phone',
-                'student.latestAcademicDocument' => function ($query) {
+                'student.registrationDocuments' => function ($query) {
                     $query->select(
-                        'academic_documents.id',
-                        'academic_documents.student_id',
-                        'academic_documents.document_type_id',
-                        'academic_documents.uploaded_at'
+                        'id',
+                        'student_id',
+                        'document_type_id',
+                        'uploaded_at'
                     )->with('documentTypeDefinition:id,code');
                 },
             ]);
@@ -483,7 +504,9 @@ class AdminController extends Controller
                     'status' => $user->approval_status,
                     'avatar' => $user->avatar,
                     'created_at' => optional($user->created_at)->toDateTimeString(),
-                    'student' => $user->student ? [
+                    'student' => $user->student ? (function () use ($user) {
+                        $documents = $user->student->registrationDocuments->values();
+                        return [
                         'id' => $user->student->id,
                         'student_id_number' => $user->student->student_id_number,
                         'first_name' => $user->student->first_name,
@@ -502,12 +525,22 @@ class AdminController extends Controller
                         'emergency_contact_name' => $user->student->emergency_contact_name,
                         'emergency_contact_relationship' => $user->student->emergency_contact_relationship,
                         'emergency_contact_phone' => $user->student->emergency_contact_phone,
-                        'latest_academic_document' => $user->student->latestAcademicDocument ? [
-                            'id' => $user->student->latestAcademicDocument->id,
-                            'document_type' => $user->student->latestAcademicDocument->document_type,
-                            'uploaded_at' => optional($user->student->latestAcademicDocument->uploaded_at)->toDateTimeString(),
-                        ] : null,
-                    ] : null,
+                        'latest_academic_document' => ($documents->firstWhere('document_type', DocumentType::CODE_TOR)
+                            ?? $documents->first()) ? [
+                                'id' => ($documents->firstWhere('document_type', DocumentType::CODE_TOR) ?? $documents->first())->id,
+                                'document_type' => ($documents->firstWhere('document_type', DocumentType::CODE_TOR) ?? $documents->first())->document_type,
+                                'uploaded_at' => optional(($documents->firstWhere('document_type', DocumentType::CODE_TOR) ?? $documents->first())->uploaded_at)->toDateTimeString(),
+                            ] : null,
+                        'registration_documents' => $user->student->registrationDocuments
+                            ->map(fn ($document) => [
+                                'id' => $document->id,
+                                'document_type' => $document->document_type,
+                                'uploaded_at' => optional($document->uploaded_at)->toDateTimeString(),
+                            ])
+                            ->values()
+                            ->all(),
+                    ];
+                    })() : null,
                 ];
             });
 
@@ -1062,6 +1095,8 @@ class AdminController extends Controller
         $noResponse = (int) ($row->no_response_count ?? 0);
 
         return [
+            'total' => $total,
+            'present' => $present,
             'attendance_rate' => $total > 0 ? round(($present / $total) * 100, 2) : 0,
             'no_response' => $noResponse,
         ];

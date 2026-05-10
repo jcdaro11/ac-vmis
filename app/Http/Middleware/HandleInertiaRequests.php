@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $verificationService = app(EmailVerificationService::class);
+        $academicDocumentTable = (new AcademicDocument())->getTable();
 
         return [
             ...parent::share($request),
@@ -136,11 +137,11 @@ class HandleInertiaRequests extends Middleware
                         : 0,
                 ],
                 'admin_notifications' => fn () => $request->user() && $request->user()->role === 'admin'
-                    ? (function () use ($request, $verificationService) {
+                    ? (function () use ($request, $verificationService, $academicDocumentTable) {
                         $payload = Cache::remember(
                             'admin:notifications:' . $request->user()->id,
                             now()->addSeconds(60),
-                            function () use ($request) {
+                            function () use ($request, $academicDocumentTable) {
                             $adminId = $request->user()->id;
                             $now = now();
 
@@ -169,11 +170,11 @@ class HandleInertiaRequests extends Middleware
                                 ->when($academicPeriodId, function ($query, $periodId) {
                                     $query->where('academic_period_id', $periodId);
                                 })
-                                ->whereNotExists(function ($subQuery) {
+                                ->whereNotExists(function ($subQuery) use ($academicDocumentTable) {
                                     $subQuery->selectRaw('1')
                                         ->from('academic_eligibility_evaluations as e')
-                                        ->whereColumn('e.student_id', 'academic_documents.student_id')
-                                        ->whereColumn('e.academic_period_id', 'academic_documents.academic_period_id');
+                                        ->whereColumn('e.student_id', $academicDocumentTable . '.student_id')
+                                        ->whereColumn('e.academic_period_id', $academicDocumentTable . '.academic_period_id');
                                 })
                                 ->count();
 
@@ -207,13 +208,13 @@ class HandleInertiaRequests extends Middleware
                                     'key' => 'academic_submissions',
                                     'label' => 'Academic submissions from students',
                                     'count' => $academicSubmissions,
-                                    'href' => '/academics/submissions',
+                                    'href' => '/documents',
                                 ],
                                 [
                                     'key' => 'period_reminder',
                                     'label' => 'Period nearly done reminder',
                                     'count' => $periodReminder,
-                                    'href' => '/academics',
+                                    'href' => '/documents',
                                 ],
                             ];
 
@@ -331,7 +332,7 @@ class HandleInertiaRequests extends Middleware
                                         'key' => 'student_submissions',
                                         'label' => 'Student submissions',
                                         'count' => $studentSubmissions,
-                                        'href' => '/coach/academics',
+                                        'href' => '/coach/documents',
                                     ],
                                     [
                                         'key' => 'team_created',

@@ -56,17 +56,13 @@ class StudentAthleteController extends Controller
         }
 
         // Find teams where the student is a member
-        $teams = Team::with([
-            'sport',
-            'coach.user',
-            'assistantCoach.user',
-            'players.student.user'
-        ])
+        $teams = Team::query()
+            ->with('sport:id,name')
             ->whereHas('players', function($q) use ($student) {
                 $q->where('student_id', $student->id);
             })
             ->orderBy('team_name')
-            ->get();
+            ->get(['id', 'team_name', 'sport_id']);
 
         if ($teams->isEmpty()) {
             return Inertia::render('StudentAthletes/MyTeam', [
@@ -83,7 +79,17 @@ class StudentAthleteController extends Controller
             $selectedTeamId = $teamIds[0];
         }
 
-        $team = $teams->firstWhere('id', $selectedTeamId);
+        $team = Team::query()
+            ->with([
+                'sport',
+                'coach.user',
+                'assistantCoach.user',
+                'players.student.user',
+            ])
+            ->whereHas('players', function ($query) use ($student) {
+                $query->where('student_id', $student->id);
+            })
+            ->find($selectedTeamId);
 
         if ($team) {
             $coach = $team->coach ? [

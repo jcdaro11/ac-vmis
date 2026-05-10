@@ -208,13 +208,15 @@ class CreateTeamController extends Controller
         $sortColumn = $sortMap[$sort] ?? 'updated_at';
         $baseQuery->orderBy($sortColumn, $direction)->orderBy('id', 'desc');
 
-        $teams = $baseQuery->get();
+        $pagination = $baseQuery->paginate(12)->withQueryString();
 
         $playerConflictData = $this->detectPlayerConflicts();
         $teamIssueCounts = $this->buildTeamIssueCounts($playerConflictData);
 
-        $teams = $teams->map(
-            fn (Team $team) => $this->serializeTeamSummary($team, $sportMaxMap, $teamIssueCounts)
+        $pagination->setCollection(
+            $pagination->getCollection()->map(
+                fn (Team $team) => $this->serializeTeamSummary($team, $sportMaxMap, $teamIssueCounts)
+            )
         );
 
         $requestTitles = [
@@ -248,12 +250,12 @@ class CreateTeamController extends Controller
 
         return Inertia::render('Admin/TeamsIndex', [
             'teams' => [
-                'data' => $teams,
+                'data' => $pagination->items(),
                 'meta' => [
-                    'current_page' => 1,
-                    'last_page' => 1,
-                    'per_page' => $teams->count(),
-                    'total' => $teams->count(),
+                    'current_page' => $pagination->currentPage(),
+                    'last_page' => $pagination->lastPage(),
+                    'per_page' => $pagination->perPage(),
+                    'total' => $pagination->total(),
                 ],
             ],
             'filters' => [
@@ -264,7 +266,7 @@ class CreateTeamController extends Controller
                 'roster_status' => $rosterStatus,
                 'sort' => $sort,
                 'direction' => $direction,
-                'per_page' => $teams->count(),
+                'per_page' => $pagination->perPage(),
                 'tab' => (string) $request->input('tab', 'all-teams'),
             ],
             'options' => [
@@ -332,18 +334,21 @@ class CreateTeamController extends Controller
         $sortColumn = $sortMap[$sort] ?? 'updated_at';
         $query->orderBy($sortColumn, $direction)->orderByDesc('archived_at');
 
-        $teams = $query->get()->map(
-            fn (Team $team) => $this->serializeTeamSummary($team, $sportMaxMap, [])
+        $pagination = $query->paginate(12)->withQueryString();
+        $pagination->setCollection(
+            $pagination->getCollection()->map(
+                fn (Team $team) => $this->serializeTeamSummary($team, $sportMaxMap, [])
+            )
         );
 
         return Inertia::render('Admin/TeamsArchived', [
             'teams' => [
-                'data' => $teams,
+                'data' => $pagination->items(),
                 'meta' => [
-                    'current_page' => 1,
-                    'last_page' => 1,
-                    'per_page' => $teams->count(),
-                    'total' => $teams->count(),
+                    'current_page' => $pagination->currentPage(),
+                    'last_page' => $pagination->lastPage(),
+                    'per_page' => $pagination->perPage(),
+                    'total' => $pagination->total(),
                 ],
             ],
             'filters' => [

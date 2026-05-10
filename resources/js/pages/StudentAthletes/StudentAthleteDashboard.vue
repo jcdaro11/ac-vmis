@@ -70,6 +70,10 @@ const attendanceSeries = computed(() => [
     Number(attendanceBreakdown.value.excused || 0),
     Number(attendanceBreakdown.value.no_response || 0),
 ])
+const attendanceCompletedCount = computed(() =>
+    Number(attendanceBreakdown.value.present || 0) + Number(attendanceBreakdown.value.excused || 0)
+)
+const attendanceKpiValue = computed(() => `${attendanceCompletedCount.value} / ${attendanceTotal.value}`)
 const hasAttendanceData = computed(() => attendanceSeries.value.some((value) => value > 0))
 const heroSummary = computed(() => {
     const parts: string[] = []
@@ -135,6 +139,7 @@ const footerLinks = [
     { label: 'My Schedule', href: '/MySchedule' },
     { label: 'My Team', href: '/MyTeam' },
     { label: 'Academics', href: '/AcademicSubmissions' },
+    { label: 'My Documents', href: '/documents/my' },
     { label: 'Announcements', href: '/announcements' },
     { label: 'Profile', href: '/account/profile' },
     { label: 'Settings', href: '/account/settings' },
@@ -831,9 +836,9 @@ watch(mobileMenuOpen, (open) => {
 
                         <section class="grid grid-cols-1 gap-3 md:grid-cols-4">
                             <article class="dashboard-card metric-tile ui-surface ui-surface-hover p-4" :style="cardMotion(3)">
-                                <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Attendance Rate</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Attendance Snapshot</p>
                                 <p class="mt-2 text-2xl font-bold text-[#034485]">
-                                    {{ kpis.attendance_rate != null ? `${kpis.attendance_rate}%` : 'N/A' }}
+                                    {{ attendanceTotal > 0 ? attendanceKpiValue : 'N/A' }}
                                 </p>
                                 <p class="mt-1 text-xs text-slate-500">Present and excused sessions over the last 30 days.</p>
                             </article>

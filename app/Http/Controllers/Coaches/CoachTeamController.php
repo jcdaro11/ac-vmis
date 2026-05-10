@@ -35,15 +35,11 @@ class CoachTeamController extends Controller
             ]);
         }
 
-        $teams = Team::with([
-            'sport',
-            'coach',
-            'assistantCoach',
-            'players.student.user'
-        ])
-        ->forCoach($coach->id)
-        ->orderBy('team_name')
-        ->get();
+        $teams = Team::query()
+            ->with('sport:id,name')
+            ->forCoach($coach->id)
+            ->orderBy('team_name')
+            ->get(['id', 'team_name', 'sport_id']);
 
         if ($teams->isEmpty()) {
             return Inertia::render('Coaches/CoachTeam', [
@@ -60,13 +56,22 @@ class CoachTeamController extends Controller
             $selectedTeamId = $teamIds[0];
         }
 
-        $team = $teams->firstWhere('id', $selectedTeamId);
+        $team = Team::query()
+            ->with([
+                'sport',
+                'coach.user',
+                'assistantCoach.user',
+                'players.student.user',
+            ])
+            ->forCoach($coach->id)
+            ->find($selectedTeamId);
+
         if ($team) {
             $team->players->each(fn (TeamPlayer $player) => $this->teamPlayerStatuses->sync($player));
             $team->load([
                 'sport',
-                'coach',
-                'assistantCoach',
+                'coach.user',
+                'assistantCoach.user',
                 'players.student.user',
             ]);
         }
@@ -103,14 +108,10 @@ class CoachTeamController extends Controller
         $coach = $request->user()?->coach;
         abort_unless($coach, 403);
 
-        $teams = Team::with([
-            'sport',
-            'coach',
-            'assistantCoach',
-            'players.student.user',
-        ])
+        $teams = Team::query()
             ->forCoach($coach->id)
-            ->get();
+            ->orderBy('team_name')
+            ->get(['id']);
 
         abort_unless($teams->isNotEmpty(), 403);
 
@@ -120,7 +121,15 @@ class CoachTeamController extends Controller
             $selectedTeamId = $teamIds[0];
         }
 
-        $team = $teams->firstWhere('id', $selectedTeamId);
+        $team = Team::query()
+            ->with([
+                'sport',
+                'coach.user',
+                'assistantCoach.user',
+                'players.student.user',
+            ])
+            ->forCoach($coach->id)
+            ->find($selectedTeamId);
         abort_unless($team, 404);
 
         $players = $team->players

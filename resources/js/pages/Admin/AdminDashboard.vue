@@ -26,6 +26,8 @@ type DashboardPayload = {
     };
     kpis: {
         attendance_rate: number;
+        attendance_present: number;
+        attendance_total: number;
         no_response: number;
         pending_approvals: number;
         active_teams: number;
@@ -160,6 +162,11 @@ const pages: NavEntry[] = [
         iconPaths: ['M4 19.5V6a2 2 0 0 1 2-2h9l5 5v10.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z', 'M14 4v5h5', 'M8 13h8', 'M8 17h5'],
     },
     {
+        name: 'Documents',
+        route: '/documents',
+        iconPaths: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M8 13h8', 'M8 17h5'],
+    },
+    {
         name: 'Audit Trail',
         route: '/audit-trail',
         iconPaths: ['M12 8v5l3 2', 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0', 'M12 3v2', 'M12 19v2'],
@@ -181,6 +188,7 @@ const footerLinks = [
     { label: 'Teams', href: '/teams' },
     { label: 'Operations', href: '/operations' },
     { label: 'Academics', href: '/academics' },
+    { label: 'Documents', href: '/documents' },
     { label: 'Audit Trail', href: '/audit-trail' },
     { label: 'Reports', href: '/reports/attendance' },
     { label: 'Announcements', href: '/announcements' },
@@ -257,6 +265,21 @@ const isHelpRoute = computed(() => {
 });
 
 const selectedPeriod = computed(() => dashboard.value?.filters.period ?? 'week');
+const attendanceKpiLabel = computed(() => {
+    if (selectedPeriod.value === 'today') return 'Overall Attendance Today';
+    if (selectedPeriod.value === 'month') return 'Overall Attendance This Month';
+    return 'Overall Attendance This Week';
+});
+const attendanceKpiValue = computed(() => {
+    const present = Number(dashboard.value?.kpis.attendance_present ?? 0);
+    const total = Number(dashboard.value?.kpis.attendance_total ?? 0);
+    return `${present} / ${total}`;
+});
+const attendanceKpiHint = computed(() => {
+    if (selectedPeriod.value === 'today') return 'Present attendance records posted today.';
+    if (selectedPeriod.value === 'month') return 'Present attendance records in the selected month.';
+    return 'Present attendance records in the selected week.';
+});
 const reportsExpanded = ref(false);
 const reportsHoverOpen = ref(false);
 const attendanceChartMode = ref<'stacked' | 'line'>('stacked');
@@ -1374,8 +1397,9 @@ watch(
 
                     <section class="grid grid-cols-1 gap-3 md:grid-cols-5">
                         <article class="page-card rounded-2xl border border-[#034485]/22 bg-white p-4">
-                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Attendance Rate</p>
-                            <p class="mt-2 text-2xl font-bold text-[#034485]">{{ dashboard.kpis.attendance_rate }}%</p>
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">{{ attendanceKpiLabel }}</p>
+                            <p class="mt-2 text-2xl font-bold text-[#034485]">{{ attendanceKpiValue }}</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ attendanceKpiHint }}</p>
                         </article>
                         <article class="page-card rounded-2xl border border-[#034485]/22 bg-white p-4">
                             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">No Response</p>

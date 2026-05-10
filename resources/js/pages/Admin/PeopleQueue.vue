@@ -41,6 +41,11 @@ type QueueUser = {
         emergency_contact_name?: string | null;
         emergency_contact_relationship?: string | null;
         emergency_contact_phone?: string | null;
+        registration_documents?: Array<{
+            id: number;
+            document_type: string | null;
+            uploaded_at: string | null;
+        }>;
         latest_academic_document?: {
             id: number;
             document_type: string | null;
@@ -194,14 +199,22 @@ function visitPage(url: string | null) {
 }
 
 function hasRequirements(user: QueueUser) {
-    return Boolean(user.student?.latest_academic_document);
+    const documents = user.student?.registration_documents ?? [];
+    const hasTor = documents.some((document) => document.document_type === 'tor');
+    const hasMedical = documents.some((document) => document.document_type === 'medical_document');
+    return hasTor && hasMedical;
 }
 
 function requirementIssues(user: QueueUser) {
     const issues: string[] = [];
+    const documents = user.student?.registration_documents ?? [];
 
-    if (!user.student?.latest_academic_document) {
-        issues.push('Academic document not submitted');
+    if (!documents.some((document) => document.document_type === 'tor')) {
+        issues.push('Transcript of Records not submitted');
+    }
+
+    if (!documents.some((document) => document.document_type === 'medical_document')) {
+        issues.push('Medical clearance not submitted');
     }
 
     return issues;
@@ -476,7 +489,7 @@ function rejectUser() {
                         >
                             <div class="flex items-start gap-3">
                                 <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-[#e9f2ff] text-sm font-bold text-[#034485]">
-                                    <img v-if="user.avatar" :src="resolveUserAvatarUrl(user.avatar)" :alt="user.name" class="h-full w-full object-cover">
+                                    <img v-if="user.avatar" :src="resolveUserAvatarUrl(user.avatar)" :alt="user.name" loading="lazy" decoding="async" class="h-full w-full object-cover">
                                     <span v-else>{{ userInitials(user) }}</span>
                                 </div>
                                 <div class="min-w-0 flex-1">
@@ -542,7 +555,7 @@ function rejectUser() {
                                         class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border text-sm font-bold transition-colors duration-200 ease-out"
                                         :class="selectedUser?.id === user.id ? 'border-white/25 bg-white/15 text-white' : 'border-[#034485]/20 bg-[#e9f2ff] text-[#034485]'"
                                     >
-                                        <img v-if="user.avatar" :src="resolveUserAvatarUrl(user.avatar)" :alt="user.name" class="h-full w-full object-cover">
+                                        <img v-if="user.avatar" :src="resolveUserAvatarUrl(user.avatar)" :alt="user.name" loading="lazy" decoding="async" class="h-full w-full object-cover">
                                         <span v-else>{{ userInitials(user) }}</span>
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -583,7 +596,7 @@ function rejectUser() {
                             <div class="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div class="flex items-start gap-3">
                                     <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-[#e9f2ff] text-base font-bold text-[#034485]">
-                                        <img v-if="selectedUser.avatar" :src="resolveUserAvatarUrl(selectedUser.avatar)" :alt="selectedUser.name" class="h-full w-full object-cover">
+                                        <img v-if="selectedUser.avatar" :src="resolveUserAvatarUrl(selectedUser.avatar)" :alt="selectedUser.name" loading="lazy" decoding="async" class="h-full w-full object-cover">
                                         <span v-else>{{ userInitials(selectedUser) }}</span>
                                     </div>
                                     <div class="min-w-0">

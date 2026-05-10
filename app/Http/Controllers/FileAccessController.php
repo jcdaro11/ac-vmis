@@ -4,21 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicDocument;
 use App\Models\Coach;
+use App\Models\StudentDocument;
 use App\Models\Team;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class FileAccessController extends Controller
 {
-    public function academic(AcademicDocument $document)
+    public function academic(AcademicDocument $document, Request $request)
     {
-        abort_unless($this->canAccessStudentFile((int) $document->student_id), 403);
-        $path = (string) $document->file_path;
-        abort_if($path === '' || !Storage::disk('public')->exists($path), 404);
+        return $this->streamDocument($document, $request);
+    }
 
-        return Storage::disk('public')->response($path, basename($path), [
-            'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
-        ]);
+    public function document(StudentDocument $document, Request $request)
+    {
+        return $this->streamDocument($document, $request);
     }
 
     private function canAccessStudentFile(int $studentId): bool
@@ -49,5 +50,21 @@ class FileAccessController extends Controller
         }
 
         return false;
+    }
+
+    private function streamDocument(StudentDocument $document, Request $request)
+    {
+        abort_unless($this->canAccessStudentFile((int) $document->student_id), 403);
+
+        $path = (string) $document->file_path;
+        abort_if($path === '' || !Storage::disk('public')->exists($path), 404);
+
+        $disposition = $request->boolean('download')
+            ? 'attachment'
+            : 'inline';
+
+        return Storage::disk('public')->response($path, basename($path), [
+            'Content-Disposition' => $disposition . '; filename="' . basename($path) . '"',
+        ]);
     }
 }

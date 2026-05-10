@@ -17,7 +17,7 @@ type TeamInfo = {
 type Metrics = {
   upcoming_sessions: number
   attendance_needs_review: number
-  roster_total: number
+  available_players: number
 }
 
 type AttendanceTrend = {
@@ -69,7 +69,7 @@ function cardMotion(order: number) {
 const safeMetrics = computed<Metrics>(() => ({
   upcoming_sessions: props.metrics?.upcoming_sessions ?? 0,
   attendance_needs_review: props.metrics?.attendance_needs_review ?? 0,
-  roster_total: props.metrics?.roster_total ?? 0,
+  available_players: props.metrics?.available_players ?? 0,
 }))
 
 const attendanceTrend = computed<AttendanceTrend>(() => ({
@@ -373,8 +373,8 @@ function formatScheduleDateTime(value?: string | null) {
         </article>
 
         <article class="page-card rounded-2xl border border-[#034485]/22 bg-white p-4" :style="cardMotion(4)">
-          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Active Roster</p>
-          <p class="mt-2 text-2xl font-bold text-[#034485]">{{ safeMetrics.roster_total }}</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#034485]">Available Players</p>
+          <p class="mt-2 text-2xl font-bold text-[#034485]">{{ safeMetrics.available_players }}</p>
         </article>
       </section>
 

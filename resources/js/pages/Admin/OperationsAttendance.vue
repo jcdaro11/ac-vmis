@@ -93,6 +93,7 @@ const form = reactive({
     period: '',
 })
 const isApplyingFilters = ref(false)
+const overallAttendanceValue = computed(() => `${Number(props.kpis.counts.present || 0)} / ${Number(props.kpis.total_records || 0)}`)
 
 function formatDateOnly(date: Date) {
     const year = date.getFullYear()
@@ -286,8 +287,8 @@ function statusBarWidth(value: number) {
                 <div class="text-2xl text-white font-bold">{{ kpis.total_teams }}</div>
             </div>
             <div class="page-card bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <div class="text-xs text-gray-400">Attendance Rate</div>
-                <div class="text-2xl text-green-300 font-bold">{{ kpis.attendance_rate_percent }}%</div>
+                <div class="text-xs text-gray-400">Overall Attendance</div>
+                <div class="text-2xl text-green-300 font-bold">{{ overallAttendanceValue }}</div>
             </div>
             <div class="page-card bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <div class="text-xs text-gray-400">Response Rate</div>

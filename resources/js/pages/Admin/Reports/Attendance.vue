@@ -105,6 +105,7 @@ function resetFilters() {
 function formatPercent(value: number) {
     return `${Number(value || 0).toFixed(2)}%`
 }
+
 </script>
 
 <template>
@@ -184,8 +185,8 @@ function formatPercent(value: number) {
         <section class="page-card space-y-4 rounded-xl border border-[#034485]/45 bg-white p-5">
             <div class="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
                 <article class="page-card rounded-xl border border-[#034485]/45 bg-white p-4">
-                    <p class="text-xs text-slate-500">Attendance Rate</p>
-                    <p class="mt-1 text-2xl font-bold text-[#034485]">{{ formatPercent(props.attendanceReport.summary.attendance_rate) }}</p>
+                    <p class="text-xs text-slate-500">Overall Attendance</p>
+                    <p class="mt-1 text-2xl font-bold text-[#034485]">{{ props.attendanceReport.summary.present }} / {{ props.attendanceReport.summary.total_records }}</p>
                 </article>
                 <article class="page-card rounded-xl border border-[#034485]/45 bg-white p-4">
                     <p class="text-xs text-slate-500">Present</p>

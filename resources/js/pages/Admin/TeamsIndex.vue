@@ -255,6 +255,11 @@ function markRequestRead(id: number) {
     router.put(`/announcements/${id}/read`, {}, { preserveScroll: true })
 }
 
+function goToPage(page: number) {
+    if (page < 1 || page > props.teams.meta.last_page) return
+    reload({ page })
+}
+
 function parseRequestMessage(message: string) {
     const lines = String(message ?? '').split('\n').map((line) => line.trim()).filter(Boolean)
     const data = {
@@ -473,7 +478,7 @@ function formatTimestamp(value: string | null) {
                             </div>
 
                             <div class="flex items-start gap-3">
-                                <img :src="teamAvatarUrl(team.team_avatar)" alt="Team Avatar" class="h-14 w-14 rounded-2xl border border-[#034485]/12 bg-[#f8fbff] object-cover" />
+                                <img :src="teamAvatarUrl(team.team_avatar)" alt="Team Avatar" loading="lazy" decoding="async" class="h-14 w-14 rounded-2xl border border-[#034485]/12 bg-[#f8fbff] object-cover" />
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-xl font-semibold text-slate-900">{{ team.team_name }}</p>
                                     <p class="mt-1 text-sm text-slate-500">{{ team.sport?.name || 'No sport' }}</p>
@@ -532,6 +537,32 @@ function formatTimestamp(value: string | null) {
                         </article>
                     </div>
                 </article>
+            </div>
+        </section>
+
+        <section v-if="props.teams.meta.last_page > 1" class="page-card rounded-xl border border-[#034485]/45 bg-white p-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-sm text-slate-600">
+                    Page {{ props.teams.meta.current_page }} of {{ props.teams.meta.last_page }} • {{ props.teams.meta.total }} teams
+                </p>
+                <div class="flex gap-2">
+                    <button
+                        type="button"
+                        class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-40"
+                        :disabled="props.teams.meta.current_page <= 1"
+                        @click="goToPage(props.teams.meta.current_page - 1)"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        type="button"
+                        class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-40"
+                        :disabled="props.teams.meta.current_page >= props.teams.meta.last_page"
+                        @click="goToPage(props.teams.meta.current_page + 1)"
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
         </section>
 

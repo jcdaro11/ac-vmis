@@ -38,7 +38,10 @@ class CoachDashboardController extends Controller
             $scheduleLoadStart = $now->copy()->startOfWeek()->startOfDay();
             $scheduleLoadEnd = $scheduleLoadStart->copy()->addWeeks(5)->endOfWeek()->endOfDay();
 
-            $rosterTotal = TeamPlayer::where('team_id', $teamId)->count();
+            $availablePlayers = TeamPlayer::query()
+                ->where('team_id', $teamId)
+                ->where('player_status', TeamPlayer::STATUS_ACTIVE)
+                ->count();
             $upcomingSessions = TeamSchedule::query()
                 ->where('team_id', $teamId)
                 ->where('start_time', '>=', $now)
@@ -65,7 +68,7 @@ class CoachDashboardController extends Controller
                 'metrics' => [
                     'upcoming_sessions' => $upcomingSessions,
                     'attendance_needs_review' => $attendanceNeedsReview,
-                    'roster_total' => $rosterTotal,
+                    'available_players' => $availablePlayers,
                 ],
                 'actions' => [
                     'attendance_pending_schedule' => $nextAttendanceAction ? [
@@ -99,7 +102,7 @@ class CoachDashboardController extends Controller
             'metrics' => [
                 'upcoming_sessions' => 0,
                 'attendance_needs_review' => 0,
-                'roster_total' => 0,
+                'available_players' => 0,
             ],
             'actions' => [
                 'attendance_pending_schedule' => null,

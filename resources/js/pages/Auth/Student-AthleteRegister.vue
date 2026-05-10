@@ -58,6 +58,8 @@ const form = reactive({
     academic_document_type: 'tor' as AcademicDocumentType,
     academic_document_file: null as File | null,
     academic_document_notes: '',
+    medical_document_file: null as File | null,
+    medical_document_notes: '',
 });
 
 const fieldErrors = reactive<Record<string, string>>({});
@@ -96,6 +98,7 @@ const fullNamePreview = computed(() => {
 const selectedFileNames = computed(() => ({
     avatar: form.avatar?.name ?? 'No file selected',
     academic: form.academic_document_file?.name ?? 'No file selected',
+    medical: form.medical_document_file?.name ?? 'No file selected',
 }));
 const avatarPreviewUrl = ref<string | null>(null);
 const cropModalOpen = ref(false);
@@ -334,6 +337,15 @@ function validateField(field: string): boolean {
         return true;
     }
 
+    if (field === 'medical_document_file') {
+        if (!form.medical_document_file) {
+            setFieldError(field, 'Medical document / health clearance is required.');
+            return false;
+        }
+        clearFieldError(field);
+        return true;
+    }
+
     return true;
 }
 
@@ -444,7 +456,7 @@ function validateStep(currentStep: Step): boolean {
     const checks: Record<Step, string[]> = {
         1: ['email', 'password', 'password_confirmation', 'student_id_number'],
         2: ['first_name', 'last_name', 'date_of_birth', 'gender', 'phone_number', 'current_grade_level', 'course_or_strand', 'height', 'weight_kg'],
-        3: ['academic_document_file'],
+        3: ['academic_document_file', 'medical_document_file'],
     };
 
     return checks[currentStep].every((field) => validateField(field));
@@ -606,7 +618,7 @@ async function applyCroppedAvatar() {
     closeCropModal();
 }
 
-function setFile(field: 'avatar' | 'academic_document_file', event: Event) {
+function setFile(field: 'avatar' | 'academic_document_file' | 'medical_document_file', event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
@@ -630,8 +642,8 @@ function setFile(field: 'avatar' | 'academic_document_file', event: Event) {
 
     form[field] = file;
 
-    if (field === 'academic_document_file') {
-        touchAndValidate('academic_document_file');
+    if (field === 'academic_document_file' || field === 'medical_document_file') {
+        touchAndValidate(field);
     }
 }
 
@@ -640,6 +652,7 @@ function saveDraft() {
         ...form,
         avatar: null,
         academic_document_file: null,
+        medical_document_file: null,
     };
 
     localStorage.setItem(draftKey, JSON.stringify(payload));
@@ -716,6 +729,10 @@ function submit() {
         formData.append('academic_document_file', form.academic_document_file);
     }
     formData.append('academic_document_notes', form.academic_document_notes);
+    if (form.medical_document_file) {
+        formData.append('medical_document_file', form.medical_document_file);
+    }
+    formData.append('medical_document_notes', form.medical_document_notes);
 
     router.post('/RegisterStudent-AthleteData', formData, {
         forceFormData: true,
@@ -1065,20 +1082,22 @@ onBeforeUnmount(() => {
                     </div>
                     </section>
 
-                    <section v-else key="step-3" class="mt-7 grid gap-4">
-                    <h2 class="text-lg font-semibold text-[#1f2937]">Academic Standing Document</h2>
-                    <p class="text-xs text-slate-500">{{ acceptedDocsText }}</p>
+                    <section v-else key="step-3" class="mt-7 grid gap-5">
+                    <div>
+                        <h2 class="text-lg font-semibold text-[#1f2937]">Required Registration Documents</h2>
+                        <p class="text-xs text-slate-500">{{ acceptedDocsText }}</p>
+                    </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="label">Document Type</label>
+                            <label class="label">Academic Record Type</label>
                             <select v-model="form.academic_document_type" class="field">
                                 <option value="tor">Transcript of Records (TOR)</option>
                                 <option value="supporting_document">Supporting Document</option>
                             </select>
                         </div>
                         <div>
-                            <label class="label">Academic Document</label>
+                            <label class="label">Academic Record File</label>
                             <input
                                 type="file"
                                 :class="['field', 'file-field', { 'is-error': shouldShowError('academic_document_file') }]"
@@ -1091,8 +1110,34 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div>
-                        <label class="label">Notes (Optional)</label>
+                        <label class="label">Academic Notes (Optional)</label>
                         <textarea v-model="form.academic_document_notes" class="field min-h-21" placeholder="Additional context"></textarea>
+                    </div>
+
+                    <div class="rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
+                        <h3 class="text-sm font-semibold text-[#1f2937]">Medical Document / Health Clearance</h3>
+                        <p class="mt-1 text-xs text-slate-500">
+                            This is required for administrative record-checking during approval and is not used for OCR or academic eligibility.
+                        </p>
+
+                        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="label">Medical Clearance File</label>
+                                <input
+                                    type="file"
+                                    :class="['field', 'file-field', { 'is-error': shouldShowError('medical_document_file') }]"
+                                    accept=".pdf,image/*"
+                                    @change="(event) => setFile('medical_document_file', event)"
+                                />
+                                <p class="support-text mt-1">Selected: {{ selectedFileNames.medical }}</p>
+                                <FieldError :message="shouldShowError('medical_document_file') ? fieldErrors.medical_document_file : ''" />
+                            </div>
+
+                            <div>
+                                <label class="label">Medical Notes (Optional)</label>
+                                <textarea v-model="form.medical_document_notes" class="field min-h-21" placeholder="Clinic remarks, validity date, or other context"></textarea>
+                            </div>
+                        </div>
                     </div>
 
                     <button type="button" class="btn-outline w-full sm:w-fit" @click="saveDraft">Save as Draft</button>

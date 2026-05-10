@@ -130,7 +130,7 @@ const helpContent = computed<HelpContent>(() => {
         },
         {
           question: 'Where do I check athlete academic visibility?',
-          answer: 'Use the Academics workspace to review what is visible to coaches. That helps you identify students who may need follow-up without editing admin-only academic records.',
+          answer: 'Use Team Documents to review the documents that are visible to coaches for your assigned student-athletes. That helps you identify students who may need follow-up without editing admin-only academic records.',
         },
       ],
       supportNotes: [

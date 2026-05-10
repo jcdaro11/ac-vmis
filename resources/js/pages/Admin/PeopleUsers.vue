@@ -832,6 +832,8 @@ watch(
                                         v-if="user.avatar"
                                         :src="resolveUserAvatarUrl(user.avatar)"
                                         :alt="`${user.name} avatar`"
+                                        loading="lazy"
+                                        decoding="async"
                                         class="h-full w-full object-cover"
                                     />
                                     <span v-else>{{ userInitials(user) }}</span>
@@ -920,6 +922,8 @@ watch(
                                             v-if="user.avatar"
                                             :src="resolveUserAvatarUrl(user.avatar)"
                                             :alt="`${user.name} avatar`"
+                                            loading="lazy"
+                                            decoding="async"
                                             class="h-full w-full object-cover"
                                         />
                                         <span v-else>{{ userInitials(user) }}</span>
@@ -988,6 +992,8 @@ watch(
                                             v-if="selectedUser.avatar"
                                             :src="resolveUserAvatarUrl(selectedUser.avatar)"
                                             :alt="`${selectedUser.name} avatar`"
+                                            loading="lazy"
+                                            decoding="async"
                                             class="h-full w-full object-cover"
                                         />
                                         <span v-else>{{ userInitials(selectedUser) }}</span>

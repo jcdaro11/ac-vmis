@@ -69,7 +69,7 @@ const footerLinks = [
     { label: 'Dashboard', href: '/coach/dashboard' },
     { label: 'Schedule & Attendance', href: '/coach/schedule' },
     { label: 'Team', href: '/coach/team' },
-    { label: 'Academics', href: '/coach/academics' },
+    { label: 'Team Documents', href: '/coach/documents' },
     { label: 'Announcements', href: '/announcements' },
     { label: 'Profile', href: '/account/profile' },
     { label: 'Settings', href: '/account/settings' },

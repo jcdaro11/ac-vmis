@@ -247,6 +247,8 @@ function cardMotion(order: number) {
                                 :src="teamAvatarUrl(props.team.team_avatar)"
                                 class="h-full w-full object-cover"
                                 alt="Team avatar"
+                                loading="lazy"
+                                decoding="async"
                             />
                         </div>
                         <div class="min-w-0">
@@ -286,6 +288,8 @@ function cardMotion(order: number) {
                                     v-if="props.team.coach?.user?.avatar"
                                     :src="userAvatarUrl(props.team.coach.user.avatar)"
                                     alt="Head coach profile photo"
+                                    loading="lazy"
+                                    decoding="async"
                                     class="h-full w-full object-cover"
                                 />
                                 <span v-else>{{ initialsFromParts(props.team.coach?.first_name, props.team.coach?.last_name) }}</span>

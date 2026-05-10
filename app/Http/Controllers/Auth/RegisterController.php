@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Mail\AccountPendingApprovalMail;
 use App\Models\Announcement;
-use App\Models\AcademicDocument;
-use App\Models\AcademicDocumentType;
 use App\Models\Coach;
+use App\Models\DocumentType;
 use App\Models\Student;
+use App\Models\StudentDocument;
 use App\Models\User;
 use App\Services\SystemNotificationService;
 use App\Services\SecureUploadService;
@@ -57,6 +57,8 @@ class RegisterController extends Controller
             'academic_document_type' => 'required|in:tor,supporting_document',
             'academic_document_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'academic_document_notes' => 'nullable|string',
+            'medical_document_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'medical_document_notes' => 'nullable|string',
         ], [
             'phone_number.regex' => 'Mobile number must be exactly 10 digits.',
             'emergency_contact_relationship.in' => 'Select a valid emergency contact relationship.',
@@ -70,8 +72,8 @@ class RegisterController extends Controller
                 // --- Create Student ---
                 $student = $this->createStudent($request, $user);
 
-                // --- Create initial academic document ---
-                $this->createInitialAcademicDocument($request, $student, $user);
+                // --- Create initial registration documents ---
+                $this->createInitialRegistrationDocuments($request, $student, $user);
 
                 return $user;
             });
@@ -90,28 +92,44 @@ class RegisterController extends Controller
         }
     }
 
-    private function createInitialAcademicDocument(Request $request, Student $student, User $user): AcademicDocument
+    private function createInitialRegistrationDocuments(Request $request, Student $student, User $user): void
     {
-        $filePath = null;
-        if ($request->hasFile('academic_document_file')) {
-            $filePath = $this->secureUpload->storePublic(
-                $request->file('academic_document_file'),
-                'academic_documents',
-                'academic_document'
-            );
-        }
+        $academicPath = $this->secureUpload->storePublic(
+            $request->file('academic_document_file'),
+            'student_documents',
+            'academic_document'
+        );
 
-        return AcademicDocument::create([
+        StudentDocument::create([
             'student_id' => $student->id,
-            'document_type_id' => AcademicDocumentType::resolveId(
-                AcademicDocumentType::CONTEXT_REGISTRATION,
+            'document_type_id' => DocumentType::resolveId(
+                DocumentType::CONTEXT_REGISTRATION,
                 (string) $request->academic_document_type
             ),
             'academic_period_id' => null,
-            'file_path' => $filePath,
+            'file_path' => $academicPath,
             'uploaded_by' => $user->id,
             'uploaded_at' => now(),
             'notes' => $request->academic_document_notes,
+        ]);
+
+        $medicalPath = $this->secureUpload->storePublic(
+            $request->file('medical_document_file'),
+            'student_documents',
+            'academic_document'
+        );
+
+        StudentDocument::create([
+            'student_id' => $student->id,
+            'document_type_id' => DocumentType::resolveId(
+                DocumentType::CONTEXT_REGISTRATION,
+                DocumentType::CODE_MEDICAL_DOCUMENT
+            ),
+            'academic_period_id' => null,
+            'file_path' => $medicalPath,
+            'uploaded_by' => $user->id,
+            'uploaded_at' => now(),
+            'notes' => $request->medical_document_notes,
         ]);
     }
     // --- Private Helper Methods ---

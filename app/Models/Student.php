@@ -137,6 +137,16 @@ class Student extends Model
         return $this->hasMany(AcademicDocument::class, 'student_id');
     }
 
+    public function studentDocuments()
+    {
+        return $this->hasMany(StudentDocument::class, 'student_id');
+    }
+
+    public function registrationDocuments()
+    {
+        return $this->studentDocuments()->registration();
+    }
+
     public function registrationAcademicDocuments()
     {
         return $this->academicDocuments()->registration();
@@ -152,6 +162,15 @@ class Student extends Model
         return $this->hasOne(AcademicDocument::class, 'student_id')
             ->whereIn('document_type_id', AcademicDocumentType::query()
                 ->where('context', AcademicDocumentType::CONTEXT_REGISTRATION)
+                ->select('id'))
+            ->latestOfMany();
+    }
+
+    public function latestRegistrationDocument()
+    {
+        return $this->hasOne(StudentDocument::class, 'student_id')
+            ->whereIn('document_type_id', DocumentType::query()
+                ->where('context', DocumentType::CONTEXT_REGISTRATION)
                 ->select('id'))
             ->latestOfMany();
     }

@@ -11,6 +11,7 @@ export const studentPrimaryNav: StudentNavItem[] = [
   { key: 'team', label: 'Team', route: '/MyTeam', icon: 'users', mobileLabel: 'Team' },
   { key: 'schedule', label: 'Schedule', route: '/MySchedule', icon: 'calendar', mobileLabel: 'Schedule' },
   { key: 'academics', label: 'Academics', route: '/AcademicSubmissions', icon: 'graduation-cap', mobileLabel: 'Academics' },
+  { key: 'documents', label: 'My Documents', route: '/documents/my', icon: 'file-text', mobileLabel: 'Documents' },
 ]
 
 export const studentSecondaryNav: StudentNavItem[] = [

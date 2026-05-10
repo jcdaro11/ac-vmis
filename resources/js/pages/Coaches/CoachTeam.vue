@@ -311,6 +311,8 @@ function printTeamRoster() {
                         <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[22px] border border-white/18 bg-[#0a4f96]/70 shadow-[0_16px_36px_-24px_rgba(15,23,42,0.55)] sm:h-28 sm:w-28">
                             <img
                                 :src="teamAvatarUrl(props.team.team_avatar)"
+                                loading="lazy"
+                                decoding="async"
                                 class="h-full w-full object-cover"
                             />
                         </div>
@@ -372,6 +374,8 @@ function printTeamRoster() {
                                     v-if="props.team.coach?.user?.avatar"
                                     :src="coachAvatarUrl(props.team.coach)"
                                     alt="Head coach profile photo"
+                                    loading="lazy"
+                                    decoding="async"
                                     class="h-full w-full object-cover"
                                 />
                                 <span v-else>{{ initialsFromParts(props.team.coach?.first_name, props.team.coach?.last_name) }}</span>
