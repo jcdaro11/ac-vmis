@@ -81,7 +81,36 @@ return new class extends Migration
             return;
         }
 
-        DB::statement('DROP VIEW IF EXISTS academic_documents');
-        DB::statement('DROP VIEW IF EXISTS academic_document_types');
+        foreach (['academic_documents', 'academic_document_types'] as $viewName) {
+            if ($this->viewExists($driver, $viewName)) {
+                DB::statement("DROP VIEW IF EXISTS {$viewName}");
+            }
+        }
+    }
+
+    private function viewExists(string $driver, string $viewName): bool
+    {
+        if ($driver === 'pgsql') {
+            return DB::table('information_schema.views')
+                ->where('table_schema', 'public')
+                ->where('table_name', $viewName)
+                ->exists();
+        }
+
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
+            return DB::table('information_schema.views')
+                ->where('table_schema', DB::getDatabaseName())
+                ->where('table_name', $viewName)
+                ->exists();
+        }
+
+        if ($driver === 'sqlite') {
+            return DB::table('sqlite_master')
+                ->where('type', 'view')
+                ->where('name', $viewName)
+                ->exists();
+        }
+
+        return false;
     }
 };
