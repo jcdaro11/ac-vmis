@@ -2,9 +2,9 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import { useTheme } from '@/composables/useTheme'
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue'
-import { resolveUserAvatarUrl } from '@/utils/media'
 
 defineOptions({
     layout: AdminDashboard,
@@ -28,6 +28,7 @@ type UserProfile = {
     role: 'student-athlete' | 'student' | 'coach'
     status: 'active' | 'deactivated'
     avatar: string | null
+    avatar_url?: string | null
     created_at: string | null
     assignment: {
         sport_label: string | null
@@ -74,15 +75,6 @@ const activitySummary = computed(() => [
     { label: 'Assignment State', value: props.user.assignment.needs_action ? 'Needs Assignment' : 'Assigned' },
     { label: 'Joined', value: formatDateTime(props.user.created_at) },
 ])
-
-function userInitials() {
-    return String(props.user.name ?? '')
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? '')
-        .join('') || 'U'
-}
 
 function formatRole(role: UserProfile['role']) {
     return role === 'coach' ? 'Coach' : 'Student Athlete'
@@ -147,15 +139,15 @@ function teamHref(teamId: number) {
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">View Profile</p>
             <div class="mt-3 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div class="flex items-start gap-4">
-                    <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-white/20 bg-white/10 text-lg font-bold">
-                        <img
-                            v-if="user.avatar"
-                            :src="resolveUserAvatarUrl(user.avatar)"
-                            :alt="`${user.name} avatar`"
-                            class="h-full w-full object-cover"
-                        />
-                        <span v-else>{{ userInitials() }}</span>
-                    </div>
+                    <AppAvatar
+                        :src="user.avatar"
+                        :src-url="user.avatar_url"
+                        :name="user.name"
+                        :alt="`${user.name} avatar`"
+                        size-class="h-16 w-16"
+                        rounded-class="rounded-3xl"
+                        class="border-white/20 bg-white/10 text-lg text-white"
+                    />
                     <div>
                         <h1 class="text-2xl font-bold">{{ user.name }}</h1>
                         <p class="mt-1 text-sm text-white/85">{{ user.email }}</p>

@@ -28,7 +28,6 @@ const props = defineProps<{
 const { sportColor, sportTextColor, sportLabel } = useSportColors()
 const APP_TIMEZONE = 'Asia/Manila'
 
-const selectedScheduleId = ref<number | null>(null)
 const selectedTeamId = ref<number | null>(props.selectedTeamId ?? null)
 const calendarViewDate = ref<Date | string>('')
 const calendarSelectedDate = ref<Date | string>('')
@@ -52,7 +51,6 @@ const calendarEvents = computed(() =>
             content: `${item.type} • ${item.venue || '-'}`,
             backgroundColor: sportColor(item.sport),
             color: sportTextColor(item.sport),
-            class: selectedScheduleId.value === item.id ? 'student-schedule--focused' : '',
         })),
 )
 
@@ -92,12 +90,11 @@ function changeTeam() {
 }
 
 function onCalendarEventClick({ event }: any) {
-    focusSchedule(sortedSchedules.value.find((item) => item.id === event.id) ?? null)
+    syncCalendarDate(sortedSchedules.value.find((item) => item.id === event.id) ?? null)
 }
 
-function focusSchedule(item: any | null) {
+function syncCalendarDate(item: any | null) {
     if (!item) return
-    selectedScheduleId.value = item.id
     calendarViewDate.value = new Date(item.start)
     calendarSelectedDate.value = new Date(item.start)
 }
@@ -276,8 +273,6 @@ function hasTrainingRequirements(item: any) {
 
                 <div class="grid grid-cols-1 gap-4 xl:grid-cols-5">
                     <section v-if="showCalendar" class="page-card rounded-xl border border-[#034485]/35 bg-white p-4 xl:col-span-3" :style="cardMotion(6)">
-                        <p class="mb-3 text-xs text-slate-500">Tip: Click a schedule on the calendar to focus it on the right panel.</p>
-
                         <VueCal
                             sm
                             style="height: 650px"
@@ -303,7 +298,6 @@ function hasTrainingRequirements(item: any) {
                                 <h2 class="font-semibold text-slate-900">Upcoming Sessions</h2>
                                 <p class="text-xs text-slate-500">{{ upcomingSchedules.length }} scheduled</p>
                             </div>
-                            <span v-if="selectedScheduleId" class="text-xs break-words text-[#1f2937] sm:text-right">Focused schedule selected</span>
                         </div>
 
                         <div v-if="upcomingSchedules.length === 0" class="text-sm text-slate-500">No upcoming sessions are available at this time.</div>
@@ -314,7 +308,6 @@ function hasTrainingRequirements(item: any) {
                                 :key="item.id"
                                 class="page-card student-schedule-card relative overflow-hidden rounded-3xl border border-[#034485]/45 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(3,68,133,0.45)] transition"
                                 :style="cardMotion(8 + index)"
-                                :class="item.id === selectedScheduleId ? 'border-[#034485] ring-2 ring-[#034485]/20' : ''"
                             >
                                 <div class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/85 opacity-100"></div>
                                 <div class="pointer-events-none absolute inset-x-0 top-16 h-16 bg-gradient-to-b from-[#034485]/18 to-transparent"></div>
@@ -334,12 +327,6 @@ function hasTrainingRequirements(item: any) {
                                             class="rounded border border-white/20 bg-white px-2.5 py-1 text-xs font-semibold text-[#034485] hover:bg-[#eef5ff]"
                                         >
                                             + Add to Calendar
-                                        </button>
-                                        <button
-                                            @click="focusSchedule(item)"
-                                            class="rounded border border-white/20 bg-[#023463] px-2.5 py-1 text-xs text-white hover:bg-[#022b52]"
-                                        >
-                                            Focus
                                         </button>
                                     </div>
                                 </div>
@@ -395,7 +382,6 @@ function hasTrainingRequirements(item: any) {
                                     :key="item.id"
                                     class="page-card student-schedule-card relative overflow-hidden rounded-3xl border border-[#034485]/45 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(3,68,133,0.45)] transition"
                                     :style="cardMotion(20 + index)"
-                                    :class="item.id === selectedScheduleId ? 'border-[#034485] ring-2 ring-[#034485]/20' : ''"
                                 >
                                     <div class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/85 opacity-100"></div>
                                     <div class="pointer-events-none absolute inset-x-0 top-16 h-16 bg-gradient-to-b from-[#034485]/18 to-transparent"></div>
@@ -415,12 +401,6 @@ function hasTrainingRequirements(item: any) {
                                                 class="rounded border border-white/20 bg-white px-2.5 py-1 text-xs font-semibold text-[#034485] hover:bg-[#eef5ff]"
                                             >
                                                 + Add to Calendar
-                                            </button>
-                                            <button
-                                                @click="focusSchedule(item)"
-                                                class="rounded border border-white/20 bg-[#023463] px-2.5 py-1 text-xs text-white hover:bg-[#022b52]"
-                                            >
-                                                Focus
                                             </button>
                                         </div>
                                     </div>
@@ -489,11 +469,6 @@ function hasTrainingRequirements(item: any) {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
-}
-
-:deep(.vuecal__event.student-schedule--focused) {
-    outline: 2px solid #034485;
-    outline-offset: 1px;
 }
 
 @media (prefers-reduced-motion: reduce) {

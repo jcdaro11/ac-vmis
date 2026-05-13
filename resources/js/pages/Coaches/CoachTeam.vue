@@ -2,10 +2,10 @@
 import { router } from '@inertiajs/vue3'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import { useSportColors } from '@/composables/useSportColors'
 import { useTheme } from '@/composables/useTheme'
 import CoachDashboard from '@/pages/Coaches/CoachDashboard.vue'
-import { resolveTeamAvatarUrl as teamAvatarUrl, resolveUserAvatarUrl as userAvatarUrl } from '@/utils/media'
 
 defineOptions({
     layout: CoachDashboard,
@@ -35,6 +35,7 @@ type PlayerRow = {
         user?: {
             email?: string | null
             avatar?: string | null
+            avatar_url?: string | null
         } | null
     }
 }
@@ -119,19 +120,6 @@ function positionsForSport(): string[] {
 const filteredPlayers = computed(() => {
     return players.value
 })
-
-function initialsFromParts(...parts: Array<string | null | undefined>) {
-    return parts
-        .flatMap((part) => String(part ?? '').trim().split(/\s+/))
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0).toUpperCase())
-        .join('') || 'NA'
-}
-
-function coachAvatarUrl(coach?: { user?: { avatar?: string | null } | null } | null) {
-    return userAvatarUrl(coach?.user?.avatar ?? null)
-}
 
 function isCurrentCoach(coach?: { user_id?: number | null; user?: { id?: number | null } | null } | null) {
     const coachUserId = coach?.user_id ?? coach?.user?.id ?? null
@@ -326,14 +314,15 @@ function openJoinPage() {
             <section class="page-card relative z-10 rounded-3xl border border-[#034485]/35 bg-gradient-to-br from-[#034485] via-[#0b5aa6] to-[#02315f] p-6 shadow-[0_22px_48px_-30px_rgba(3,68,133,0.42)]">
                 <div class="relative flex flex-col gap-5">
                     <div class="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center">
-                        <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[22px] border border-white/18 bg-[#0a4f96]/70 shadow-[0_16px_36px_-24px_rgba(15,23,42,0.55)] sm:h-28 sm:w-28">
-                            <img
-                                :src="teamAvatarUrl(props.team.team_avatar)"
-                                loading="lazy"
-                                decoding="async"
-                                class="h-full w-full object-cover"
-                            />
-                        </div>
+                        <AppAvatar
+                            :src="props.team.team_avatar"
+                            :name="props.team.team_name"
+                            kind="team"
+                            alt="Team avatar"
+                            size-class="h-24 w-24 sm:h-28 sm:w-28"
+                            rounded-class="rounded-[22px]"
+                            class="border-white/18 bg-[#0a4f96]/70 shadow-[0_16px_36px_-24px_rgba(15,23,42,0.55)]"
+                        />
 
                         <div class="min-w-0">
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/72">Team Overview</p>
@@ -470,17 +459,16 @@ function openJoinPage() {
                             </span>
                         </div>
                         <div class="mt-3 flex items-center gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/24 bg-white/22 text-sm font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-xl">
-                                <img
-                                    v-if="props.team.coach?.user?.avatar"
-                                    :src="coachAvatarUrl(props.team.coach)"
-                                    alt="Head coach profile photo"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="h-full w-full object-cover"
-                                />
-                                <span v-else>{{ initialsFromParts(props.team.coach?.first_name, props.team.coach?.last_name) }}</span>
-                            </div>
+                            <AppAvatar
+                                :src="props.team.coach?.user?.avatar"
+                                :src-url="props.team.coach?.user?.avatar_url"
+                                :first-name="props.team.coach?.first_name"
+                                :last-name="props.team.coach?.last_name"
+                                alt="Head coach profile photo"
+                                size-class="h-14 w-14"
+                                rounded-class="rounded-2xl"
+                                class="border-white/24 bg-white/22 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-xl"
+                            />
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-white">
                                     {{ props.team.coach?.first_name }} {{ props.team.coach?.last_name }}
@@ -548,15 +536,16 @@ function openJoinPage() {
                             </span>
                         </div>
                         <div v-if="props.team.assistantCoach" class="mt-3 flex items-center gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/24 bg-white/22 text-sm font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-xl">
-                                <img
-                                    v-if="props.team.assistantCoach?.user?.avatar"
-                                    :src="coachAvatarUrl(props.team.assistantCoach)"
-                                    alt="Assistant coach profile photo"
-                                    class="h-full w-full object-cover"
-                                />
-                                <span v-else>{{ initialsFromParts(props.team.assistantCoach?.first_name, props.team.assistantCoach?.last_name) }}</span>
-                            </div>
+                            <AppAvatar
+                                :src="props.team.assistantCoach?.user?.avatar"
+                                :src-url="props.team.assistantCoach?.user?.avatar_url"
+                                :first-name="props.team.assistantCoach?.first_name"
+                                :last-name="props.team.assistantCoach?.last_name"
+                                alt="Assistant coach profile photo"
+                                size-class="h-14 w-14"
+                                rounded-class="rounded-2xl"
+                                class="border-white/24 bg-white/22 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-xl"
+                            />
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-white">
                                     {{ props.team.assistantCoach?.first_name }} {{ props.team.assistantCoach?.last_name }}
@@ -626,15 +615,16 @@ function openJoinPage() {
                     <div class="pointer-events-none -mx-4 -mt-4 mb-4 h-12 rounded-t-2xl bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/90"></div>
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex min-w-0 items-start gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-white text-sm font-bold text-[#034485] shadow-sm">
-                                <img
-                                    v-if="player.student?.user?.avatar"
-                                    :src="userAvatarUrl(player.student.user.avatar)"
-                                    alt="Player profile photo"
-                                    class="h-full w-full object-cover"
-                                />
-                                <span v-else>{{ initialsFromParts(player.student?.first_name, player.student?.last_name) }}</span>
-                            </div>
+                            <AppAvatar
+                                :src="player.student?.user?.avatar"
+                                :src-url="player.student?.user?.avatar_url"
+                                :first-name="player.student?.first_name"
+                                :last-name="player.student?.last_name"
+                                alt="Player profile photo"
+                                size-class="h-14 w-14"
+                                rounded-class="rounded-2xl"
+                                class="border-[#034485]/20 bg-white text-sm shadow-sm"
+                            />
                             <div class="min-w-0">
                                 <p class="truncate text-base font-semibold text-slate-900">{{ player.student?.first_name }} {{ player.student?.last_name }}</p>
                                 <p class="text-xs text-slate-600">{{ player.student?.student_id_number || '-' }}</p>
@@ -660,9 +650,9 @@ function openJoinPage() {
                                 <span v-else class="text-amber-600">Pending</span>
                             </p>
                         </div>
-                        <div class="rounded-2xl border border-[#034485]/12 bg-white px-3 py-2">
+                        <div class="min-w-0 rounded-2xl border border-[#034485]/12 bg-white px-3 py-2">
                             <span class="text-[#034485]">Position</span>
-                            <p class="font-semibold text-slate-900">
+                            <p class="break-words text-[11px] font-semibold leading-snug text-slate-900 sm:text-xs">
                                 <span v-if="player.athlete_position">{{ player.athlete_position }}</span>
                                 <span v-else class="text-red-600">Unassigned</span>
                             </p>
@@ -788,9 +778,16 @@ function openJoinPage() {
                             </div>
                         </div>
                     </div>
-                    <div class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border" :class="isDarkMode ? 'border-slate-700 bg-slate-900' : 'border-[#034485]/20 bg-[#f7fbff]'">
-                        <img :src="userAvatarUrl(selectedStudent?.user?.avatar ?? null)" alt="Student avatar" class="h-full w-full object-cover" />
-                    </div>
+                    <AppAvatar
+                        :src="selectedStudent?.user?.avatar"
+                        :src-url="selectedStudent?.user?.avatar_url"
+                        :first-name="selectedStudent?.first_name"
+                        :last-name="selectedStudent?.last_name"
+                        alt="Student avatar"
+                        size-class="h-28 w-28"
+                        rounded-class="rounded-full"
+                        :class="isDarkMode ? 'border-slate-700 bg-slate-900' : 'border-[#034485]/20 bg-[#f7fbff]'"
+                    />
                 </div>
 
                 <div class="mt-6 border-t pt-4" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">

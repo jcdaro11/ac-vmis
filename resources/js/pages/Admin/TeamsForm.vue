@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3'
-import FileUpload from 'primevue/fileupload'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import Select from 'primevue/select'
@@ -75,6 +74,11 @@ function handleAvatarUpload(files: File[]) {
     teamAvatar.value = files[0]
     avatarPreview.value = URL.createObjectURL(files[0])
     avatarPreviewFromUpload.value = true
+}
+
+function handleAvatarNativeUpload(event: Event) {
+    const input = event.target as HTMLInputElement
+    handleAvatarUpload(input.files?.[0] ? [input.files[0]] : [])
 }
 
 function validate() {
@@ -297,15 +301,13 @@ onBeforeUnmount(() => {
                         </div>
 
                         <div>
-                            <FileUpload
-                                mode="basic"
-                                customUpload
-                                chooseLabel="Choose Team Photo"
-                                accept="image/*"
-                                class="w-full"
-                                :invalid="Boolean(errors.team_avatar)"
-                                @select="(event) => handleAvatarUpload(event.files)"
-                            />
+                            <label class="team-photo-upload-button">
+                                <input type="file" accept="image/*" class="sr-only" @change="handleAvatarNativeUpload" />
+                                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M12 5v14M5 12h14" />
+                                </svg>
+                                <span>Choose Team Photo</span>
+                            </label>
                             <p class="mt-2 text-xs text-slate-500">Selected: {{ teamAvatar?.name || 'No file selected' }}</p>
                             <Message v-if="errors.team_avatar" severity="error" size="small" variant="simple" class="mt-1">{{ errors.team_avatar }}</Message>
                         </div>
@@ -372,3 +374,33 @@ onBeforeUnmount(() => {
         </section>
     </div>
 </template>
+
+<style scoped>
+.team-photo-upload-button {
+    width: 100%;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid #034485;
+    border-radius: 0.9rem;
+    background: #034485;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 14px 28px -18px rgba(3, 68, 133, 0.7);
+    transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.team-photo-upload-button:hover {
+    border-color: #02315f;
+    background: #02315f;
+    transform: translateY(-1px);
+}
+
+.team-photo-upload-button:focus-within {
+    box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.18), 0 14px 28px -18px rgba(3, 68, 133, 0.7);
+}
+</style>

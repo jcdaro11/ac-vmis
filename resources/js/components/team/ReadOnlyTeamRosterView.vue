@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import { useSportColors } from '@/composables/useSportColors'
 import { useTheme } from '@/composables/useTheme'
-import { resolveTeamAvatarUrl as teamAvatarUrl, resolveUserAvatarUrl as userAvatarUrl } from '@/utils/media'
 
 type TeamOption = {
     id: number
@@ -23,6 +23,7 @@ type TeamCoach = {
     user?: {
         id?: number | null
         avatar?: string | null
+        avatar_url?: string | null
         email?: string | null
     } | null
     avatar?: string | null
@@ -51,6 +52,7 @@ type TeamPlayer = {
         user?: {
             email?: string | null
             avatar?: string | null
+            avatar_url?: string | null
         } | null
     } | null
 }
@@ -137,15 +139,6 @@ function changeTeam() {
     emit('team-change', selectedTeamId.value)
 }
 
-function initialsFromParts(...parts: Array<string | null | undefined>) {
-    return parts
-        .flatMap((part) => String(part ?? '').trim().split(/\s+/))
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0).toUpperCase())
-        .join('') || 'NA'
-}
-
 function formatSimple(value?: string | number | null) {
     if (value === null || value === undefined) return '-'
     const text = String(value).trim()
@@ -227,15 +220,15 @@ async function copyToClipboard(value?: string | number | null, key?: string) {
             <section class="page-card overflow-hidden rounded-3xl border border-[#034485]/35 bg-gradient-to-br from-[#034485] via-[#0b5aa6] to-[#02315f] p-6 text-white shadow-[0_22px_48px_-30px_rgba(3,68,133,0.42)]">
                 <div class="relative flex flex-col gap-5">
                     <div class="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center">
-                        <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[22px] border border-white/18 bg-[#0a4f96]/70 shadow-[0_16px_36px_-24px_rgba(15,23,42,0.55)] sm:h-28 sm:w-28">
-                            <img
-                                :src="teamAvatarUrl(props.team.team_avatar)"
-                                class="h-full w-full object-cover"
-                                alt="Team avatar"
-                                loading="lazy"
-                                decoding="async"
-                            />
-                        </div>
+                        <AppAvatar
+                            :src="props.team.team_avatar"
+                            :name="props.team.team_name"
+                            kind="team"
+                            alt="Team avatar"
+                            size-class="h-24 w-24 sm:h-28 sm:w-28"
+                            rounded-class="rounded-[22px]"
+                            class="border-white/18 bg-[#0a4f96]/70 shadow-[0_16px_36px_-24px_rgba(15,23,42,0.55)]"
+                        />
                         <div class="min-w-0">
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/72">{{ props.heroLabel }}</p>
                             <h2 class="text-2xl font-bold text-white sm:text-[2rem]">{{ props.team.team_name }}</h2>
@@ -270,17 +263,17 @@ async function copyToClipboard(value?: string | number | null, key?: string) {
                     <div class="page-card rounded-3xl border border-white/20 bg-white/12 p-4 text-white shadow-[0_16px_30px_-24px_rgba(15,23,42,0.36)] backdrop-blur-md">
                         <p class="text-xs uppercase tracking-wide text-white/78">Head Coach</p>
                         <div class="mt-3 flex items-center gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/18 bg-white/14 text-sm font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] backdrop-blur-md">
-                                <img
-                                    v-if="props.team.coach?.user?.avatar || props.team.coach?.avatar"
-                                    :src="userAvatarUrl(props.team.coach?.user?.avatar ?? props.team.coach?.avatar ?? null)"
-                                    alt="Head coach profile photo"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="h-full w-full object-cover"
-                                />
-                                <span v-else>{{ initialsFromParts(props.team.coach?.first_name, props.team.coach?.last_name, props.team.coach?.name) }}</span>
-                            </div>
+                            <AppAvatar
+                                :src="props.team.coach?.user?.avatar ?? props.team.coach?.avatar"
+                                :src-url="props.team.coach?.user?.avatar_url"
+                                :name="props.team.coach?.name"
+                                :first-name="props.team.coach?.first_name"
+                                :last-name="props.team.coach?.last_name"
+                                alt="Head coach profile photo"
+                                size-class="h-14 w-14"
+                                rounded-class="rounded-2xl"
+                                class="border-white/18 bg-white/14 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] backdrop-blur-md"
+                            />
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-white">{{ fullCoachName(props.team.coach) }}</p>
                                 <p class="mt-1 text-xs text-white/72">
@@ -336,15 +329,17 @@ async function copyToClipboard(value?: string | number | null, key?: string) {
                     <div class="page-card rounded-3xl border border-white/20 bg-white/12 p-4 text-white shadow-[0_16px_30px_-24px_rgba(15,23,42,0.36)] backdrop-blur-md">
                         <p class="text-xs uppercase tracking-wide text-white/78">Assistant Coach</p>
                         <div v-if="props.team.assistantCoach" class="mt-3 flex items-center gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/18 bg-white/14 text-sm font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] backdrop-blur-md">
-                                <img
-                                    v-if="props.team.assistantCoach?.user?.avatar || props.team.assistantCoach?.avatar"
-                                    :src="userAvatarUrl(props.team.assistantCoach?.user?.avatar ?? props.team.assistantCoach?.avatar ?? null)"
-                                    alt="Assistant coach profile photo"
-                                    class="h-full w-full object-cover"
-                                />
-                                <span v-else>{{ initialsFromParts(props.team.assistantCoach?.first_name, props.team.assistantCoach?.last_name, props.team.assistantCoach?.name) }}</span>
-                            </div>
+                            <AppAvatar
+                                :src="props.team.assistantCoach?.user?.avatar ?? props.team.assistantCoach?.avatar"
+                                :src-url="props.team.assistantCoach?.user?.avatar_url"
+                                :name="props.team.assistantCoach?.name"
+                                :first-name="props.team.assistantCoach?.first_name"
+                                :last-name="props.team.assistantCoach?.last_name"
+                                alt="Assistant coach profile photo"
+                                size-class="h-14 w-14"
+                                rounded-class="rounded-2xl"
+                                class="border-white/18 bg-white/14 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] backdrop-blur-md"
+                            />
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-white">{{ fullCoachName(props.team.assistantCoach) }}</p>
                                 <p class="mt-1 text-xs text-white/72">
@@ -419,18 +414,17 @@ async function copyToClipboard(value?: string | number | null, key?: string) {
                         <div class="pointer-events-none -mx-4 -mt-4 mb-4 h-12 rounded-t-2xl bg-gradient-to-r from-[#034485] via-[#0b5aa6] to-[#034485]/90"></div>
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-start gap-3">
-                                <div
-                                    class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border text-sm font-bold shadow-sm"
+                                <AppAvatar
+                                    :src="player.student?.user?.avatar"
+                                    :src-url="player.student?.user?.avatar_url"
+                                    :first-name="player.student?.first_name"
+                                    :last-name="player.student?.last_name"
+                                    alt="Player profile photo"
+                                    size-class="h-14 w-14"
+                                    rounded-class="rounded-2xl"
+                                    class="text-sm shadow-sm"
                                     :class="isDarkMode ? 'border-slate-700 bg-slate-900 text-slate-100' : 'border-[#034485]/20 bg-white text-[#034485]'"
-                                >
-                                    <img
-                                        v-if="player.student?.user?.avatar"
-                                        :src="userAvatarUrl(player.student.user.avatar)"
-                                        alt="Player profile photo"
-                                        class="h-full w-full object-cover"
-                                    />
-                                    <span v-else>{{ initialsFromParts(player.student?.first_name, player.student?.last_name) }}</span>
-                                </div>
+                                />
                                 <div class="min-w-0">
                                     <p class="text-base font-semibold" :class="isDarkMode ? 'text-slate-100' : 'text-slate-900'">
                                         {{ player.student?.first_name }} {{ player.student?.last_name }}
@@ -459,9 +453,9 @@ async function copyToClipboard(value?: string | number | null, key?: string) {
                                     <span v-else class="text-amber-600">Pending</span>
                                 </p>
                             </div>
-                            <div class="rounded-2xl border px-3 py-2" :class="isDarkMode ? 'border-slate-700 bg-slate-900' : 'border-[#034485]/12 bg-white'">
+                            <div class="min-w-0 rounded-2xl border px-3 py-2" :class="isDarkMode ? 'border-slate-700 bg-slate-900' : 'border-[#034485]/12 bg-white'">
                                 <span :class="isDarkMode ? 'text-sky-300' : 'text-[#034485]'">Position</span>
-                                <p class="font-semibold" :class="isDarkMode ? 'text-slate-100' : 'text-slate-900'">
+                                <p class="break-words text-[11px] font-semibold leading-snug sm:text-xs" :class="isDarkMode ? 'text-slate-100' : 'text-slate-900'">
                                     <span v-if="player.athlete_position">{{ player.athlete_position }}</span>
                                     <span v-else class="text-red-600">Unassigned</span>
                                 </p>
@@ -549,9 +543,16 @@ async function copyToClipboard(value?: string | number | null, key?: string) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#034485]/20 bg-[#f7fbff]">
-                                        <img :src="userAvatarUrl(selectedStudent?.user?.avatar ?? null)" alt="Student avatar" class="h-full w-full object-cover" />
-                                    </div>
+                                    <AppAvatar
+                                        :src="selectedStudent?.user?.avatar"
+                                        :src-url="selectedStudent?.user?.avatar_url"
+                                        :first-name="selectedStudent?.first_name"
+                                        :last-name="selectedStudent?.last_name"
+                                        alt="Student avatar"
+                                        size-class="h-28 w-28"
+                                        rounded-class="rounded-full"
+                                        class="border-[#034485]/20 bg-[#f7fbff]"
+                                    />
                                 </div>
 
                                 <div class="mt-6 border-t border-slate-200 pt-4">

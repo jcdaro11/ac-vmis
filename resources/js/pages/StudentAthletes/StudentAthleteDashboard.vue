@@ -94,6 +94,10 @@ const hasSecondaryItems = secondaryItems.length > 0
 const notificationsOpen = ref(false)
 const notificationsCloseTimer = ref<number | null>(null)
 const bellProcessingIds = ref<number[]>([])
+const notificationsReady = ref(false)
+const notificationsLoading = ref(true)
+const notificationsFailed = ref(false)
+const notificationRouterStops: Array<() => void> = []
 
 const studentNotifications = ref<Array<{
     id: number | string
@@ -116,6 +120,8 @@ watch(
         studentNotifications.value = Array.isArray(items)
             ? items.map((item: any) => ({ ...item }))
             : []
+        notificationsReady.value = true
+        notificationsLoading.value = false
     },
     { immediate: true }
 )
@@ -404,11 +410,25 @@ function onEsc(event: KeyboardEvent) {
 onMounted(() => {
     sidebarCollapsed.value = localStorage.getItem(SIDEBAR_PREF_KEY) === '1'
     window.addEventListener('keydown', onEsc)
+    notificationRouterStops.push(
+        router.on('start', () => {
+            notificationsLoading.value = true
+            notificationsFailed.value = false
+        }),
+        router.on('finish', () => {
+            notificationsLoading.value = false
+            notificationsReady.value = true
+        }),
+        router.on('error', () => {
+            notificationsFailed.value = true
+        }),
+    )
 })
 
 onUnmounted(() => {
     window.removeEventListener('keydown', onEsc)
     document.body.style.overflow = ''
+    notificationRouterStops.splice(0).forEach((stop) => stop())
 })
 
 watch(mobileMenuOpen, (open) => {
@@ -721,7 +741,17 @@ watch(mobileMenuOpen, (open) => {
                                 <path d="M9 17a3 3 0 0 0 6 0" />
                             </svg>
                             <span
-                                v-if="notificationsCount > 0"
+                                v-if="notificationsLoading"
+                                class="absolute -right-1 -top-1 h-4 w-4 rounded-full border-2 border-[#034485]/25 border-t-[#034485] bg-white animate-spin"
+                                aria-label="Loading notifications"
+                            />
+                            <span
+                                v-else-if="notificationsFailed"
+                                class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border border-white bg-amber-400"
+                                title="Notifications could not refresh"
+                            />
+                            <span
+                                v-else-if="notificationsReady && notificationsCount > 0"
                                 class="absolute -top-1 -right-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white"
                             >
                                 {{ notificationsCount }}
@@ -734,9 +764,18 @@ watch(mobileMenuOpen, (open) => {
                         >
                             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                 Announcements
-                                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{{ notificationsCount }}</span>
+                                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                                    {{ notificationsLoading ? '...' : notificationsFailed ? '!' : notificationsCount }}
+                                </span>
                             </div>
                             <div class="max-h-72 overflow-y-auto">
+                                <div v-if="notificationsLoading" class="flex items-center gap-2 px-3 py-4 text-xs font-semibold text-slate-500">
+                                    <span class="h-3.5 w-3.5 rounded-full border-2 border-[#034485]/25 border-t-[#034485] animate-spin"></span>
+                                    Loading notifications...
+                                </div>
+                                <div v-else-if="notificationsFailed" class="px-3 py-4 text-xs font-semibold text-amber-700">
+                                    Notifications could not refresh. You can still open Announcements.
+                                </div>
                                 <button
                                     v-for="item in studentNotifications"
                                     :key="item.id ?? item.title"
@@ -786,7 +825,7 @@ watch(mobileMenuOpen, (open) => {
                                         {{ item.published_at ?? '' }}
                                     </span>
                                 </button>
-                                <div v-if="studentNotifications.length === 0" class="px-3 py-4 text-xs text-slate-500">
+                                <div v-if="!notificationsLoading && !notificationsFailed && studentNotifications.length === 0" class="px-3 py-4 text-xs text-slate-500">
                                     No announcements are available at this time.
                                 </div>
                             </div>

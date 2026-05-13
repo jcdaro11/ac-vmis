@@ -2,13 +2,13 @@
 import { Head, router } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import BackLinkButton from '@/components/ui/BackLinkButton.vue'
 import EmptyResultsState from '@/components/ui/EmptyResultsState.vue'
 import SearchFilterPanel from '@/components/ui/SearchFilterPanel.vue'
 import { showAppToast } from '@/composables/useAppToast'
 import { useSportColors } from '@/composables/useSportColors'
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue'
-import { resolveTeamAvatarUrl as teamAvatarUrl, resolveUserAvatarUrl as userAvatarUrl } from '@/utils/media'
 
 defineOptions({
     layout: AdminDashboard,
@@ -80,15 +80,6 @@ const filteredCoaches = computed(() => {
             .some((value) => value.includes(query))
     })
 })
-
-function initialsFromText(value?: string | null) {
-    return String(value ?? '')
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0).toUpperCase())
-        .join('') || 'NA'
-}
 
 function canAssignHead(coach: CoachOption) {
     return coach.is_available || coach.id === props.team.coach?.id
@@ -180,9 +171,15 @@ function removeHeadCoach() {
         <section class="page-card rounded-3xl bg-[#034485] p-6 text-white shadow-[0_24px_60px_-36px_rgba(3,68,133,0.55)]">
             <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="h-20 w-20 overflow-hidden rounded-2xl border border-white/20 bg-white/10">
-                        <img :src="teamAvatarUrl(team.team_avatar)" alt="Team avatar" class="h-full w-full object-cover" />
-                    </div>
+                    <AppAvatar
+                        :src="team.team_avatar"
+                        :name="team.team_name"
+                        kind="team"
+                        alt="Team avatar"
+                        size-class="h-20 w-20"
+                        rounded-class="rounded-2xl"
+                        class="border-white/20 bg-white/10 text-white"
+                    />
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
                             <span
@@ -227,10 +224,14 @@ function removeHeadCoach() {
                             </button>
                         </div>
                         <div class="mt-3 flex items-center gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700">
-                                <img v-if="team.coach?.avatar" :src="userAvatarUrl(team.coach.avatar)" alt="Head coach photo" class="h-full w-full object-cover" />
-                                <span v-else>{{ initialsFromText(team.coach?.name) }}</span>
-                            </div>
+                            <AppAvatar
+                                :src="team.coach?.avatar"
+                                :name="team.coach?.name"
+                                alt="Head coach photo"
+                                size-class="h-14 w-14"
+                                rounded-class="rounded-2xl"
+                                class="border-slate-200 bg-white text-sm"
+                            />
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-slate-900">{{ team.coach?.name || 'Unassigned' }}</p>
                                 <p class="mt-1 text-xs text-slate-500">{{ team.coach?.email || 'No email available' }}</p>
@@ -255,10 +256,14 @@ function removeHeadCoach() {
                             </button>
                         </div>
                         <div class="mt-3 flex items-center gap-3">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700">
-                                <img v-if="team.assistantCoach?.avatar" :src="userAvatarUrl(team.assistantCoach.avatar)" alt="Assistant coach photo" class="h-full w-full object-cover" />
-                                <span v-else>{{ initialsFromText(team.assistantCoach?.name) }}</span>
-                            </div>
+                            <AppAvatar
+                                :src="team.assistantCoach?.avatar"
+                                :name="team.assistantCoach?.name"
+                                alt="Assistant coach photo"
+                                size-class="h-14 w-14"
+                                rounded-class="rounded-2xl"
+                                class="border-slate-200 bg-white text-sm"
+                            />
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-slate-900">{{ team.assistantCoach?.name || 'Unassigned' }}</p>
                                 <p class="mt-1 text-xs text-slate-500">{{ team.assistantCoach?.email || 'No assistant coach assigned' }}</p>
@@ -301,10 +306,14 @@ function removeHeadCoach() {
                     >
                         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                             <div class="flex min-w-0 items-start gap-3">
-                                <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 text-sm font-bold text-slate-700">
-                                    <img v-if="coach.avatar" :src="userAvatarUrl(coach.avatar)" alt="Coach photo" class="h-full w-full object-cover" />
-                                    <span v-else>{{ initialsFromText(coach.name) }}</span>
-                                </div>
+                                <AppAvatar
+                                    :src="coach.avatar"
+                                    :name="coach.name"
+                                    alt="Coach photo"
+                                    size-class="h-14 w-14"
+                                    rounded-class="rounded-2xl"
+                                    class="border-slate-200 bg-slate-100 text-sm"
+                                />
                                 <div class="min-w-0">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <p class="truncate text-base font-semibold text-slate-900">{{ coach.name }}</p>

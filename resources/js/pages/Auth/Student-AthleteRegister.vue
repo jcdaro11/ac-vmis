@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
 import DatePicker from 'primevue/datepicker';
-import FileUpload from 'primevue/fileupload';
 import InputMask from 'primevue/inputmask';
 import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
@@ -699,6 +698,13 @@ function setAvatarFile(event: Event) {
     setPrimeFile('avatar', file ? [file] : undefined);
 }
 
+function setDocumentFile(field: 'academic_document_file' | 'medical_document_file', event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    setPrimeFile(field, file ? [file] : undefined);
+}
+
 function saveDraft() {
     const payload = {
         ...form,
@@ -1168,15 +1174,13 @@ onBeforeUnmount(() => {
                         </div>
                         <div>
                             <label class="label">Academic Record File</label>
-                            <FileUpload
-                                mode="basic"
-                                customUpload
-                                chooseLabel="Choose Academic File"
-                                accept=".pdf,image/*"
-                                class="w-full"
-                                :invalid="shouldShowError('academic_document_file')"
-                                @select="(event) => setPrimeFile('academic_document_file', event.files)"
-                            />
+                            <label class="file-upload-button">
+                                <input type="file" accept=".pdf,image/*" class="sr-only" @change="(event) => setDocumentFile('academic_document_file', event)" />
+                                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M12 5v14M5 12h14" />
+                                </svg>
+                                <span>Choose Academic File</span>
+                            </label>
                             <p class="support-text mt-1">Selected: {{ selectedFileNames.academic }}</p>
                             <Message v-if="shouldShowError('academic_document_file')" severity="error" size="small" variant="simple" class="mt-1">
                                 {{ fieldErrors.academic_document_file }}
@@ -1189,24 +1193,22 @@ onBeforeUnmount(() => {
                         <Textarea v-model="form.academic_document_notes" class="field w-full min-h-21" autoResize placeholder="Additional context" />
                     </div>
 
-                    <div class="rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4">
-                        <h3 class="text-sm font-semibold text-[#1f2937]">Medical Document / Health Clearance</h3>
-                        <p class="mt-1 text-xs text-slate-500">
+                    <div class="medical-document-card rounded-2xl border p-4">
+                        <h3 class="text-sm font-semibold">Medical Document / Health Clearance</h3>
+                        <p class="mt-1 text-xs">
                             This is required for administrative record-checking during approval and is not used for OCR or academic eligibility.
                         </p>
 
                         <div class="mt-4 grid gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="label">Medical Clearance File</label>
-                                <FileUpload
-                                    mode="basic"
-                                    customUpload
-                                    chooseLabel="Choose Medical File"
-                                    accept=".pdf,image/*"
-                                    class="w-full"
-                                    :invalid="shouldShowError('medical_document_file')"
-                                    @select="(event) => setPrimeFile('medical_document_file', event.files)"
-                                />
+                                <label class="file-upload-button">
+                                    <input type="file" accept=".pdf,image/*" class="sr-only" @change="(event) => setDocumentFile('medical_document_file', event)" />
+                                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    <span>Choose Medical File</span>
+                                </label>
                                 <p class="support-text mt-1">Selected: {{ selectedFileNames.medical }}</p>
                                 <Message v-if="shouldShowError('medical_document_file')" severity="error" size="small" variant="simple" class="mt-1">
                                     {{ fieldErrors.medical_document_file }}
@@ -1467,7 +1469,8 @@ onBeforeUnmount(() => {
     box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.14);
 }
 
-.avatar-upload-button {
+.avatar-upload-button,
+.file-upload-button {
     width: 100%;
     min-height: 46px;
     display: inline-flex;
@@ -1484,14 +1487,31 @@ onBeforeUnmount(() => {
     box-shadow: 0 14px 28px -18px rgba(3, 68, 133, 0.65);
 }
 
-.avatar-upload-button:hover {
+.avatar-upload-button:hover,
+.file-upload-button:hover {
     background: #033a70;
     border-color: rgba(255, 255, 255, 0.24);
     transform: translateY(-1px);
 }
 
-.avatar-upload-button:focus-within {
+.avatar-upload-button:focus-within,
+.file-upload-button:focus-within {
     box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.18), 0 14px 28px -18px rgba(3, 68, 133, 0.65);
+}
+
+.medical-document-card {
+    border-color: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.medical-document-card h3 {
+    color: rgba(255, 255, 255, 0.96);
+}
+
+.medical-document-card p,
+.support-text {
+    color: rgba(255, 255, 255, 0.72);
 }
 
 .avatar-preview {

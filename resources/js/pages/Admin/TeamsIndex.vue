@@ -2,6 +2,7 @@
 import { router } from '@inertiajs/vue3'
 import { computed, reactive, ref, watch } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import ConfirmDialog from '@/components/ui/dialog/ConfirmDialog.vue'
 import EmptyResultsState from '@/components/ui/EmptyResultsState.vue'
 import SearchFilterPanel from '@/components/ui/SearchFilterPanel.vue'
@@ -9,7 +10,6 @@ import { showAppToast } from '@/composables/useAppToast'
 import { useSportColors } from '@/composables/useSportColors'
 import { useTheme } from '@/composables/useTheme'
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue'
-import { resolveTeamAvatarUrl as teamAvatarUrl } from '@/utils/media'
 
 defineOptions({
     layout: AdminDashboard,
@@ -413,12 +413,13 @@ function goToPage(page: number) {
                             </div>
 
                             <div class="flex items-start gap-3">
-                                <img
-                                    :src="teamAvatarUrl(team.team_avatar)"
+                                <AppAvatar
+                                    :src="team.team_avatar"
+                                    :name="team.team_name"
+                                    kind="team"
                                     alt="Team Avatar"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="h-14 w-14 rounded-2xl border object-cover"
+                                    size-class="h-14 w-14"
+                                    rounded-class="rounded-2xl"
                                     :class="teamAvatarClass(team)"
                                 />
                                 <div class="min-w-0 flex-1">

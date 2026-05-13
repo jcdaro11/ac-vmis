@@ -2,13 +2,13 @@
 import { router } from '@inertiajs/vue3'
 import { reactive, ref, watch } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import BackLinkButton from '@/components/ui/BackLinkButton.vue'
 import ConfirmDialog from '@/components/ui/dialog/ConfirmDialog.vue'
 import { showAppToast } from '@/composables/useAppToast'
 import { useSportColors } from '@/composables/useSportColors'
 import { useTheme } from '@/composables/useTheme'
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue'
-import { resolveTeamAvatarUrl as teamAvatarUrl } from '@/utils/media'
 
 defineOptions({
     layout: AdminDashboard,
@@ -315,8 +315,16 @@ watch(
             >
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                     <div class="flex min-w-0 items-start gap-4">
-                        <div class="relative h-20 w-20 overflow-hidden rounded-2xl border border-[#034485]/12 bg-[#f8fbff]">
-                            <img :src="teamAvatarUrl(team.team_avatar)" alt="Team avatar" loading="lazy" decoding="async" class="h-full w-full object-cover" />
+                        <div class="relative h-20 w-20">
+                            <AppAvatar
+                                :src="team.team_avatar"
+                                :name="team.team_name"
+                                kind="team"
+                                alt="Team avatar"
+                                size-class="h-20 w-20"
+                                rounded-class="rounded-2xl"
+                                class="border-[#034485]/12 bg-[#f8fbff]"
+                            />
                             <span class="absolute left-2 top-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
                                 Archived
                             </span>

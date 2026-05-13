@@ -5,10 +5,10 @@ import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import { computed, ref, watch } from 'vue';
 
+import AppAvatar from '@/components/common/AppAvatar.vue';
 import EmptyResultsState from '@/components/ui/EmptyResultsState.vue';
 import { useTheme } from '@/composables/useTheme';
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue';
-import { resolveUserAvatarUrl } from '@/utils/media';
 
 defineOptions({
     layout: AdminDashboard,
@@ -24,6 +24,7 @@ type QueueUser = {
     role: 'student-athlete' | 'student';
     status: 'pending' | 'rejected';
     avatar?: string | null;
+    avatar_url?: string | null;
     created_at: string | null;
     student?: {
         id: number;
@@ -274,15 +275,6 @@ function readinessLabel(user: QueueUser) {
     return hasRequirements(user) ? 'Ready for approval' : 'Requirements incomplete';
 }
 
-function userInitials(user: QueueUser) {
-    return String(user.name ?? '')
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? '')
-        .join('') || 'SA';
-}
-
 function infoValue(value?: string | null) {
     return value && String(value).trim() ? String(value) : '-';
 }
@@ -489,15 +481,20 @@ function rejectUser() {
                     </div>
                     <div class="space-y-3 p-4">
                         <article
-                            v-for="(user, index) in queue.data"
+                            v-for="user in queue.data"
                             :key="`mobile-queue-${user.id}`"
                             class="rounded-2xl border border-[#034485]/18 bg-[#f9fbff] p-4 shadow-[0_16px_34px_-30px_rgba(3,68,133,0.28)]"
                         >
                             <div class="flex items-start gap-3">
-                                <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-[#e9f2ff] text-sm font-bold text-[#034485]">
-                                    <img v-if="user.avatar" :src="resolveUserAvatarUrl(user.avatar)" :alt="user.name" loading="lazy" decoding="async" class="h-full w-full object-cover">
-                                    <span v-else>{{ userInitials(user) }}</span>
-                                </div>
+                                <AppAvatar
+                                    :src="user.avatar"
+                                    :src-url="user.avatar_url"
+                                    :name="user.name"
+                                    :alt="user.name"
+                                    size-class="h-12 w-12"
+                                    rounded-class="rounded-2xl"
+                                    class="border-[#034485]/20 bg-[#e9f2ff] text-sm"
+                                />
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <p class="text-sm font-semibold text-slate-900">{{ user.name }}</p>
@@ -557,13 +554,16 @@ function rejectUser() {
                                 @click="selectedUserId = user.id"
                             >
                                 <div class="flex items-start gap-3">
-                                    <div
-                                        class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border text-sm font-bold transition-colors duration-200 ease-out"
+                                    <AppAvatar
+                                        :src="user.avatar"
+                                        :src-url="user.avatar_url"
+                                        :name="user.name"
+                                        :alt="user.name"
+                                        size-class="h-11 w-11"
+                                        rounded-class="rounded-2xl"
+                                        class="transition-colors duration-200 ease-out"
                                         :class="selectedUser?.id === user.id ? 'border-white/25 bg-white/15 text-white' : 'border-[#034485]/20 bg-[#e9f2ff] text-[#034485]'"
-                                    >
-                                        <img v-if="user.avatar" :src="resolveUserAvatarUrl(user.avatar)" :alt="user.name" loading="lazy" decoding="async" class="h-full w-full object-cover">
-                                        <span v-else>{{ userInitials(user) }}</span>
-                                    </div>
+                                    />
                                     <div class="min-w-0 flex-1">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <p class="text-sm font-semibold leading-tight break-words transition-colors duration-200 ease-out" :class="selectedUser?.id === user.id ? 'text-white' : 'text-slate-900'">{{ user.name }}</p>
@@ -601,10 +601,15 @@ function rejectUser() {
                         <div v-if="selectedUser" class="space-y-5 p-4 sm:p-5">
                             <div class="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div class="flex items-start gap-3">
-                                    <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#034485]/20 bg-[#e9f2ff] text-base font-bold text-[#034485]">
-                                        <img v-if="selectedUser.avatar" :src="resolveUserAvatarUrl(selectedUser.avatar)" :alt="selectedUser.name" loading="lazy" decoding="async" class="h-full w-full object-cover">
-                                        <span v-else>{{ userInitials(selectedUser) }}</span>
-                                    </div>
+                                    <AppAvatar
+                                        :src="selectedUser.avatar"
+                                        :src-url="selectedUser.avatar_url"
+                                        :name="selectedUser.name"
+                                        :alt="selectedUser.name"
+                                        size-class="h-14 w-14"
+                                        rounded-class="rounded-2xl"
+                                        class="border-[#034485]/20 bg-[#e9f2ff] text-base"
+                                    />
                                     <div class="min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <h2 class="text-lg font-bold leading-tight break-words text-slate-900">{{ selectedUser.name }}</h2>

@@ -72,8 +72,8 @@ class CoachApplicationsController extends Controller
                 'student:id,user_id,student_id_number,course_or_strand,current_grade_level,approval_status,applied_sport_id,phone_number,date_of_birth,gender,height,weight,emergency_contact_name,emergency_contact_relationship,emergency_contact_phone',
                 'student.appliedSport:id,name',
                 'student.registrationDocuments' => fn ($documentQuery) => $documentQuery
-                    ->select('id', 'student_id', 'document_type_id', 'uploaded_at')
-                    ->with('documentTypeDefinition:id,code'),
+                    ->select('id', 'student_id', 'document_type_id', 'file_path', 'uploaded_at')
+                    ->with('documentTypeDefinition:id,code,label'),
             ])
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -107,7 +107,10 @@ class CoachApplicationsController extends Controller
                             ->map(fn ($document) => [
                                 'id' => $document->id,
                                 'document_type' => $document->document_type,
+                                'label' => $document->documentTypeDefinition?->label,
                                 'uploaded_at' => optional($document->uploaded_at)->toDateTimeString(),
+                                'view_url' => route('files.documents.show', ['document' => $document->id]),
+                                'download_url' => route('files.documents.show', ['document' => $document->id, 'download' => 1]),
                             ])
                             ->values()
                             ->all(),

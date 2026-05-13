@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3'
-import FileUpload from 'primevue/fileupload'
 import Message from 'primevue/message'
 import Textarea from 'primevue/textarea'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
@@ -214,6 +213,11 @@ function handlePrimeFileSelect(files: File[] | undefined) {
     file.value = files?.[0] ?? null
 }
 
+function handleNativeFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement
+    handlePrimeFileSelect(input.files?.[0] ? [input.files[0]] : undefined)
+}
+
 function removeFile() {
     file.value = null
     showAppToast('Selected file removed.', 'success')
@@ -366,13 +370,6 @@ function selectedResultValue(row: Submission | null) {
 
 function metricWithFallback() {
     return studentMetricLabel.value || 'Academic Result'
-}
-
-function selectedResultLabel(row: Submission | null) {
-    if (!row) return 'Pending Review'
-    return row.evaluation?.status
-        ? row.evaluation.status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-        : row.ocr?.interpretation?.label || 'Pending Review'
 }
 
 function nextActionLabel(row: Submission | null) {
@@ -920,14 +917,13 @@ function cardMotion(order: number) {
                                     <p class="text-sm font-semibold text-slate-900">{{ file ? 'Replace selected document' : 'Click to upload a PDF, PNG, or JPG' }}</p>
                                     <p class="text-xs text-slate-500">Clear image scans work best for automatic {{ metricWithFallback() }} extraction.</p>
                                 </div>
-                                <FileUpload
-                                    mode="basic"
-                                    customUpload
-                                    chooseLabel="Choose Document"
-                                    accept=".pdf,image/png,image/jpeg,image/jpg"
-                                    class="mt-4"
-                                    @select="(event) => handlePrimeFileSelect(event.files)"
-                                />
+                                <label class="student-academic-upload mt-4">
+                                    <input type="file" accept=".pdf,image/png,image/jpeg,image/jpg" class="sr-only" @change="handleNativeFileSelect" />
+                                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    <span>Choose Document</span>
+                                </label>
                             </div>
                         </div>
 
@@ -1041,6 +1037,32 @@ function cardMotion(order: number) {
     animation: student-page-card-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     animation-delay: calc(var(--card-order, 0) * 55ms);
     will-change: transform, opacity;
+}
+
+.student-academic-upload {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 42px;
+    border-radius: 999px;
+    background: #034485;
+    padding: 0.65rem 1.1rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 14px 28px -18px rgba(3, 68, 133, 0.7);
+    transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.student-academic-upload:hover {
+    background: #033a70;
+    transform: translateY(-1px);
+}
+
+.student-academic-upload:focus-within {
+    box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.18), 0 14px 28px -18px rgba(3, 68, 133, 0.7);
 }
 
 @keyframes student-page-card-rise {

@@ -32,7 +32,10 @@ type ApplicationRow = {
         registration_documents: Array<{
             id: number
             document_type: string | null
+            label: string | null
             uploaded_at: string | null
+            view_url: string
+            download_url: string
         }>
     }
 }
@@ -130,6 +133,11 @@ function formatDate(value: string | null) {
 
 function docLabel(value: string | null) {
     return String(value ?? 'document').replaceAll('_', ' ').toUpperCase()
+}
+
+function openDocument(url?: string | null) {
+    if (!url) return
+    window.open(url, '_blank', 'noopener,noreferrer')
 }
 </script>
 
@@ -239,13 +247,32 @@ function docLabel(value: string | null) {
                         <div>
                             <p class="text-xs uppercase tracking-wide text-slate-500">Registration Documents</p>
                             <div class="mt-2 flex flex-wrap gap-2">
-                                <span
+                                <div
                                     v-for="document in row.student.registration_documents"
                                     :key="document.id"
-                                    class="rounded-full border px-3 py-1 text-xs font-semibold"
+                                    class="flex flex-wrap items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-semibold"
                                     :class="isDarkMode ? 'border-slate-700 bg-slate-900 text-slate-200' : 'border-[#034485]/20 bg-[#f6faff] text-[#034485]'"
                                 >
-                                    {{ docLabel(document.document_type) }}
+                                    <span>{{ document.label || docLabel(document.document_type) }}</span>
+                                    <span class="text-[10px] opacity-70">{{ formatDate(document.uploaded_at) }}</span>
+                                    <button
+                                        type="button"
+                                        class="rounded-full bg-[#034485] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#02315f]"
+                                        @click="openDocument(document.view_url)"
+                                    >
+                                        View
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="rounded-full border px-2.5 py-1 text-[11px] font-bold"
+                                        :class="isDarkMode ? 'border-slate-600 text-slate-200 hover:bg-slate-800' : 'border-[#034485]/30 text-[#034485] hover:bg-[#eaf4ff]'"
+                                        @click="openDocument(document.download_url)"
+                                    >
+                                        Download
+                                    </button>
+                                </div>
+                                <span v-if="row.student.registration_documents.length === 0" class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+                                    No registration documents uploaded.
                                 </span>
                             </div>
                         </div>

@@ -147,6 +147,7 @@ class StudentAthleteController extends Controller
                 'nullable',
                 'string',
                 'max:20',
+                'regex:/^\d+$/',
                 Rule::unique('team_players', 'jersey_number')
                     ->where(fn ($query) => $query->where('team_id', $teamPlayer->team_id))
                     ->ignore($teamPlayer->id),

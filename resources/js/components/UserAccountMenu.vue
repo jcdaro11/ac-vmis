@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import { useTheme } from '@/composables/useTheme'
-import { DEFAULT_AVATAR_URL, resolveUserAvatarUrl } from '@/utils/media'
 
 const props = withDefaults(defineProps<{
   inverse?: boolean
@@ -19,27 +19,11 @@ const page = usePage()
 const menuOpen = ref(false)
 const closeTimer = ref<number | null>(null)
 const { isDarkMode } = useTheme()
-const avatarFailed = ref(false)
 
 const user = computed(() => page.props.auth?.user ?? null)
 const identity = computed(() => page.props.auth?.identity ?? null)
 const userRole = computed(() => String(user.value?.role ?? ''))
 const isStudentUser = computed(() => ['student', 'student-athlete'].includes(userRole.value))
-
-const avatarUrl = computed(() => {
-  if (avatarFailed.value) {
-    return DEFAULT_AVATAR_URL
-  }
-
-  return resolveUserAvatarUrl(String(user.value?.avatar_url ?? user.value?.avatar ?? ''))
-})
-
-watch(
-  () => String(user.value?.avatar_url ?? user.value?.avatar ?? ''),
-  () => {
-    avatarFailed.value = false
-  },
-)
 
 const fullName = computed(() => String(user.value?.name ?? 'User'))
 const studentStatusLabel = computed(() => {
@@ -95,9 +79,6 @@ function scheduleClose() {
   }, 180)
 }
 
-function handleAvatarError() {
-  avatarFailed.value = true
-}
 </script>
 
 <template>
@@ -123,11 +104,13 @@ function handleAvatarError() {
       @click="menuOpen = !menuOpen"
       :title="compact ? buttonTitle : ''"
     >
-      <img
-        :src="avatarUrl"
-        alt=""
-        class="account-avatar h-9 w-9 rounded-full object-cover"
-        @error="handleAvatarError"
+      <AppAvatar
+        :src="user?.avatar"
+        :src-url="user?.avatar_url"
+        :name="fullName"
+        size-class="h-9 w-9"
+        rounded-class="rounded-full"
+        class="account-avatar"
       />
       <div class="account-copy min-w-0 text-left">
         <p class="account-name text-sm font-semibold truncate leading-tight">{{ fullName }}</p>

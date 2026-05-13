@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3'
 import Checkbox from 'primevue/checkbox'
-import FileUpload from 'primevue/fileupload'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import Select from 'primevue/select'
 import Textarea from 'primevue/textarea'
 import { computed, watch } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import { useTheme } from '@/composables/useTheme'
 import CoachDashboard from '@/pages/Coaches/CoachDashboard.vue'
-import { resolveTeamAvatarUrl as teamAvatarUrl, resolveUserAvatarUrl as userAvatarUrl } from '@/utils/media'
 
 defineOptions({ layout: CoachDashboard })
 
@@ -185,6 +184,16 @@ function onDetailsAvatarSelect(files: File[]) {
     detailsForm.team_avatar = files.length ? files[0] : null
 }
 
+function onCreateAvatarNativeSelect(event: Event) {
+    const input = event.target as HTMLInputElement
+    onCreateAvatarSelect(input.files?.[0] ? [input.files[0]] : [])
+}
+
+function onDetailsAvatarNativeSelect(event: Event) {
+    const input = event.target as HTMLInputElement
+    onDetailsAvatarSelect(input.files?.[0] ? [input.files[0]] : [])
+}
+
 function submitCreate() {
     createForm
         .transform((data) => ({
@@ -244,15 +253,6 @@ function archiveTeam() {
 function reactivateTeam() {
     if (!props.selectedTeam) return
     router.post(`/coach/teams/${props.selectedTeam.id}/reactivate`, {}, { preserveScroll: true })
-}
-
-function initialsFromText(value?: string | null) {
-    return String(value ?? '')
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0).toUpperCase())
-        .join('') || 'NA'
 }
 
 function assistantButtonLabel(option: AssistantCoachOption) {
@@ -373,15 +373,13 @@ function canAssignAssistant(option: AssistantCoachOption) {
 
                         <div>
                             <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Team Avatar</label>
-                            <FileUpload
-                                mode="basic"
-                                customUpload
-                                chooseLabel="Choose Team Avatar"
-                                accept="image/*"
-                                class="team-avatar-upload w-full"
-                                :invalid="Boolean(createForm.errors.team_avatar)"
-                                @select="(event) => onCreateAvatarSelect(event.files)"
-                            />
+                            <label class="team-avatar-upload-button">
+                                <input type="file" accept="image/*" class="sr-only" @change="onCreateAvatarNativeSelect" />
+                                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M12 5v14M5 12h14" />
+                                </svg>
+                                <span>Choose Team Avatar</span>
+                            </label>
                             <p class="mt-1 text-xs text-slate-500">Selected: {{ createForm.team_avatar?.name || 'No file selected' }}</p>
                             <Message v-if="createForm.errors.team_avatar" severity="error" size="small" variant="simple" class="mt-1">
                                 {{ createForm.errors.team_avatar }}
@@ -463,9 +461,15 @@ function canAssignAssistant(option: AssistantCoachOption) {
                     <section class="rounded-3xl border p-5" :class="isDarkMode ? 'border-slate-800 bg-slate-950' : 'border-[#034485]/20 bg-white'">
                         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                             <div class="flex items-center gap-4">
-                                <div class="h-20 w-20 overflow-hidden rounded-2xl border border-[#034485]/15 bg-white">
-                                    <img :src="teamAvatarUrl(props.selectedTeam.team_avatar)" alt="Team avatar" class="h-full w-full object-cover" />
-                                </div>
+                                <AppAvatar
+                                    :src="props.selectedTeam.team_avatar"
+                                    :name="props.selectedTeam.team_name"
+                                    kind="team"
+                                    alt="Team avatar"
+                                    size-class="h-20 w-20"
+                                    rounded-class="rounded-2xl"
+                                    class="border-[#034485]/15 bg-white"
+                                />
                                 <div>
                                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#034485]">Current Team Workspace</p>
                                     <h2 class="mt-2 text-2xl font-bold" :class="isDarkMode ? 'text-slate-100' : 'text-slate-900'">{{ props.selectedTeam.team_name }}</h2>
@@ -524,15 +528,13 @@ function canAssignAssistant(option: AssistantCoachOption) {
 
                             <div>
                                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Team Avatar</label>
-                                <FileUpload
-                                    mode="basic"
-                                    customUpload
-                                    chooseLabel="Choose Team Avatar"
-                                    accept="image/*"
-                                    class="team-avatar-upload w-full"
-                                    :invalid="Boolean(detailsForm.errors.team_avatar)"
-                                    @select="(event) => onDetailsAvatarSelect(event.files)"
-                                />
+                                <label class="team-avatar-upload-button">
+                                    <input type="file" accept="image/*" class="sr-only" @change="onDetailsAvatarNativeSelect" />
+                                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    <span>Choose Team Avatar</span>
+                                </label>
                                 <p class="mt-1 text-xs text-slate-500">Selected: {{ detailsForm.team_avatar?.name || 'No file selected' }}</p>
                                 <Message v-if="detailsForm.errors.team_avatar" severity="error" size="small" variant="simple" class="mt-1">
                                     {{ detailsForm.errors.team_avatar }}
@@ -569,10 +571,14 @@ function canAssignAssistant(option: AssistantCoachOption) {
                                 <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#034485]">Current Assistant</p>
                                 <div v-if="props.selectedTeam.assistant_coach" class="mt-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700">
-                                            <img v-if="props.selectedTeam.assistant_coach.avatar" :src="userAvatarUrl(props.selectedTeam.assistant_coach.avatar)" alt="Assistant coach avatar" class="h-full w-full object-cover" />
-                                            <span v-else>{{ initialsFromText(props.selectedTeam.assistant_coach.name) }}</span>
-                                        </div>
+                                        <AppAvatar
+                                            :src="props.selectedTeam.assistant_coach.avatar"
+                                            :name="props.selectedTeam.assistant_coach.name"
+                                            alt="Assistant coach avatar"
+                                            size-class="h-14 w-14"
+                                            rounded-class="rounded-2xl"
+                                            class="border-slate-200 bg-white text-sm"
+                                        />
                                         <div class="min-w-0">
                                             <p class="truncate text-sm font-semibold" :class="isDarkMode ? 'text-slate-100' : 'text-slate-900'">{{ props.selectedTeam.assistant_coach.name }}</p>
                                             <p class="mt-1 truncate text-xs text-slate-500">{{ props.selectedTeam.assistant_coach.email || 'No email available' }}</p>
@@ -697,16 +703,31 @@ function canAssignAssistant(option: AssistantCoachOption) {
 </template>
 
 <style scoped>
-:deep(.team-avatar-upload .p-button) {
+.team-avatar-upload-button {
     width: 100%;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    border-color: #034485;
+    gap: 0.5rem;
+    border: 1px solid #034485;
+    border-radius: 0.9rem;
     background: #034485;
     color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 14px 28px -18px rgba(3, 68, 133, 0.7);
+    transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-:deep(.team-avatar-upload .p-button:hover) {
+.team-avatar-upload-button:hover {
     border-color: #02315f;
     background: #02315f;
+    transform: translateY(-1px);
+}
+
+.team-avatar-upload-button:focus-within {
+    box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.18), 0 14px 28px -18px rgba(3, 68, 133, 0.7);
 }
 </style>

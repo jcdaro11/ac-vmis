@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/vue3'
 import { computed, onMounted, reactive, ref } from 'vue'
 
 import BackLinkButton from '@/components/ui/BackLinkButton.vue'
+import { showAppToast } from '@/composables/useAppToast'
 import { useTheme } from '@/composables/useTheme'
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue'
 
@@ -188,6 +189,21 @@ function metricLabel(row: SubmissionRow | null | undefined) {
     return isSeniorHigh(row?.student_education_level) ? 'GWA' : 'GPA'
 }
 
+function detectedScaleLabel(value: number) {
+    if (value >= 1 && value <= 5) return 'GPA'
+    if (value >= 0 && value <= 100) return 'GWA'
+    return 'Academic Result'
+}
+
+function scaleMismatchMessage(value: number, row: SubmissionRow | null | undefined) {
+    const expected = metricLabel(row)
+    const detected = detectedScaleLabel(value)
+
+    if (detected === 'Academic Result' || detected === expected) return ''
+
+    return `This student uses ${expected}, but the entered value looks like ${detected}. Please enter a valid ${expected} value.`
+}
+
 function previewFinalStatus(value: string, row: SubmissionRow | null | undefined) {
     if (value === '') return 'Pending'
 
@@ -280,14 +296,40 @@ function applyFilters() {
 function saveEvaluation() {
     if (!selectedRow.value || !selectedPeriodId.value) return
 
+    const gpaText = String(evaluationForm.gpa ?? '').trim()
+    const statusText = String(evaluationForm.status ?? '').trim()
+
+    if (!gpaText) {
+        showAppToast(`${metricLabel(selectedRow.value)} is required before saving.`, 'error', {
+            summary: 'Missing Final Decision',
+        })
+        return
+    }
+
+    if (!statusText) {
+        showAppToast('Final status is required before saving.', 'error', {
+            summary: 'Missing Final Decision',
+        })
+        return
+    }
+
+    const gpaValue = Number(gpaText)
+    const mismatchMessage = scaleMismatchMessage(gpaValue, selectedRow.value)
+    if (mismatchMessage) {
+        showAppToast(mismatchMessage, 'error', {
+            summary: 'Academic Scale Mismatch',
+        })
+        return
+    }
+
     isSaving.value = true
 
     router.post('/academics/evaluate', {
         period_id: selectedPeriodId.value,
         student_id: selectedRow.value.student_id,
         document_id: selectedRow.value.document_id,
-        gpa: evaluationForm.gpa ? Number(evaluationForm.gpa) : null,
-        status: evaluationForm.status || null,
+        gpa: gpaValue,
+        status: statusText,
         remarks: evaluationForm.remarks,
     }, {
         preserveScroll: true,
@@ -295,7 +337,17 @@ function saveEvaluation() {
             isSaving.value = false
         },
         onSuccess: () => {
+            showAppToast('Academic evaluation saved.', 'success')
             fetchRows(rowsState.value.meta.current_page)
+        },
+        onError: (errors) => {
+            const firstError = Object.values(errors || {})[0]
+            const message = Array.isArray(firstError)
+                ? String(firstError[0] ?? 'Please complete the required decision fields.')
+                : String(firstError || 'Please complete the required decision fields.')
+            showAppToast(message, 'error', {
+                summary: 'Save Evaluation Failed',
+            })
         },
     })
 }
@@ -561,7 +613,7 @@ onMounted(() => {
                                     class="w-full rounded-2xl border px-4 py-3 text-sm"
                                     :class="isDarkMode ? 'border-slate-700 bg-black text-white' : 'border-slate-300 text-slate-700'"
                                 >
-                                    <option value="">Use computed status</option>
+                                    <option value="">Select final status</option>
                                     <option value="eligible">Eligible</option>
                                     <option value="pending_review">Pending Review</option>
                                     <option value="ineligible">Ineligible</option>

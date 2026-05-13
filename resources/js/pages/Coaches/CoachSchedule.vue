@@ -64,6 +64,33 @@ const attendanceLoading = ref(false)
 const attendanceSaving = ref(false)
 const attendanceError = ref<string | null>(null)
 const attendanceMessage = ref<string | null>(null)
+const attendanceSaveNotice = computed(() => {
+    if (attendanceSaving.value) {
+        return {
+            tone: 'saving',
+            title: 'Saving attendance...',
+            message: 'Keep this sheet open while the roster records are being updated.',
+        }
+    }
+
+    if (attendanceError.value) {
+        return {
+            tone: 'error',
+            title: 'Attendance was not saved',
+            message: attendanceError.value,
+        }
+    }
+
+    if (attendanceMessage.value) {
+        return {
+            tone: 'success',
+            title: 'Attendance saved',
+            message: attendanceMessage.value,
+        }
+    }
+
+    return null
+})
 
 // VueCal drag creation resolver
 const pendingResolve = ref<any>(null)
@@ -1260,8 +1287,41 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
 
-                    <p v-if="attendanceError" class="text-sm text-rose-700">{{ attendanceError }}</p>
-                    <p v-if="attendanceMessage" class="text-sm text-emerald-700">{{ attendanceMessage }}</p>
+                    <div
+                        v-if="attendanceSaveNotice"
+                        class="rounded-2xl border p-4 text-sm"
+                        :class="{
+                            'border-[#034485]/25 bg-[#034485]/10 text-[#034485]': attendanceSaveNotice.tone === 'saving',
+                            'border-rose-200 bg-rose-50 text-rose-800': attendanceSaveNotice.tone === 'error',
+                            'border-[#034485]/25 bg-[#eef6ff] text-[#034485]': attendanceSaveNotice.tone === 'success',
+                            'dark:border-[#6aa7f2]/30 dark:bg-[#034485]/20 dark:text-blue-100': isDarkMode && attendanceSaveNotice.tone !== 'error',
+                            'dark:border-rose-400/40 dark:bg-rose-950/35 dark:text-rose-100': isDarkMode && attendanceSaveNotice.tone === 'error',
+                        }"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+                                :class="{
+                                    'bg-[#034485]/15': attendanceSaveNotice.tone === 'saving' || attendanceSaveNotice.tone === 'success',
+                                    'bg-rose-100': attendanceSaveNotice.tone === 'error',
+                                    'dark:bg-white/15': isDarkMode,
+                                }"
+                            >
+                                <span
+                                    v-if="attendanceSaveNotice.tone === 'saving'"
+                                    class="h-3 w-3 animate-spin rounded-full border-2 border-[#034485]/25 border-t-[#034485] dark:border-blue-200/25 dark:border-t-blue-100"
+                                />
+                                <i v-else-if="attendanceSaveNotice.tone === 'success'" class="pi pi-check text-xs" />
+                                <i v-else class="pi pi-exclamation-triangle text-xs" />
+                            </span>
+                            <span>
+                                <span class="block font-semibold">{{ attendanceSaveNotice.title }}</span>
+                                <span class="mt-0.5 block">{{ attendanceSaveNotice.message }}</span>
+                            </span>
+                        </div>
+                    </div>
 
                     <div v-if="attendanceLoading" class="rounded-2xl border p-6 text-sm" :class="isDarkMode ? 'border-slate-700 bg-[#161616] text-slate-300' : 'border-[#034485]/15 bg-[#f7fbff] text-slate-600'">
                         Loading attendance roster...
@@ -1482,8 +1542,9 @@ onBeforeUnmount(() => {
                             type="button"
                             @click="saveAttendanceSheet"
                             :disabled="attendanceSaving || !selectedSchedule || !attendanceCanBeSaved(selectedSchedule)"
-                            class="rounded-md bg-[#1f2937] px-4 py-2 text-sm font-semibold text-white hover:bg-[#111827] disabled:cursor-not-allowed disabled:opacity-50"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-[#034485] px-4 py-2 text-sm font-semibold text-white hover:bg-[#033a70] disabled:cursor-not-allowed disabled:opacity-50"
                         >
+                            <span v-if="attendanceSaving" class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                             {{ attendanceSaving ? 'Saving...' : 'Save Attendance' }}
                         </button>
                     </div>

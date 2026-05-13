@@ -11,11 +11,11 @@ import Paginator from 'primevue/paginator'
 import Select from 'primevue/select'
 import { computed, ref, watch } from 'vue'
 
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import ConfirmDialog from '@/components/ui/dialog/ConfirmDialog.vue'
 import { showAppToast } from '@/composables/useAppToast'
 import { useTheme } from '@/composables/useTheme'
 import AdminDashboard from '@/pages/Admin/AdminDashboard.vue'
-import { resolveUserAvatarUrl } from '@/utils/media'
 
 defineOptions({
     layout: AdminDashboard,
@@ -45,6 +45,7 @@ type UserRow = {
     role: 'student-athlete' | 'student' | 'coach' | 'admin'
     status: UserStatusFilter
     avatar: string | null
+    avatar_url?: string | null
     created_at: string | null
     assignment: {
         sport_label: string | null
@@ -297,15 +298,6 @@ function handleSort(event: { sortField?: string | ((item: unknown) => string); s
 function toggleActionMenu(event: Event, user: UserRow) {
     actionMenuUser.value = user
     rowActionMenu.value?.toggle(event)
-}
-
-function userInitials(user: UserRow) {
-    return String(user.name ?? '')
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? '')
-        .join('') || 'U'
 }
 
 function formatRole(role: UserRow['role']) {
@@ -681,15 +673,15 @@ function confirmDeleteUser() {
                     <Column field="name" header="User" sortable>
                         <template #body="{ data }">
                             <div class="flex items-start gap-3">
-                                <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border text-sm font-bold" :class="isDarkMode ? 'border-slate-700 bg-[#0a2747] text-sky-100' : 'border-[#034485]/15 bg-[#edf4ff] text-[#034485]'">
-                                    <img
-                                        v-if="data.avatar"
-                                        :src="resolveUserAvatarUrl(data.avatar)"
-                                        :alt="`${data.name} avatar`"
-                                        class="h-full w-full object-cover"
-                                    />
-                                    <span v-else>{{ userInitials(data) }}</span>
-                                </div>
+                                <AppAvatar
+                                    :src="data.avatar"
+                                    :src-url="data.avatar_url"
+                                    :name="data.name"
+                                    :alt="`${data.name} avatar`"
+                                    size-class="h-12 w-12"
+                                    rounded-class="rounded-2xl"
+                                    class="text-sm"
+                                />
                                 <div class="min-w-0">
                                     <p class="font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-950'">{{ data.name }}</p>
                                     <p class="mt-1 text-xs" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">ID {{ data.id }}</p>

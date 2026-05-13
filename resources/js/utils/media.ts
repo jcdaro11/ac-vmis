@@ -12,7 +12,7 @@ export function resolvePublicMediaUrl(path?: string | null, fallback = DEFAULT_A
         return value
     }
 
-    return `/storage/${value.replace(/^\/+/, '')}`
+    return `/storage/${value.replace(/^\/+/, '').replace(/^storage\//, '')}`
 }
 
 export function resolveUserAvatarUrl(path?: string | null) {

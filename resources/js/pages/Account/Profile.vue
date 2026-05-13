@@ -9,10 +9,10 @@ import Select from 'primevue/select'
 import { computed, onBeforeUnmount, ref } from 'vue'
 
 import AccountShell from '@/components/Account/AccountShell.vue'
+import AppAvatar from '@/components/common/AppAvatar.vue'
 import { showAppToast } from '@/composables/useAppToast'
 import { useTheme } from '@/composables/useTheme'
 import { normalizeWorkspaceRole, resolveAccountLayout } from '@/pages/Account/accountRole'
-import { resolveUserAvatarUrl } from '@/utils/media'
 
 defineOptions({
   layout: (h: any, page: any) => h(resolveAccountLayout(page), [page]),
@@ -98,11 +98,6 @@ const maxCropScale = computed(() => Math.max(cropMinScale.value * 4, cropMinScal
 const cropImageStyle = computed(() => ({
   transform: `translate(calc(-50% + ${cropX.value}px), calc(-50% + ${cropY.value}px)) scale(${cropScale.value})`,
 }))
-
-const avatarUrl = computed(() => {
-  if (avatarPreview.value) return avatarPreview.value
-  return resolveUserAvatarUrl(String(user.value?.avatar_url ?? user.value?.avatar ?? ''))
-})
 
 const roleLabel = computed(() => {
   if (role.value === 'student') return 'Student-Athlete'
@@ -396,11 +391,14 @@ onBeforeUnmount(() => {
             :class="isDarkMode ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-slate-50/80'"
           >
             <div class="flex items-center gap-4">
-              <img
-                :src="avatarUrl"
+              <AppAvatar
+                :src="user?.avatar"
+                :src-url="avatarPreview || user?.avatar_url"
+                :name="user?.name"
                 alt="Avatar"
-                class="h-20 w-20 rounded-[20px] border object-cover shadow-sm"
-                :class="isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-slate-200 bg-white'"
+                size-class="h-20 w-20"
+                rounded-class="rounded-[20px]"
+                class="shadow-sm"
               />
               <div class="min-w-0">
                 <p class="text-sm font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Profile Photo</p>

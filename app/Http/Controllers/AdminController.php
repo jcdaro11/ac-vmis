@@ -501,6 +501,7 @@ class AdminController extends Controller
                     'role' => $user->role,
                     'status' => $user->approval_status,
                     'avatar' => $user->avatar,
+                    'avatar_url' => $user->avatar_url,
                     'created_at' => optional($user->created_at)->toDateTimeString(),
                     'student' => $user->student ? (function () use ($user) {
                         $documents = $user->student->registrationDocuments->values();
@@ -764,6 +765,7 @@ class AdminController extends Controller
             'role' => $user->role,
             'status' => $user->account_state,
             'avatar' => $user->avatar,
+            'avatar_url' => $user->avatar_url,
             'created_at' => optional($user->created_at)->toDateTimeString(),
             'assignment' => [
                 'sport_label' => $assignment['sport_label'],
@@ -795,6 +797,7 @@ class AdminController extends Controller
             'role' => $user->role,
             'status' => $user->account_state,
             'avatar' => $user->avatar,
+            'avatar_url' => $user->avatar_url,
             'created_at' => optional($user->created_at)->toDateTimeString(),
             'assignment' => $assignment,
             'student' => $user->student ? [

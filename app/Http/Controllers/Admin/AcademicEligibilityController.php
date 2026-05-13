@@ -180,8 +180,8 @@ class AcademicEligibilityController extends Controller
             'period_id' => 'required|exists:academic_periods,id',
             'student_id' => 'required|exists:students,id',
             'document_id' => 'required|exists:academic_documents,id',
-            'gpa' => 'nullable|numeric|min:0|max:100',
-            'status' => 'nullable|in:eligible,pending_review,ineligible',
+            'gpa' => 'required|numeric|min:0|max:100',
+            'status' => 'required|in:eligible,pending_review,ineligible',
             'remarks' => 'nullable|string',
         ]);
 
@@ -209,11 +209,7 @@ class AcademicEligibilityController extends Controller
             ]);
         }
 
-        $finalStatus = $validated['status']
-            ?? AcademicEligibilityEvaluation::statusForGpa(
-                $validated['gpa'] !== null ? (float) $validated['gpa'] : null,
-                $educationLevel
-            );
+        $finalStatus = $validated['status'];
         $reviewRequired = $finalStatus === 'pending_review';
 
         AcademicEligibilityEvaluation::updateOrCreate(
@@ -648,8 +644,8 @@ class AcademicEligibilityController extends Controller
     {
         $validated = $request->validate([
             'document_id' => 'required|exists:academic_documents,id',
-            'gpa' => 'nullable|numeric|min:0|max:100',
-            'status' => 'nullable|in:eligible,pending_review,ineligible',
+            'gpa' => 'required|numeric|min:0|max:100',
+            'status' => 'required|in:eligible,pending_review,ineligible',
             'remarks' => 'nullable|string|max:1000',
             'audit_note' => 'nullable|string|max:1000',
         ]);
@@ -686,11 +682,7 @@ class AcademicEligibilityController extends Controller
         if (!empty($validated['audit_note'])) {
             $remarkParts[] = '[Admin Note] ' . trim((string) $validated['audit_note']);
         }
-        $finalStatus = $validated['status']
-            ?? AcademicEligibilityEvaluation::statusForGpa(
-                $validated['gpa'] !== null ? (float) $validated['gpa'] : null,
-                $educationLevel
-            );
+        $finalStatus = $validated['status'];
 
         $evaluation = AcademicEligibilityEvaluation::query()->updateOrCreate(
             [

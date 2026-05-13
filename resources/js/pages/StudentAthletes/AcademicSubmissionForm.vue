@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3'
-import FileUpload from 'primevue/fileupload'
 import Message from 'primevue/message'
 import Select from 'primevue/select'
 import Textarea from 'primevue/textarea'
@@ -83,6 +82,11 @@ function termLabel(termCode: string) {
 
 function handlePrimeFileSelect(files: File[] | undefined) {
   file.value = files?.[0] ?? null
+}
+
+function handleNativeFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement
+  handlePrimeFileSelect(input.files?.[0] ? [input.files[0]] : undefined)
 }
 
 function submit() {
@@ -194,15 +198,16 @@ function submit() {
               autoResize
               class="w-full"
             />
-            <FileUpload
-              mode="basic"
-              customUpload
-              chooseLabel="Choose Academic File"
-              accept=".pdf,image/*"
-              @select="(event) => handlePrimeFileSelect(event.files)"
-              :disabled="!canSubmit"
-              class="w-full"
-            />
+            <label
+              class="student-academic-upload"
+              :class="{ 'student-academic-upload--disabled': !canSubmit }"
+            >
+              <input type="file" accept=".pdf,image/*" class="sr-only" :disabled="!canSubmit" @change="handleNativeFileSelect" />
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              <span>Choose Academic File</span>
+            </label>
             <p v-if="file" class="text-xs text-slate-500">Selected: {{ file.name }}</p>
             <button
               type="submit"
@@ -245,6 +250,38 @@ function submit() {
 .page-card {
   opacity: 0;
   animation: student-form-card-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.student-academic-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  border-radius: 999px;
+  background: #034485;
+  padding: 0.65rem 1.1rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 28px -18px rgba(3, 68, 133, 0.7);
+  transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.student-academic-upload:hover {
+  background: #033a70;
+  transform: translateY(-1px);
+}
+
+.student-academic-upload:focus-within {
+  box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.18), 0 14px 28px -18px rgba(3, 68, 133, 0.7);
+}
+
+.student-academic-upload--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
 }
 
 @keyframes student-form-card-rise {
