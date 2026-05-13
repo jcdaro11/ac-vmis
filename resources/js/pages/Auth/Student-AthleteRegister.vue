@@ -692,6 +692,13 @@ function setPrimeFile(field: 'avatar' | 'academic_document_file' | 'medical_docu
     }
 }
 
+function setAvatarFile(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    setPrimeFile('avatar', file ? [file] : undefined);
+}
+
 function saveDraft() {
     const payload = {
         ...form,
@@ -945,15 +952,13 @@ onBeforeUnmount(() => {
 
                     <div>
                         <label class="label">Avatar (Optional)</label>
-                        <FileUpload
-                            mode="basic"
-                            customUpload
-                            chooseLabel="Choose Avatar"
-                            accept="image/*"
-                            class="avatar-upload w-full"
-                            :invalid="shouldShowError('avatar')"
-                            @select="(event) => setPrimeFile('avatar', event.files)"
-                        />
+                        <label class="avatar-upload-button">
+                            <input type="file" accept="image/*" class="sr-only" @change="setAvatarFile" />
+                            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M12 5v14M5 12h14" />
+                            </svg>
+                            <span>Choose Avatar</span>
+                        </label>
                         <p class="mt-1 text-xs text-slate-500">Selected: {{ selectedFileNames.avatar }}</p>
                         <div v-if="avatarPreviewUrl" class="avatar-preview">
                             <img :src="avatarPreviewUrl" alt="Avatar preview" />
@@ -1462,30 +1467,31 @@ onBeforeUnmount(() => {
     box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.14);
 }
 
-.avatar-upload :deep(.p-button),
-.avatar-upload :deep(.p-fileupload-choose),
-.avatar-upload :deep(.p-fileupload-choose-button),
-:global(.avatar-upload .p-button),
-:global(.avatar-upload .p-fileupload-choose),
-:global(.avatar-upload .p-fileupload-choose-button) {
+.avatar-upload-button {
     width: 100%;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    gap: 0.55rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-md);
-    background: var(--color-brand) !important;
-    color: var(--color-surface) !important;
+    background: #034485;
+    color: #ffffff;
     font-weight: 800;
+    cursor: pointer;
+    transition: background var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
     box-shadow: 0 14px 28px -18px rgba(3, 68, 133, 0.65);
 }
 
-.avatar-upload :deep(.p-button:hover),
-.avatar-upload :deep(.p-fileupload-choose:hover),
-.avatar-upload :deep(.p-fileupload-choose-button:hover),
-:global(.avatar-upload .p-button:hover),
-:global(.avatar-upload .p-fileupload-choose:hover),
-:global(.avatar-upload .p-fileupload-choose-button:hover) {
-    background: var(--color-brand-dark) !important;
+.avatar-upload-button:hover {
+    background: #033a70;
     border-color: rgba(255, 255, 255, 0.24);
+    transform: translateY(-1px);
+}
+
+.avatar-upload-button:focus-within {
+    box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.18), 0 14px 28px -18px rgba(3, 68, 133, 0.65);
 }
 
 .avatar-preview {
