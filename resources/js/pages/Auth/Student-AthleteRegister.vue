@@ -950,7 +950,7 @@ onBeforeUnmount(() => {
                             customUpload
                             chooseLabel="Choose Avatar"
                             accept="image/*"
-                            class="w-full"
+                            class="avatar-upload w-full"
                             :invalid="shouldShowError('avatar')"
                             @select="(event) => setPrimeFile('avatar', event.files)"
                         />
@@ -1030,11 +1030,13 @@ onBeforeUnmount(() => {
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <label class="label">Phone Number</label>
-                            <InputMask
+                            <InputText
                                 v-model="form.phone_number"
-                                mask="0999-999-9999"
+                                type="tel"
+                                inputmode="numeric"
+                                maxlength="10"
                                 :class="['field w-full', { 'p-invalid': shouldShowError('phone_number') }]"
-                                placeholder="09XX-XXX-XXXX"
+                                placeholder="9XXXXXXXXX"
                                 @blur="touchAndValidate('phone_number')"
                             />
                             <Message v-if="shouldShowError('phone_number')" severity="error" size="small" variant="simple" class="mt-1">{{ fieldErrors.phone_number }}</Message>
@@ -1444,15 +1446,65 @@ onBeforeUnmount(() => {
     border-radius: var(--radius-md);
     padding: 10px 12px;
     background: rgba(255, 255, 255, 0.96);
-    color: var(--color-text-primary);
+    color: #0f172a;
     outline: none;
     transition: border-color var(--transition-base), box-shadow var(--transition-base);
     box-shadow: var(--shadow-xs);
 }
 
+.field::placeholder {
+    color: #64748b;
+    opacity: 1;
+}
+
 .field:focus {
     border-color: color-mix(in srgb, var(--color-brand) 42%, white);
     box-shadow: 0 0 0 3px rgba(3, 68, 133, 0.14);
+}
+
+.avatar-upload :deep(.p-button),
+.avatar-upload :deep(.p-fileupload-choose),
+.avatar-upload :deep(.p-fileupload-choose-button),
+:global(.avatar-upload .p-button),
+:global(.avatar-upload .p-fileupload-choose),
+:global(.avatar-upload .p-fileupload-choose-button) {
+    width: 100%;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    background: var(--color-brand) !important;
+    color: var(--color-surface) !important;
+    font-weight: 800;
+    box-shadow: 0 14px 28px -18px rgba(3, 68, 133, 0.65);
+}
+
+.avatar-upload :deep(.p-button:hover),
+.avatar-upload :deep(.p-fileupload-choose:hover),
+.avatar-upload :deep(.p-fileupload-choose-button:hover),
+:global(.avatar-upload .p-button:hover),
+:global(.avatar-upload .p-fileupload-choose:hover),
+:global(.avatar-upload .p-fileupload-choose-button:hover) {
+    background: var(--color-brand-dark) !important;
+    border-color: rgba(255, 255, 255, 0.24);
+}
+
+.avatar-preview {
+    margin-top: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0.55rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.avatar-preview img {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.32);
 }
 
 .file-field {
