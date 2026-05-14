@@ -59,6 +59,7 @@ const role = computed(() => normalizeWorkspaceRole(user.value?.role))
 const { isDarkMode } = useTheme()
 
 const form = useForm({
+  _method: 'put',
   name: String(user.value?.name ?? ''),
   avatar: null as File | null,
   phone_number: props.profile.student?.phone_number ?? props.profile.coach?.phone_number ?? '',
@@ -320,11 +321,12 @@ async function applyCroppedAvatar() {
 function submit() {
   saved.value = false
   clearSavedTimer()
-  form.put('/account/profile', {
+  form.post('/account/profile', {
     forceFormData: true,
     preserveScroll: true,
     onSuccess: () => {
       saved.value = true
+      form.avatar = null
       showAppToast('Profile updated successfully.', 'success')
       savedTimer = setTimeout(() => {
         saved.value = false
