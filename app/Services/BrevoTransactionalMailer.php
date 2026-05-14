@@ -22,7 +22,7 @@ class BrevoTransactionalMailer
         }
 
         $subject = $this->resolveSubject($mailable);
-        $html = $mailable->render();
+        $html = $this->renderMailable($mailable);
         $text = trim(html_entity_decode(strip_tags($html)));
 
         $payload = [
@@ -57,5 +57,20 @@ class BrevoTransactionalMailer
         $envelope = $mailable->envelope();
 
         return trim((string) ($envelope->subject ?? 'AC-VMIS Notification')) ?: 'AC-VMIS Notification';
+    }
+
+    private function renderMailable(Mailable $mailable): string
+    {
+        $content = $mailable->content();
+        $view = $content->view ?? null;
+
+        if (!is_string($view) || trim($view) === '') {
+            throw new RuntimeException('Brevo mail rendering requires a Blade view mailable.');
+        }
+
+        return view($view, [
+            ...get_object_vars($mailable),
+            ...((array) ($content->with ?? [])),
+        ])->render();
     }
 }
